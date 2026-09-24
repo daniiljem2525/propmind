@@ -222,6 +222,7 @@ export default function Maintenance() {
   const [status, setStatus] = useState("all");
   const [urgency, setUrgency] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [confirming, setConfirming] = useState(null);
   useNewParam(() => setDialogOpen(true));
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
@@ -420,7 +421,7 @@ export default function Maintenance() {
                       {t("maintenance.start")}
                     </Button>
                   )}
-                  <Button size="sm" onClick={() => advance(r, "completed")}>
+                  <Button size="sm" onClick={() => setConfirming(r)}>
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     {t("maintenance.complete")}
                   </Button>
@@ -434,6 +435,20 @@ export default function Maintenance() {
       <RequestFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting?.title || deleting?.description?.slice(0, 80)} />
+
+      {/* Второе подтверждение при завершении заявки */}
+      <ConfirmDialog
+        open={!!confirming}
+        onClose={() => setConfirming(null)}
+        onConfirm={() => {
+          const r = confirming;
+          setConfirming(null);
+          advance(r, "completed");
+        }}
+        title={t("maintenance.confirmTitle")}
+        description={confirming ? `${confirming.title || confirming.description?.slice(0, 60)} — ${confirming.property_name}` : ""}
+        confirmLabel={t("maintenance.complete")}
+      />
     </div>
   );
 }

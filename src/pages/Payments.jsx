@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Send,
   Trash2,
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
@@ -28,7 +29,7 @@ import { useToast } from "@/components/ui/toast";
 import { PAYMENT_STATUS_CONFIG } from "@/lib/config/statuses";
 import { PAYMENT_METHOD_CONFIG } from "@/lib/config/misc";
 import { downloadFile, toCSV } from "@/lib/csv";
-import { cn, formatMoney, monthShort, todayISO, uid } from "@/lib/utils";
+import { cn, formatMoney, monthShort, todayISO, addDaysISO, uid } from "@/lib/utils";
 
 const STATUS_OPTIONS = ["pending", "paid", "overdue", "partial", "cancelled"];
 const METHOD_OPTIONS = ["", "cash", "bank", "card", "stripe"];
@@ -200,6 +201,16 @@ export default function Payments() {
   const [deleting, setDeleting] = useState(null);
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [remindersOpen, setRemindersOpen] = useState(false);
+
+  // Платежи со сроком оплаты в ближайшие 5 дней — для рассылки напоминаний
+  const upcoming = useMemo(() => {
+    const today = todayISO();
+    const limit = addDaysISO(todayISO(), 5);
+    return payments.filter(
+      (p) => ["pending", "partial"].includes(p.status) && p.due_date >= today && p.due_date <= limit
+    );
+  }, [payments]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -357,6 +368,13 @@ export default function Payments() {
         subtitle={t("payments.subtitle")}
         actions={
           <>
+            <Button variant="outline" onClick={() => setRemindersOpen(true)} disabled={upcoming.length === 0} title={t("payments.remindersSub").replace("{n}", 5)}>
+              <Send className="h-4 w-4" />
+              {t("payments.reminders")}
+              {upcoming.length > 0 && (
+                <span className="ml-1 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-bold text-white">{upcoming.length}</span>
+              )}
+            </Button>
             <Button variant="outline" onClick={exportCsv} disabled={filtered.length === 0}>
               <Download className="h-4 w-4" />
               {t("payments.exportCsv")}
@@ -524,6 +542,90 @@ export default function Payments() {
       <PaymentFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} tenants={tenants} properties={properties} />
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting ? `${deleting.tenant_name || deleting.property_name} — ${formatMoney(deleting.amount, deleting.currency, lang)}` : ""} />
+
+      <RemindersDialog open={remindersOpen} onClose={() => setRemindersOpen(false)} upcoming={upcoming} tenants={tenants} />
     </div>
+  );
+}
+
+// ——— Рассылка напоминаний арендаторам о ближайших платежах ———
+function RemindersDialog({ open, onClose, upcoming, tenants }) {
+  const { t, lang } = useLang();
+  const toast = useToast();
+
+  const buildBody = (p) =>
+    t("payments.reminderBody")
+      .replace("{amount}", formatMoney(p.amount, p.currency, lang))
+      .replace("{property}", p.property_name || "")
+      .replace("{date}", p.due_date);
+
+  const draftAll = () => {
+    const recipients = upcoming
+      .map((p) => tenants.find((x) => x.id === p.tenant_id)?.email)
+      .filter(Boolean)
+      .join(",");
+    const subject = lang === "ru" ? "Напоминание об оплате — PropMind" : "Payment reminder — PropMind";
+    const body = upcoming
+      .filter((p) => tenants.find((x) => x.id === p.tenant_id)?.email)
+      .map((p) => buildBody(p))
+      .join("\n\n———\n\n");
+    window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    toast.success(t("payments.remindersSent").replace("{n}", upcoming.length));
+  };
+
+  const draftOne = (p) => {
+    const email = tenants.find((x) => x.id === p.tenant_id)?.email || "";
+    const subject = lang === "ru" ? "Напоминание об оплате" : "Payment reminder";
+    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(buildBody(p))}`;
+    toast.info(t("payments.remindSent"));
+  };
+
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={t("payments.remindersTitle")}
+      description={t("payments.remindersSub").replace("{n}", 5)}
+      size="lg"
+      footer={
+        <>
+          <Button variant="outline" onClick={onClose}>
+            {t("common.close")}
+          </Button>
+          <Button variant="gradient" onClick={draftAll} disabled={upcoming.length === 0}>
+            <Send className="h-4 w-4" />
+            {t("payments.remindersDraftAll").replace("{n}", upcoming.length)}
+          </Button>
+        </>
+      }
+    >
+      {upcoming.length === 0 ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">
+          {t("payments.remindersEmpty").replace("{n}", 5)}
+        </p>
+      ) : (
+        <div className="divide-y">
+          {upcoming.map((p) => {
+            const email = tenants.find((x) => x.id === p.tenant_id)?.email;
+            return (
+              <div key={p.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{p.tenant_name || "—"}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {p.property_name} · {p.due_date}
+                  </p>
+                </div>
+                <span className="shrink-0 text-sm font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
+                <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
+                <Button size="sm" variant="outline" disabled={!email} onClick={() => draftOne(p)} title={email || t("tenants.noProperty")}>
+                  <Mail className="h-3.5 w-3.5" />
+                  {t("payments.remind")}
+                </Button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Dialog>
   );
 }

@@ -140,6 +140,13 @@ export const ru = {
   "payments.exportCsv": "Экспорт CSV",
   "payments.remind": "Напомнить",
   "payments.remindSent": "Черновик напоминания открыт в почтовом клиенте",
+  "payments.reminders": "Рассылка",
+  "payments.remindersTitle": "Рассылка напоминаний",
+  "payments.remindersSub": "Платежи со сроком оплаты в ближайшие {n} дней",
+  "payments.remindersEmpty": "Ближайшие {n} дней платежей нет — рассылать нечего",
+  "payments.remindersDraftAll": "Открыть черновик для всех ({n})",
+  "payments.remindersSent": "Черновик рассылки для {n} арендаторов подготовлен",
+  "payments.reminderBody": "Здравствуйте!\n\nНапоминаем, что платёж {amount} за объект «{property}» ожидается {date}.\n\nС уважением,\nPropMind",
 
   // ——— Импорт объектов ———
   "properties.importCsv": "Импорт CSV",
@@ -291,6 +298,8 @@ export const ru = {
   "maintenance.resolution": "Решение",
   "maintenance.completedDate": "Дата завершения",
   "maintenance.source": "Источник",
+  "maintenance.confirmTitle": "Завершить заявку?",
+  "maintenance.confirmDesc": "Заявка перейдёт в статус «Завершена» с сегодняшней датой. Если нужно указать решение — отредактируйте заявку после подтверждения.",
   "maintenance.start": "В работу",
   "maintenance.complete": "Завершить",
   "maintenance.cancelRequest": "Отменить",

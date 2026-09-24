@@ -140,6 +140,13 @@ export const en = {
   "payments.exportCsv": "Export CSV",
   "payments.remind": "Remind",
   "payments.remindSent": "Reminder draft opened in your mail client",
+  "payments.reminders": "Broadcast",
+  "payments.remindersTitle": "Reminder broadcast",
+  "payments.remindersSub": "Payments due within the next {n} days",
+  "payments.remindersEmpty": "No payments due within {n} days — nothing to send",
+  "payments.remindersDraftAll": "Open draft for all ({n})",
+  "payments.remindersSent": "Draft for {n} tenants prepared",
+  "payments.reminderBody": "Hello!\n\nThis is a reminder that the payment of {amount} for \"{property}\" is due on {date}.\n\nBest regards,\nPropMind",
 
   // ——— Property import ———
   "properties.importCsv": "Import CSV",
@@ -291,6 +298,8 @@ export const en = {
   "maintenance.resolution": "Resolution",
   "maintenance.completedDate": "Completed on",
   "maintenance.source": "Source",
+  "maintenance.confirmTitle": "Complete this request?",
+  "maintenance.confirmDesc": "The request will move to \"Completed\" with today's date. If a resolution note is needed, edit the request afterwards.",
   "maintenance.start": "Start",
   "maintenance.complete": "Complete",
   "maintenance.cancelRequest": "Cancel",
