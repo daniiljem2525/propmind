@@ -3,6 +3,7 @@ import {
   Banknote,
   CalendarDays,
   Check,
+  Copy,
   CreditCard,
   Download,
   Mail,
@@ -602,17 +603,26 @@ function RemindersDialog({ open, onClose, upcoming, tenants }) {
       .replace("{property}", p.property_name || "")
       .replace("{date}", p.due_date);
 
+  const withEmail = upcoming.filter((p) => tenants.find((x) => x.id === p.tenant_id)?.email);
+  const allText = withEmail.map((p) => `${tenants.find((x) => x.id === p.tenant_id)?.email}: \n${buildBody(p)}`).join("\n\n———\n\n");
+
+  const copyAll = async () => {
+    try {
+      await navigator.clipboard.writeText(allText);
+      toast.success(t("common.copied"));
+    } catch {
+      toast.error(t("errors.generic"));
+    }
+  };
+
+  const downloadTxt = () => {
+    downloadFile(allText, `propmind-reminders-${todayISO()}.txt`);
+  };
+
   const draftAll = () => {
-    const recipients = upcoming
-      .map((p) => tenants.find((x) => x.id === p.tenant_id)?.email)
-      .filter(Boolean)
-      .join(",");
+    const recipients = withEmail.map((p) => tenants.find((x) => x.id === p.tenant_id)?.email).join(",");
     const subject = lang === "ru" ? "Напоминание об оплате — PropMind" : "Payment reminder — PropMind";
-    const body = upcoming
-      .filter((p) => tenants.find((x) => x.id === p.tenant_id)?.email)
-      .map((p) => buildBody(p))
-      .join("\n\n———\n\n");
-    window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(allText)}`;
     toast.success(t("payments.remindersSent").replace("{n}", upcoming.length));
   };
 
@@ -635,7 +645,11 @@ function RemindersDialog({ open, onClose, upcoming, tenants }) {
           <Button variant="outline" onClick={onClose}>
             {t("common.close")}
           </Button>
-          <Button variant="gradient" onClick={draftAll} disabled={upcoming.length === 0}>
+          <Button variant="outline" onClick={downloadTxt} disabled={withEmail.length === 0}>
+            <Download className="h-4 w-4" />
+            {t("payments.downloadTxt")}
+          </Button>
+          <Button variant="gradient" onClick={draftAll} disabled={withEmail.length === 0}>
             <Send className="h-4 w-4" />
             {t("payments.remindersDraftAll").replace("{n}", upcoming.length)}
           </Button>
@@ -647,26 +661,42 @@ function RemindersDialog({ open, onClose, upcoming, tenants }) {
           {t("payments.remindersEmpty").replace("{n}", 5)}
         </p>
       ) : (
-        <div className="divide-y">
-          {upcoming.map((p) => {
-            const email = tenants.find((x) => x.id === p.tenant_id)?.email;
-            return (
-              <div key={p.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{p.tenant_name || "—"}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {p.property_name} · {p.due_date}
-                  </p>
+        <div className="space-y-4">
+          <div className="divide-y rounded-md border">
+            {upcoming.map((p) => {
+              const email = tenants.find((x) => x.id === p.tenant_id)?.email;
+              return (
+                <div key={p.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{p.tenant_name || "—"}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {email || "—"} · {p.property_name} · {p.due_date}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
+                  <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
+                  <Button size="sm" variant="outline" disabled={!email} onClick={() => draftOne(p)}>
+                    <Mail className="h-3.5 w-3.5" />
+                    {t("payments.remind")}
+                  </Button>
                 </div>
-                <span className="shrink-0 text-sm font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
-                <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
-                <Button size="sm" variant="outline" disabled={!email} onClick={() => draftOne(p)} title={email || t("tenants.noProperty")}>
-                  <Mail className="h-3.5 w-3.5" />
-                  {t("payments.remind")}
-                </Button>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+
+          {/* Превью письма + копирование — работает даже без почтового клиента */}
+          <div className="rounded-md border bg-muted/30 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium">{t("payments.letterPreview")}</p>
+              <Button size="sm" variant="outline" onClick={copyAll}>
+                <Copy className="h-3.5 w-3.5" />
+                {t("payments.copyText")}
+              </Button>
+            </div>
+            <pre className="scrollbar-thin mt-3 max-h-48 overflow-y-auto whitespace-pre-wrap font-sans text-xs leading-relaxed text-muted-foreground">
+              {allText}
+            </pre>
+          </div>
         </div>
       )}
     </Dialog>

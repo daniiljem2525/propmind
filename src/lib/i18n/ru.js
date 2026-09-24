@@ -152,6 +152,9 @@ export const ru = {
   "payments.confirmOnlineDesc": "Платёж будет отмечен оплаченным, как будто прошёл через Stripe.",
   "payments.confirmBulkTitle": "Отметить выбранные платежи?",
   "payments.confirmBulkDesc": "Будет отмечено оплаченными: {n}. Действие можно отменить только вручную.",
+  "payments.letterPreview": "Текст письма",
+  "payments.copyText": "Скопировать текст",
+  "payments.downloadTxt": "Скачать .txt",
 
   // ——— Импорт объектов ———
   "properties.importCsv": "Импорт CSV",

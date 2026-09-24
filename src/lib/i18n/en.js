@@ -152,6 +152,9 @@ export const en = {
   "payments.confirmOnlineDesc": "The payment will be marked as paid, as if it went through Stripe.",
   "payments.confirmBulkTitle": "Mark the selected payments?",
   "payments.confirmBulkDesc": "Payments to be marked as paid: {n}. This can only be undone manually.",
+  "payments.letterPreview": "Letter text",
+  "payments.copyText": "Copy text",
+  "payments.downloadTxt": "Download .txt",
 
   // ——— Property import ———
   "properties.importCsv": "Import CSV",

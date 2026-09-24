@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -17,10 +18,12 @@ export function Dialog({ open, onClose, title, description, children, footer, si
     };
   }, [open, onClose]);
 
-  return (
+  // createPortal: диалог всегда позиционируется от окна браузера,
+  // а не от контейнера страницы (иначе сдвигается на прокрученных страницах)
+  return createPortal(
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center p-0 sm:items-center sm:p-4">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -30,14 +33,14 @@ export function Dialog({ open, onClose, title, description, children, footer, si
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 12 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 12 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.18 }}
             role="dialog"
             aria-modal="true"
             className={cn(
-              "relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-t-lg border bg-card shadow-xl sm:rounded-lg",
+              "scrollbar-thin relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-lg border bg-card shadow-xl",
               size === "md" && "sm:max-w-lg",
               size === "lg" && "sm:max-w-2xl"
             )}
@@ -61,7 +64,8 @@ export function Dialog({ open, onClose, title, description, children, footer, si
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
