@@ -18,6 +18,7 @@ import {
   Wrench,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
@@ -42,6 +43,7 @@ export default function Header({ onOpenMobile }) {
   const [searchFocused, setSearchFocused] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
+  const [demoConfirm, setDemoConfirm] = useState(false);
   const menuRef = useRef(null);
   const quickRef = useRef(null);
   const searchRef = useRef(null);
@@ -208,7 +210,7 @@ export default function Header({ onOpenMobile }) {
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
                   onClick={() => {
                     setMenuOpen(false);
-                    toast.run();
+                    setDemoConfirm(true);
                   }}
                 >
                   <Sparkles className="h-4 w-4 text-amber-500" />
@@ -229,6 +231,18 @@ export default function Header({ onOpenMobile }) {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={demoConfirm}
+        onClose={() => setDemoConfirm(false)}
+        onConfirm={() => {
+          setDemoConfirm(false);
+          toast.run();
+        }}
+        title={t("dashboard.confirmDemoTitle")}
+        description={t("dashboard.confirmDemoDesc")}
+        confirmLabel={t("common.demoData")}
+      />
     </header>
   );
 }

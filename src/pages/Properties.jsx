@@ -374,6 +374,7 @@ export default function Properties() {
   // ——— Импорт объектов из CSV ———
   const importInputRef = useRef(null);
   const [importing, setImporting] = useState(false);
+  const [pendingImport, setPendingImport] = useState(null);
 
   const handleImportFile = async (e) => {
     const file = e.target.files?.[0];
@@ -387,6 +388,19 @@ export default function Properties() {
         toast.error(t("properties.importFailed"));
         return;
       }
+      setPendingImport(rows); // сначала показываем подтверждение с количеством
+    } catch (err) {
+      toast.error(t("errors.generic"));
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const runImport = async () => {
+    const rows = pendingImport || [];
+    setPendingImport(null);
+    setImporting(true);
+    try {
       for (const row of rows) {
         await Property.create({
           name: row.name,
@@ -531,6 +545,17 @@ export default function Properties() {
       />
 
       <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} feature={t("upsell.features.properties")} />
+
+      {/* Подтверждение импорта с количеством найденных объектов */}
+      <ConfirmDialog
+        open={!!pendingImport}
+        onClose={() => setPendingImport(null)}
+        onConfirm={runImport}
+        loading={importing}
+        title={t("properties.confirmImportTitle")}
+        description={t("properties.confirmImportDesc").replace("{n}", pendingImport?.length || 0)}
+        confirmLabel={t("properties.importCsv")}
+      />
     </div>
   );
 }

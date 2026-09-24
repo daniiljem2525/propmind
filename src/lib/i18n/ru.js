@@ -110,6 +110,8 @@ export const ru = {
   "dashboard.demoTitle": "Начните за 15 минут",
   "dashboard.demoSubtitle": "Загрузите демо-данные, чтобы посмотреть платформу в действии — объекты, арендаторы, платежи и заявки появятся в один клик",
   "dashboard.loadDemo": "Загрузить демо-данные",
+  "dashboard.confirmDemoTitle": "Загрузить демо-данные?",
+  "dashboard.confirmDemoDesc": "Будут добавлены 8 объектов, арендаторы, история платежей, заявки и документы. Существующие данные не удаляются. Также будет открыт тариф Pro (демо).",
   "dashboard.inMonth": "за месяц",
 
   "onboarding.title": "Первые шаги",
@@ -161,6 +163,8 @@ export const ru = {
   "properties.importHint": "CSV с колонками name, address, rent_amount (разделитель «;» или «,»)",
   "properties.imported": "Импортировано объектов: {n}",
   "properties.importFailed": "Не удалось разобрать файл: не найдены name и address",
+  "properties.confirmImportTitle": "Импортировать объекты?",
+  "properties.confirmImportDesc": "В файле найдено объектов: {n}. Они будут добавлены в портфель.",
 
   // ——— Продление договора ———
   "dashboard.renew": "Продлить на год",
@@ -260,6 +264,8 @@ export const ru = {
   "tenants.createSchedule": "График на 12 месяцев",
   "tenants.scheduleCreated": "Создано платежей: {n}",
   "tenants.scheduleHint": "12 платежей по сумме аренды, раз в месяц",
+  "tenants.confirmScheduleTitle": "Создать график платежей?",
+  "tenants.confirmScheduleDesc": "Для «{name}» будет создано до 12 ежемесячных платежей. Существующие платежи не дублируются.",
   "tenants.deleted": "Арендатор удалён",
   "tenants.saved": "Арендатор сохранён",
   "tenants.autoLinked": "Арендатор привязан к объекту, создан первый платёж",
@@ -408,6 +414,8 @@ export const ru = {
   "notifications.markAllRead": "Прочитать все",
   "notifications.empty": "Уведомлений нет",
   "notifications.unread": "Непрочитанных: {n}",
+  "notifications.confirmMarkAllTitle": "Отметить все прочитанными?",
+  "notifications.confirmMarkAllDesc": "Все уведомления будут помечены как прочитанные.",
 
   "notFound.title": "Страница не найдена",
   "notFound.subtitle": "Проверьте адрес или вернитесь на дашборд",

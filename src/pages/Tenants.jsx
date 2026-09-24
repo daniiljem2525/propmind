@@ -175,6 +175,7 @@ export default function Tenants() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [scheduleConfirm, setScheduleConfirm] = useState(null);
 
   const propertyById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
 
@@ -331,7 +332,7 @@ export default function Tenants() {
                       variant="outline"
                       disabled={!canSchedule}
                       loading={busyId === x.id}
-                      onClick={() => runSchedule(x)}
+                      onClick={() => setScheduleConfirm(x)}
                       title={canSchedule ? t("tenants.scheduleHint") : t("tenants.noProperty")}
                     >
                       <CalendarPlus className="h-4 w-4" />
@@ -369,6 +370,20 @@ export default function Tenants() {
       />
 
       <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} feature={t("upsell.features.tenants")} />
+
+      {/* Подтверждение создания графика */}
+      <ConfirmDialog
+        open={!!scheduleConfirm}
+        onClose={() => setScheduleConfirm(null)}
+        onConfirm={() => {
+          const x = scheduleConfirm;
+          setScheduleConfirm(null);
+          runSchedule(x);
+        }}
+        title={t("tenants.confirmScheduleTitle")}
+        description={t("tenants.confirmScheduleDesc").replace("{name}", scheduleConfirm?.full_name || "")}
+        confirmLabel={t("tenants.createSchedule")}
+      />
     </div>
   );
 }

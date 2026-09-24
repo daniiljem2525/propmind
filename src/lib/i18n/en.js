@@ -110,6 +110,8 @@ export const en = {
   "dashboard.demoTitle": "Start in 15 minutes",
   "dashboard.demoSubtitle": "Load demo data to see the platform in action — properties, tenants, payments and requests in one click",
   "dashboard.loadDemo": "Load demo data",
+  "dashboard.confirmDemoTitle": "Load demo data?",
+  "dashboard.confirmDemoDesc": "The demo adds 8 properties, tenants, payment history, requests and documents. Existing data is kept. The Pro plan is also unlocked (demo).",
   "dashboard.inMonth": "this month",
 
   "onboarding.title": "First steps",
@@ -161,6 +163,8 @@ export const en = {
   "properties.importHint": "CSV with columns name, address, rent_amount («;» or «,» separator)",
   "properties.imported": "Properties imported: {n}",
   "properties.importFailed": "Could not parse the file: name and address not found",
+  "properties.confirmImportTitle": "Import properties?",
+  "properties.confirmImportDesc": "Properties found in the file: {n}. They will be added to your portfolio.",
 
   // ——— Lease renewal ———
   "dashboard.renew": "Renew for a year",
@@ -260,6 +264,8 @@ export const en = {
   "tenants.createSchedule": "12-month schedule",
   "tenants.scheduleCreated": "Payments created: {n}",
   "tenants.scheduleHint": "12 payments at the rent amount, monthly",
+  "tenants.confirmScheduleTitle": "Create the payment schedule?",
+  "tenants.confirmScheduleDesc": "Up to 12 monthly payments will be created for \"{name}\". Existing payments are never duplicated.",
   "tenants.deleted": "Tenant deleted",
   "tenants.saved": "Tenant saved",
   "tenants.autoLinked": "Tenant linked to the property, first payment created",
@@ -408,6 +414,8 @@ export const en = {
   "notifications.markAllRead": "Mark all read",
   "notifications.empty": "No notifications",
   "notifications.unread": "Unread: {n}",
+  "notifications.confirmMarkAllTitle": "Mark everything as read?",
+  "notifications.confirmMarkAllDesc": "All notifications will be marked as read.",
 
   "notFound.title": "Page not found",
   "notFound.subtitle": "Check the address or go back to the dashboard",

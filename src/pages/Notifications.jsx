@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { Bell, CheckCheck } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { useCollection } from "@/hooks/useCollection";
 import { NotificationEntity } from "@/lib/api/entities";
@@ -13,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Notifications() {
   const { t, lang } = useLang();
+  const [confirmAll, setConfirmAll] = useState(false);
   const navigate = useNavigate();
   const { data: notifications } = useCollection(NotificationEntity);
   const unread = notifications.filter((n) => !n.is_read).length;
@@ -35,7 +38,7 @@ export default function Notifications() {
         subtitle={unread > 0 ? t("notifications.unread").replace("{n}", unread) : t("notifications.subtitle")}
         actions={
           unread > 0 && (
-            <Button variant="outline" onClick={markAll}>
+            <Button variant="outline" onClick={() => setConfirmAll(true)}>
               <CheckCheck className="h-4 w-4" />
               {t("notifications.markAllRead")}
             </Button>
@@ -87,6 +90,17 @@ export default function Notifications() {
           </div>
         </Card>
       )}
+      <ConfirmDialog
+        open={confirmAll}
+        onClose={() => setConfirmAll(false)}
+        onConfirm={() => {
+          setConfirmAll(false);
+          markAll();
+        }}
+        title={t("notifications.confirmMarkAllTitle")}
+        description={t("notifications.confirmMarkAllDesc")}
+        confirmLabel={t("notifications.markAllRead")}
+      />
     </div>
   );
 }
