@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>PropMind — motion</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: #07211f; }
+  body {
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: #fff;
+    position: relative;
+  }
+  /* фон */
+  .bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 500px at 15% 0%, rgba(20,184,166,.28), transparent 60%),
+      radial-gradient(800px 500px at 100% 100%, rgba(15,118,110,.35), transparent 60%),
+      linear-gradient(150deg, #06201e 0%, #0b3b37 55%, #06201e 100%);
+  }
+  .grain { position:absolute; inset:0; opacity:.05;
+    background-image: radial-gradient(rgba(255,255,255,.9) 1px, transparent 1px);
+    background-size: 26px 26px; }
+
+  .scene {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    opacity: 0; transform: translateY(24px);
+    transition: opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1);
+    pointer-events: none;
+  }
+  .scene.on { opacity: 1; transform: none; }
+  .scene.off { opacity: 0; transform: translateY(-24px); }
+
+  /* типографика */
+  .kicker {
+    font-size: 20px; letter-spacing: .22em; text-transform: uppercase;
+    color: #5eead4; font-weight: 700; margin-bottom: 26px;
+  }
+  h1 { font-size: 72px; font-weight: 800; line-height: 1.08; text-align: center; max-width: 1000px; }
+  h1 .grad {
+    background: linear-gradient(100deg, #2dd4bf, #99f6e4);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 26px; color: #b8d8d3; margin-top: 22px; text-align: center; max-width: 820px; line-height: 1.5; }
+
+  /* логотип */
+  .logo-row { display: flex; align-items: center; gap: 22px; margin-bottom: 34px; }
+  .logo-mark {
+    width: 96px; height: 96px; border-radius: 26px;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 20px 60px rgba(20,184,166,.45);
+  }
+  .logo-name { font-size: 56px; font-weight: 800; letter-spacing: -.02em; }
+
+  /* проблемы */
+  .pains { display: flex; gap: 26px; margin-top: 44px; }
+  .pain {
+    width: 300px; padding: 28px; border-radius: 20px;
+    background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12);
+  }
+  .pain .ico { font-size: 40px; margin-bottom: 14px; }
+  .pain .t { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .pain .d { font-size: 17px; color: #a9c9c4; line-height: 1.45; }
+  .pain.bad { border-color: rgba(244,63,94,.4); }
+  .pain.bad .t { color: #fda4af; }
+
+  /* фичи */
+  .feats { display: grid; grid-template-columns: repeat(2, 420px); gap: 22px; margin-top: 40px; }
+  .feat {
+    display: flex; align-items: center; gap: 18px; text-align: left;
+    padding: 22px 26px; border-radius: 18px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(94,234,212,.25);
+    opacity: 0; transform: translateX(-26px);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1);
+  }
+  .scene.on .feat { opacity: 1; transform: none; }
+  .scene.on .feat:nth-child(1) { transition-delay: .15s; }
+  .scene.on .feat:nth-child(2) { transition-delay: .45s; }
+  .scene.on .feat:nth-child(3) { transition-delay: .75s; }
+  .scene.on .feat:nth-child(4) { transition-delay: 1.05s; }
+  .feat .fi {
+    width: 54px; height: 54px; border-radius: 14px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; background: linear-gradient(135deg, #0f766e, #14b8a6);
+  }
+  .feat .ft { font-size: 23px; font-weight: 700; }
+  .feat .fd { font-size: 16px; color: #a9c9c4; margin-top: 3px; }
+
+  /* счётчики */
+  .stats { display: flex; gap: 70px; margin-top: 48px; }
+  .stat { text-align: center; }
+  .stat .num {
+    font-size: 84px; font-weight: 800; line-height: 1;
+    background: linear-gradient(120deg, #5eead4, #fff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat .lab { font-size: 20px; color: #b8d8d3; margin-top: 12px; }
+
+  /* CTA */
+  .cta-box {
+    margin-top: 40px; padding: 26px 60px; border-radius: 18px;
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    font-size: 32px; font-weight: 800;
+    box-shadow: 0 24px 70px rgba(20,184,166,.5);
+  }
+  .cta-note { margin-top: 24px; font-size: 21px; color: #b8d8d3; }
+  .url { margin-top: 18px; font-size: 18px; color: #5eead4; letter-spacing: .08em; }
+
+  /* прогресс */
+  .progress { position: absolute; left: 0; bottom: 0; height: 5px; width: 0%;
+    background: linear-gradient(90deg, #14b8a6, #5eead4); transition: width .3s linear; z-index: 10; }
+
+  /* последовательное появление элементов сцены 1 */
+  .scene .rise { opacity: 0; transform: translateY(18px); transition: all .7s cubic-bezier(.2,.8,.2,1); }
+  .scene.on .rise { opacity: 1; transform: none; }
+  .scene.on .rise.d1 { transition-delay: .2s; }
+  .scene.on .rise.d2 { transition-delay: .55s; }
+  .scene.on .rise.d3 { transition-delay: .9s; }
+</style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain"></div>
+
+  <!-- Сцена 1: логотип -->
+  <section class="scene" id="s1">
+    <div class="logo-row rise">
+      <div class="logo-mark">
+        <svg width="54" height="54" viewBox="0 0 32 32" fill="none"><path d="M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z" fill="#fff"/></svg>
+      </div>
+      <div class="logo-name">PropMind</div>
+    </div>
+    <h1 class="rise d1">Управляйте недвижимостью<br/><span class="grad">без таблиц и хаоса</span></h1>
+    <p class="sub rise d2">Объекты · Арендаторы · Платежи · Заявки · Аналитика — в одном окне</p>
+  </section>
+
+  <!-- Сцена 2: проблема -->
+  <section class="scene" id="s2">
+    <div class="kicker">Знакомо?</div>
+    <h1 style="font-size:56px">Учёт «в тетрадке» не масштабируется</h1>
+    <div class="pains">
+      <div class="pain bad rise d1"><div class="ico">📊</div><div class="t">Excel на 100 строк</div><div class="d">Формулы ломаются, версии расходятся, доступ — только у одного человека</div></div>
+      <div class="pain bad rise d2"><div class="ico">⏰</div><div class="t">Просрочки постфактум</div><div class="d">О неоплате вы узнаёте от арендатора — через неделю после срока</div></div>
+      <div class="pain bad rise d3"><div class="ico">💬</div><div class="t">Заявки в мессенджере</div><div class="d">«У Ковалёвой течёт» теряется между смен и выходит боком</div></div>
+    </div>
+  </section>
+
+  <!-- Сцена 3: фичи -->
+  <section class="scene" id="s3">
+    <div class="kicker">PropMind решает</div>
+    <h1 style="font-size:56px">Завод, который работает за вас</h1>
+    <div class="feats">
+      <div class="feat"><div class="fi">🔗</div><div><div class="ft">Автосвязывание</div><div class="fd">Арендатор привязался — платёж создался сам</div></div></div>
+      <div class="feat"><div class="fi">📅</div><div><div class="ft">График на 12 месяцев</div><div class="fd">Одна кнопка вместо ручных формул</div></div></div>
+      <div class="feat"><div class="fi">🔔</div><div><div class="ft">Автопросрочки и напоминания</div><div class="fd">Система помнит сроки за вас</div></div></div>
+      <div class="feat"><div class="fi">📈</div><div><div class="ft">Аналитика портфеля</div><div class="fd">Доходы и просрочки — без ручных отчётов</div></div></div>
+    </div>
+  </section>
+
+  <!-- Сцена 4: цифры -->
+  <section class="scene" id="s4">
+    <div class="kicker">Запуск за 15 минут</div>
+    <h1 style="font-size:52px">Цифры демо-портфеля</h1>
+    <div class="stats">
+      <div class="stat rise d1"><div class="num" data-count="8">0</div><div class="lab">объектов</div></div>
+      <div class="stat rise d2"><div class="num" data-count="6">0</div><div class="lab">арендаторов</div></div>
+      <div class="stat rise d3"><div class="num" data-count="52">0</div><div class="lab">платежей под контролем</div></div>
+    </div>
+  </section>
+
+  <!-- Сцена 5: CTA -->
+  <section class="scene" id="s5">
+    <h1>Порядок в портфеле<br/><span class="grad">за один вечер</span></h1>
+    <div class="cta-box rise d1">Начать бесплатно — без карты</div>
+    <p class="cta-note rise d2">Бесплатно до 3 объектов · Демо-данные в один клик · RU / EN</p>
+    <p class="url rise d3">propmind.app</p>
+  </section>
+
+  <div class="progress" id="prog"></div>
+
+<script>
+  // Таймлайн: [сцена, старт, длина] в секундах
+  const timeline = [
+    ["s1", 0.3, 5.5],
+    ["s2", 6.3, 6.0],
+    ["s3", 12.8, 6.5],
+    ["s4", 19.8, 6.0],
+    ["s5", 26.3, 5.2],
+  ];
+  const TOTAL = 31.5;
+
+  const scenes = timeline.map(([id]) => document.getElementById(id));
+  let current = -1;
+
+  function show(idx) {
+    if (idx === current) return;
+    scenes.forEach((s, i) => {
+      s.classList.toggle("on", i === idx);
+      s.classList.toggle("off", i !== idx && i < idx);
+    });
+    current = idx;
+  }
+
+  // Счётчики сцены 4
+  let countersDone = false;
+  function runCounters() {
+    if (countersDone) return;
+    countersDone = true;
+    document.querySelectorAll("#s4 .num").forEach((el) => {
+      const target = +el.dataset.count;
+      const t0 = performance.now();
+      const dur = 1600;
+      const tick = (now) => {
+        const k = Math.min((now - t0) / dur, 1);
+        const eased = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(target * eased);
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  const t0box = { t0: null };
+  function startShow() {
+    if (t0box.t0 !== null) return;
+    t0box.t0 = performance.now();
+    document.getElementById("cover").style.display = "none";
+    requestAnimationFrame(frame);
+  }
+
+  const timelineStart = performance.now();
+  function frame(now) {
+    const t = (now - t0box.t0) / 1000;
+    const pct = Math.min(t / TOTAL, 1);
+    document.getElementById("prog").style.width = pct * 100 + "%";
+
+    let idx = -1;
+    timeline.forEach(([id, start], i) => { if (t >= start) idx = i; });
+    show(Math.max(idx, 0));
+    if (idx === 3) runCounters();
+
+    if (t < TOTAL) requestAnimationFrame(frame);
+  }
+
+  // Стартовая заглушка: запись включается до запуска анимации
+  const cover = document.createElement("div");
+  cover.style.cssText = "position:absolute;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:#07211f;cursor:pointer;";
+  cover.innerHTML = '<div style="font:600 26px Inter,system-ui,sans-serif;color:#5eead4;">▶ начать воспроизведение</div>';
+  cover.addEventListener("click", startShow);
+  document.body.appendChild(cover);
+
+  // Детерминированный кадр для покадрового рендера: window.__seek(секунды)
+  window.__seek = function (t) {
+    cover.style.display = "none";
+    let idx = -1;
+    timeline.forEach(([id, start], i) => { if (t >= start) idx = i; });
+    show(Math.max(idx, 0));
+    // счётчики: сцена 4 стартует на 19.8с, анимация счёта 1.6с
+    const k = Math.max(0, Math.min((t - 19.8) / 1.6, 1));
+    const eased = 1 - Math.pow(1 - k, 3);
+    document.querySelectorAll("#s4 .num").forEach((el) => {
+      el.textContent = Math.round(+el.dataset.count * eased);
+    });
+    document.getElementById("prog").style.width = Math.min(t / TOTAL, 1) * 100 + "%";
+  };
+</script>
+</body>
+</html>
