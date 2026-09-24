@@ -128,6 +128,11 @@ export async function seedDemoData() {
   const existing = await Property.list();
   if (existing.length > 0) return { skipped: true };
 
+  // Демо-режим: открываем полный тариф Pro, чтобы ничто не блокировалось лимитами
+  try {
+    localStorage.setItem("propmind:plan", "pro");
+  } catch {}
+
   // ——— Объекты ———
   const properties = [];
   for (const p of DEMO_PROPERTIES) {

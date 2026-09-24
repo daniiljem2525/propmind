@@ -147,6 +147,11 @@ export const ru = {
   "payments.remindersDraftAll": "Открыть черновик для всех ({n})",
   "payments.remindersSent": "Черновик рассылки для {n} арендаторов подготовлен",
   "payments.reminderBody": "Здравствуйте!\n\nНапоминаем, что платёж {amount} за объект «{property}» ожидается {date}.\n\nС уважением,\nPropMind",
+  "payments.confirmPaidTitle": "Отметить платёж оплаченным?",
+  "payments.confirmOnlineTitle": "Онлайн-оплата (демо)",
+  "payments.confirmOnlineDesc": "Платёж будет отмечен оплаченным, как будто прошёл через Stripe.",
+  "payments.confirmBulkTitle": "Отметить выбранные платежи?",
+  "payments.confirmBulkDesc": "Будет отмечено оплаченными: {n}. Действие можно отменить только вручную.",
 
   // ——— Импорт объектов ———
   "properties.importCsv": "Импорт CSV",
@@ -407,6 +412,7 @@ export const ru = {
 
   "demo.loaded": "Демо-данные загружены",
   "demo.already": "Демо-данные уже загружены",
+  "demo.planUnlocked": "открыт тариф Pro (демо)",
   "errors.quota": "Локальное хранилище переполнено",
   "errors.generic": "Что-то пошло не так",
 

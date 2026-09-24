@@ -147,6 +147,11 @@ export const en = {
   "payments.remindersDraftAll": "Open draft for all ({n})",
   "payments.remindersSent": "Draft for {n} tenants prepared",
   "payments.reminderBody": "Hello!\n\nThis is a reminder that the payment of {amount} for \"{property}\" is due on {date}.\n\nBest regards,\nPropMind",
+  "payments.confirmPaidTitle": "Mark this payment as paid?",
+  "payments.confirmOnlineTitle": "Online payment (demo)",
+  "payments.confirmOnlineDesc": "The payment will be marked as paid, as if it went through Stripe.",
+  "payments.confirmBulkTitle": "Mark the selected payments?",
+  "payments.confirmBulkDesc": "Payments to be marked as paid: {n}. This can only be undone manually.",
 
   // ——— Property import ———
   "properties.importCsv": "Import CSV",
@@ -407,6 +412,7 @@ export const en = {
 
   "demo.loaded": "Demo data loaded",
   "demo.already": "Demo data is already loaded",
+  "demo.planUnlocked": "Pro plan unlocked (demo)",
   "errors.quota": "Local storage is full",
   "errors.generic": "Something went wrong",
 

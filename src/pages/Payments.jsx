@@ -202,6 +202,7 @@ export default function Payments() {
   const [selected, setSelected] = useState(() => new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [remindersOpen, setRemindersOpen] = useState(false);
+  const [confirming, setConfirming] = useState(null); // { type: 'paid' | 'online' | 'bulk', payment }
 
   // Платежи со сроком оплаты в ближайшие 5 дней — для рассылки напоминаний
   const upcoming = useMemo(() => {
@@ -316,6 +317,38 @@ export default function Payments() {
     downloadFile(csv, `propmind-payments-${todayISO()}.csv`);
   };
 
+  const confirmAction = async () => {
+    if (!confirming) return;
+    const { type, payment } = confirming;
+    setConfirming(null);
+    if (type === "paid") return markPaid(payment);
+    if (type === "online") return markPaid(payment, { online: true });
+    if (type === "bulk") return markSelectedPaid();
+  };
+
+  // Тексты окна подтверждения
+  const confirmContent = () => {
+    if (!confirming) return {};
+    const sum = confirming.payment ? formatMoney(confirming.payment.amount, confirming.payment.currency, lang) : "";
+    if (confirming.type === "online")
+      return {
+        title: t("payments.confirmOnlineTitle"),
+        description: `${confirming.payment.tenant_name || confirming.payment.property_name} — ${sum}. ${t("payments.confirmOnlineDesc")}`,
+        label: t("payments.payOnline"),
+      };
+    if (confirming.type === "bulk")
+      return {
+        title: t("payments.confirmBulkTitle"),
+        description: t("payments.confirmBulkDesc").replace("{n}", selected.size),
+        label: t("payments.markSelectedPaid"),
+      };
+    return {
+      title: t("payments.confirmPaidTitle"),
+      description: `${confirming.payment.tenant_name || confirming.payment.property_name} — ${sum}`,
+      label: t("payments.markPaid"),
+    };
+  };
+
   const remind = (p) => {
     const tenant = tenants.find((x) => x.id === p.tenant_id);
     const subject = lang === "ru" ? "Напоминание об оплате" : "Payment reminder";
@@ -336,10 +369,10 @@ export default function Payments() {
       )}
       {canPay(p) && (
         <>
-          <Button size="icon" variant="ghost" title={t("payments.markPaid")} onClick={() => markPaid(p)} className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
+          <Button size="icon" variant="ghost" title={t("payments.markPaid")} onClick={() => setConfirming({ type: "paid", payment: p })} className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
             <Check className="h-4 w-4" />
           </Button>
-          <Button size="icon" variant="ghost" title={t("payments.payOnline")} onClick={() => markPaid(p, { online: true })} className="text-primary hover:bg-muted">
+          <Button size="icon" variant="ghost" title={t("payments.payOnline")} onClick={() => setConfirming({ type: "online", payment: p })} className="text-primary hover:bg-muted">
             <CreditCard className="h-4 w-4" />
           </Button>
         </>
@@ -368,7 +401,7 @@ export default function Payments() {
         subtitle={t("payments.subtitle")}
         actions={
           <>
-            <Button variant="outline" onClick={() => setRemindersOpen(true)} disabled={upcoming.length === 0} title={t("payments.remindersSub").replace("{n}", 5)}>
+            <Button variant="outline" onClick={() => setRemindersOpen(true)} title={t("payments.remindersSub").replace("{n}", 5)}>
               <Send className="h-4 w-4" />
               {t("payments.reminders")}
               {upcoming.length > 0 && (
@@ -411,7 +444,7 @@ export default function Payments() {
       {selected.size > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 px-4 py-3">
           <span className="text-sm font-medium">{t("payments.bulkSelected").replace("{n}", selected.size)}</span>
-          <Button size="sm" onClick={markSelectedPaid} loading={bulkBusy}>
+          <Button size="sm" onClick={() => setConfirming({ type: "bulk" })} loading={bulkBusy}>
             <Check className="h-4 w-4" />
             {t("payments.markSelectedPaid")}
           </Button>
@@ -544,6 +577,16 @@ export default function Payments() {
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting ? `${deleting.tenant_name || deleting.property_name} — ${formatMoney(deleting.amount, deleting.currency, lang)}` : ""} />
 
       <RemindersDialog open={remindersOpen} onClose={() => setRemindersOpen(false)} upcoming={upcoming} tenants={tenants} />
+
+      {/* Подтверждение оплаты */}
+      <ConfirmDialog
+        open={!!confirming}
+        onClose={() => setConfirming(null)}
+        onConfirm={confirmAction}
+        title={confirmContent().title}
+        description={confirmContent().description}
+        confirmLabel={confirmContent().label}
+      />
     </div>
   );
 }

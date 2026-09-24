@@ -12,7 +12,7 @@ export function useDemoSeed() {
     setLoading(true);
     try {
       const res = await seedDemoData();
-      toast.success(res.skipped ? t("demo.already") : t("demo.loaded"));
+      toast.success(res.skipped ? t("demo.already") : `${t("demo.loaded")} · ${t("demo.planUnlocked")}`);
     } catch (e) {
       toast.error(e.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
     } finally {
