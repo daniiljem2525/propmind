@@ -203,6 +203,23 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Видео-обзор внутрянки */}
+      <section id="demo-video" className="border-t py-20">
+        <div className="mx-auto max-w-5xl px-4 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t("land.videoTitle")}</h2>
+            <p className="mt-3 text-muted-foreground">{t("land.videoSub")}</p>
+          </div>
+          <video
+            className="mt-10 w-full rounded-lg border shadow-card-hover"
+            controls
+            preload="metadata"
+            poster={`${import.meta.env.BASE_URL}video/propmind-demo-poster.jpg`}
+            src={`${import.meta.env.BASE_URL}video/propmind-demo.mp4`}
+          />
+        </div>
+      </section>
+
       {/* Сравнение */}
       <section className="border-t bg-card/50 py-20">
         <div className="mx-auto max-w-5xl px-4 lg:px-8">

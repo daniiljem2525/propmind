@@ -478,6 +478,8 @@ export const en = {
   "land.feed4": "12-month payment schedule created",
   "land.feed5": "Overdue found — reminder sent",
   "land.feedJustNow": "just now",
+  "land.videoTitle": "See what's inside",
+  "land.videoSub": "40 seconds — the whole product: dashboard, properties, payments, requests and analytics",
   "land.pricingTitle": "Transparent pricing",
   "land.pricingSub": "Start free, pay as you grow. No hidden fees, no onboarding charges.",
   "land.pricingNote": "Need a custom plan or integrations?",
