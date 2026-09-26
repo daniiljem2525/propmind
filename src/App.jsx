@@ -27,7 +27,7 @@ import ResetPassword from "@/pages/auth/ResetPassword";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <ToastProvider>
         <LangProvider>
           <ThemeProvider>
