@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Navigate } from "react-router-dom";
 import {
@@ -45,6 +45,14 @@ export default function Landing() {
   const [yearly, setYearly] = useState(false);
   if (user) return <Navigate to="/app" replace />;
 
+  // Клик по логотипу: если мы уже на "/", плавно поднимаемся наверх
+  const logoClick = (e) => {
+    if (window.location.pathname === "/") {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const anchorNav = [
     { href: "#features", key: "land.navFeatures" },
     { href: "#how", key: "land.navHow" },
@@ -57,7 +65,7 @@ export default function Landing() {
       {/* Шапка */}
       <header className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 lg:px-8">
-          <Link to="/" className="flex items-center gap-2.5">
+          <Link to="/" onClick={logoClick} className="flex items-center gap-2.5">
             <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-lg">
               <House className="h-5 w-5 text-white" />
             </span>
@@ -145,32 +153,8 @@ export default function Landing() {
           </div>
           <p className="mt-4 text-sm text-muted-foreground">{t("land.heroTrust")}</p>
 
-          {/* Мини-макет дашборда */}
-          <div className="relative mx-auto mt-14 max-w-4xl rounded-lg border bg-card p-3 text-left shadow-card-hover sm:p-4">
-            <div className="flex gap-1.5 pb-3">
-              <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[
-                { icon: Building2, tile: "bg-teal-500", label: t("dashboard.statProperties"), value: "8" },
-                { icon: Users, tile: "bg-indigo-500", label: t("dashboard.statTenants"), value: "6" },
-                { icon: Wrench, tile: "bg-amber-500", label: t("dashboard.statRequests"), value: "3" },
-                { icon: CreditCard, tile: "bg-emerald-500", label: t("dashboard.statIncome"), value: "645 000 ₽" },
-              ].map((s, i) => (
-                <div key={i} className="rounded-md border bg-background p-3">
-                  <div className="flex items-center gap-2">
-                    <span className={cn("flex h-7 w-7 items-center justify-center rounded-md text-white", s.tile)}>
-                      <s.icon className="h-3.5 w-3.5" />
-                    </span>
-                    <p className="truncate text-[11px] text-muted-foreground">{s.label}</p>
-                  </div>
-                  <p className="mt-1.5 truncate text-sm font-bold">{s.value}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* Живой пример дашборда + лента событий */}
+          <LiveDemo />
         </div>
       </section>
 
@@ -412,6 +396,123 @@ export default function Landing() {
           </nav>
         </div>
       </footer>
+    </div>
+  );
+}
+
+// ——— Живой пример дашборда: цифры тикают, оплаты «проходят», события появляются ———
+function LiveDemo() {
+  const { t } = useLang();
+  const [stats, setStats] = useState({ props: 0, tenants: 0, requests: 0, income: 0 });
+  const [paidRow, setPaidRow] = useState(-1);
+  const [feedIdx, setFeedIdx] = useState(0);
+
+  const events = [t("land.feed1"), t("land.feed2"), t("land.feed3"), t("land.feed4"), t("land.feed5")];
+  const rows = [
+    { name: "Марина Ким", amount: "260 000 ₽" },
+    { name: "Дмитрий Орлов", amount: "350 000 ₽" },
+    { name: "ООО «Меридиан»", amount: "480 000 ₽" },
+  ];
+
+  useEffect(() => {
+    // счётчики разгоняются при появлении блока
+    let raf;
+    const t0 = performance.now();
+    const tick = (now) => {
+      const k = Math.min((now - t0) / 1600, 1);
+      const e = 1 - Math.pow(1 - k, 3);
+      setStats({
+        props: Math.round(8 * e),
+        tenants: Math.round(6 * e),
+        requests: Math.round(3 * e),
+        income: Math.round(645000 * e),
+      });
+      if (k < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    // оплаты «проходят» по очереди
+    const badgeTimer = setInterval(() => setPaidRow((v) => (v + 1) % 4), 3200);
+    // лента событий
+    const feedTimer = setInterval(() => setFeedIdx((v) => (v + 1) % events.length), 2600);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(badgeTimer);
+      clearInterval(feedTimer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const money = (v) => v.toLocaleString("ru-RU");
+  const statTiles = [
+    { icon: Building2, tile: "bg-teal-500", label: t("land.mockProps"), value: String(stats.props) },
+    { icon: Users, tile: "bg-indigo-500", label: t("land.mockTenants"), value: String(stats.tenants) },
+    { icon: Wrench, tile: "bg-amber-500", label: t("land.mockRequests"), value: String(stats.requests) },
+    { icon: CreditCard, tile: "bg-emerald-500", label: t("land.mockIncome"), value: money(stats.income) + " ₽" },
+  ];
+
+  return (
+    <div className="relative mx-auto mt-14 max-w-4xl text-left">
+      <div className="rounded-lg border bg-card p-3 shadow-card-hover sm:p-4">
+        <div className="flex gap-1.5 pb-3">
+          <span className="h-2.5 w-2.5 rounded-full bg-rose-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        </div>
+
+        {/* Статистика с тикающими цифрами */}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {statTiles.map((s, i) => (
+            <div key={i} className="rounded-md border bg-background p-3">
+              <div className="flex items-center gap-2">
+                <span className={cn("flex h-7 w-7 items-center justify-center rounded-md text-white", s.tile)}>
+                  <s.icon className="h-3.5 w-3.5" />
+                </span>
+                <p className="truncate text-[11px] text-muted-foreground">{s.label}</p>
+              </div>
+              <p className="mt-1.5 truncate text-sm font-bold tabular-nums">{s.value}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Платежи, которые «проходят» */}
+        <div className="mt-3 divide-y rounded-md border bg-background">
+          {rows.map((r, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+                {r.name.slice(0, 2).toUpperCase()}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-xs font-medium">{r.name}</span>
+              <span className="shrink-0 text-xs font-semibold tabular-nums">{r.amount}</span>
+              <span
+                className={cn(
+                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors duration-500",
+                  i < paidRow
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
+                    : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
+                )}
+              >
+                {i < paidRow ? t("land.mockPaid") : t("land.mockPending")}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Лента событий — «прямой эфир» платформы (референс any.run) */}
+      <div className="mt-3 flex items-center gap-3 rounded-lg border bg-card px-4 py-3 shadow-card">
+        <span className="relative flex h-2.5 w-2.5 shrink-0">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
+        </span>
+        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {t("land.feedTitle")}
+        </span>
+        <span key={feedIdx} className="min-w-0 flex-1 animate-fade-in truncate text-sm">
+          {events[feedIdx]}
+        </span>
+        <span className="shrink-0 text-[11px] text-muted-foreground">{t("land.feedJustNow")}</span>
+      </div>
     </div>
   );
 }
