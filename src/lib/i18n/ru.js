@@ -95,6 +95,10 @@ export const ru = {
   "auth.errors.wrongOtp": "Неверный код подтверждения",
   "auth.errors.required": "Заполните обязательные поля",
   "auth.errors.googleMock": "Google OAuth недоступен в демо-версии",
+  "auth.demoBox": "Демо-версия: войдите в готовый аккаунт администратора",
+  "auth.demoFill": "Заполнить демо-аккаунт",
+  "auth.demoRegister": "Или зарегистрируйтесь — код подтверждения покажем прямо на экране",
+  "auth.demoFilled": "Демо-аккаунт подставлен — нажимайте «Войти»",
 
   "dashboard.title": "Дашборд",
   "dashboard.subtitle": "Обзор портфеля за один экран",

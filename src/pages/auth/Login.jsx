@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
+import { ensureDemoAccount } from "@/lib/api/auth";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 
@@ -15,6 +16,11 @@ export default function Login() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Демо-аккаунт существует всегда — даже в пустом браузере
+  useEffect(() => {
+    ensureDemoAccount();
+  }, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,6 +57,28 @@ export default function Login() {
       }
     >
       <form onSubmit={submit} className="space-y-4">
+        {/* Демо-доступ: один клик заполняет аккаунт администратора */}
+        <div className="flex items-start gap-3 rounded-md border border-primary/25 bg-primary/5 px-4 py-3">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium leading-snug">{t("auth.demoBox")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("auth.demoRegister")}</p>
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            onClick={() => {
+              setEmail("owner@propmind.test");
+              setPassword("secret123");
+              toast.success(t("auth.demoFilled"));
+            }}
+          >
+            {t("auth.demoFill")}
+          </Button>
+        </div>
+
         <Button
           type="button"
           variant="outline"

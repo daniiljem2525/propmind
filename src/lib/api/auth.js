@@ -83,6 +83,26 @@ export function verifyOtp(email, otp) {
   return publicUser(user);
 }
 
+// Гарантирует наличие готового демо-аккаунта администратора.
+// Нужно для «Заполнить демо-аккаунт» на свежем браузере, где хранилище пустое.
+export function ensureDemoAccount() {
+  const email = "owner@propmind.test";
+  const users = readUsers();
+  if (users.some((u) => u.email === email)) return false;
+  users.push({
+    id: uid(),
+    full_name: "Тестовый Владелец",
+    email,
+    password_hash: hash("secret123"),
+    role: "admin",
+    status: "active",
+    otp: null,
+    created_date: new Date().toISOString(),
+  });
+  writeUsers(users);
+  return true;
+}
+
 export function login(email, password) {
   const normalized = String(email || "").trim().toLowerCase();
   const user = readUsers().find((u) => u.email === normalized);
