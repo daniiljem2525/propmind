@@ -32,7 +32,7 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const { otp: code } = signup(form);
+      const { otp: code } = await signup(form);
       setDemoCode(code);
       setStep("otp");
     } catch (err) {

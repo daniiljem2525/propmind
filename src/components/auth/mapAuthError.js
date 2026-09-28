@@ -12,6 +12,7 @@ export function mapAuthError(e, t) {
     WRONG_PASSWORD: "settings.wrongPassword",
     REQUIRED: "auth.errors.required",
     PENDING_ACCOUNT: "auth.errors.wrongCredentials",
+    TOO_MANY_ATTEMPTS: "auth.errors.tooMany",
   };
   return t(map[e?.message] || "errors.generic");
 }

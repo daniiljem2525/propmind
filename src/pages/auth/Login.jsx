@@ -34,7 +34,7 @@ export default function Login() {
     if (!email || !password) return setError(t("auth.errors.required"));
     setLoading(true);
     try {
-      login(email, password);
+      await login(email, password);
       navigate(location.state?.from?.pathname || "/app", { replace: true });
     } catch (err) {
       setError(mapAuthError(err, t));

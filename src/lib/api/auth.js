@@ -4,14 +4,30 @@ import { uid } from "@/lib/utils";
 
 const NAME = "users";
 const SESSION_KEY = "propmind:session";
+const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // сессия живёт 7 дней
+const DEMO_HASH = "6aafa1776f70b876fd83b155ec8c4466553e963af3500de7f3613db45d44e37e"; // sha256("propmind:secret123")
 
-const hash = (pw) => {
-  try {
-    return btoa(unescape(encodeURIComponent(`pm:${pw}`)));
-  } catch {
-    return `pm:${pw}`;
+// Настоящий SHA-256 (Web Crypto). Формат хранения: "sha256:<hex>".
+async function hash(password) {
+  const data = new TextEncoder().encode(`propmind:${password}`);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return "sha256:" + Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Совместимость со старыми записями (btoa-«хеш») + миграция на SHA-256
+async function verifyPassword(users, user, password) {
+  const newHash = await hash(password);
+  if (user.password_hash === newHash) return true;
+  if (!String(user.password_hash || "").startsWith("sha256:")) {
+    const legacy = btoa(unescape(encodeURIComponent(`pm:${password}`)));
+    if (user.password_hash === legacy) {
+      user.password_hash = newHash; // миграция при первом же входе
+      writeUsers(users);
+      return true;
+    }
   }
-};
+  return false;
+}
 
 const readUsers = () => readCollection(NAME);
 const writeUsers = (rows) => writeCollection(NAME, rows);
@@ -30,6 +46,11 @@ export function getCurrentUser() {
   try {
     const session = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
     if (!session?.user_id) return null;
+    // TTL сессии: по истечении 7 дней вход требуется заново
+    if (session.issued_at && Date.now() - session.issued_at > SESSION_TTL) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
     return publicUser(readUsers().find((u) => u.id === session.user_id));
   } catch {
     return null;
@@ -39,26 +60,27 @@ export function getCurrentUser() {
 registerCurrentUserFn(getCurrentUser);
 
 function setSession(userId) {
-  localStorage.setItem(SESSION_KEY, JSON.stringify({ user_id: userId }));
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ user_id: userId, issued_at: Date.now() }));
   notifyAuth();
 }
 
-export function signup({ full_name, email, password }) {
+export async function signup({ full_name, email, password }) {
   const normalized = String(email || "").trim().toLowerCase();
   const users = readUsers();
   const existing = users.find((u) => u.email === normalized);
   if (existing && existing.status !== "invited") throw new Error("EMAIL_EXISTS");
 
   const otp = String(Math.floor(100000 + Math.random() * 900000));
+  const password_hash = await hash(password);
   if (existing) {
-    Object.assign(existing, { full_name, password_hash: hash(password), status: "pending", otp });
+    Object.assign(existing, { full_name, password_hash, status: "pending", otp });
     writeUsers(users);
   } else {
     users.push({
       id: uid(),
       full_name,
       email: normalized,
-      password_hash: hash(password),
+      password_hash,
       role: "user",
       status: "pending",
       otp,
@@ -93,7 +115,7 @@ export function ensureDemoAccount() {
     id: uid(),
     full_name: "Тестовый Владелец",
     email,
-    password_hash: hash("secret123"),
+    password_hash: DEMO_HASH,
     role: "admin",
     status: "active",
     otp: null,
@@ -103,13 +125,43 @@ export function ensureDemoAccount() {
   return true;
 }
 
-export function login(email, password) {
+// Защита от перебора паролей: 5 неудач подряд → минута блокировки
+const LOCK_KEY = "propmind:lockout";
+
+function checkLockout() {
+  try {
+    const lock = JSON.parse(localStorage.getItem(LOCK_KEY) || "null");
+    if (lock?.until && Date.now() < lock.until) return Math.ceil((lock.until - Date.now()) / 1000);
+    if (lock?.until) localStorage.removeItem(LOCK_KEY);
+  } catch {}
+  return 0;
+}
+
+function registerFail() {
+  try {
+    const lock = JSON.parse(localStorage.getItem(LOCK_KEY) || "{}");
+    const fails = (lock.fails || 0) + 1;
+    localStorage.setItem(
+      LOCK_KEY,
+      JSON.stringify(fails >= 5 ? { fails: 0, until: Date.now() + 60000 } : { fails })
+    );
+  } catch {}
+}
+
+export async function login(email, password) {
+  const wait = checkLockout();
+  if (wait > 0) throw new Error("TOO_MANY_ATTEMPTS");
+
   const normalized = String(email || "").trim().toLowerCase();
-  const user = readUsers().find((u) => u.email === normalized);
-  if (!user || user.status === "invited" || user.password_hash !== hash(password)) {
+  const users = readUsers();
+  const user = users.find((u) => u.email === normalized);
+  const ok = user && user.status !== "invited" && (await verifyPassword(users, user, password));
+  if (!ok) {
+    registerFail();
     throw new Error("WRONG_CREDENTIALS");
   }
   if (user.status === "pending") throw new Error("PENDING_ACCOUNT");
+  localStorage.removeItem(LOCK_KEY);
   setSession(user.id);
   return publicUser(user);
 }
@@ -130,23 +182,23 @@ export function requestPasswordReset(email) {
   return { token, email: normalized };
 }
 
-export function resetPassword(token, password) {
+export async function resetPassword(token, password) {
   const users = readUsers();
   const user = users.find((u) => u.reset_token === String(token || "").trim());
   if (!user) throw new Error("USER_NOT_FOUND");
-  user.password_hash = hash(password);
+  user.password_hash = await hash(password);
   user.reset_token = null;
   if (user.status === "pending") user.status = "active";
   writeUsers(users);
   return publicUser(user);
 }
 
-export function changePassword(userId, current, next) {
+export async function changePassword(userId, current, next) {
   const users = readUsers();
   const user = users.find((u) => u.id === userId);
   if (!user) throw new Error("USER_NOT_FOUND");
-  if (user.password_hash !== hash(current)) throw new Error("WRONG_PASSWORD");
-  user.password_hash = hash(next);
+  if (!(await verifyPassword(users, user, current))) throw new Error("WRONG_PASSWORD");
+  user.password_hash = await hash(next);
   writeUsers(users);
   return true;
 }

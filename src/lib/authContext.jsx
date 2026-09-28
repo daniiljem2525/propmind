@@ -12,13 +12,13 @@ export function AuthProvider({ children }) {
     return unsub;
   }, []);
 
-  const login = (email, password) => {
-    const u = authApi.login(email, password);
+  const login = async (email, password) => {
+    const u = await authApi.login(email, password);
     setUser(u);
     return u;
   };
 
-  const signup = (data) => authApi.signup(data);
+  const signup = async (data) => authApi.signup(data);
 
   const verifyOtp = (email, otp) => {
     const u = authApi.verifyOtp(email, otp);

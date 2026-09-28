@@ -30,7 +30,7 @@ export default function ResetPassword() {
 
     setLoading(true);
     try {
-      resetPassword(token, password);
+      await resetPassword(token, password);
       toast.success(t("auth.passwordChanged"));
       navigate("/login", { replace: true });
     } catch (err) {

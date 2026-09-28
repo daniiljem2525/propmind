@@ -95,6 +95,7 @@ export const en = {
   "auth.errors.wrongOtp": "Wrong confirmation code",
   "auth.errors.required": "Fill in the required fields",
   "auth.errors.googleMock": "Google OAuth is not available in the demo build",
+  "auth.errors.tooMany": "Too many sign-in attempts — wait a minute",
   "auth.demoBox": "Demo build: sign in to the ready-made admin account",
   "auth.demoFill": "Fill demo credentials",
   "auth.demoRegister": "Or register — the confirmation code appears right on screen",

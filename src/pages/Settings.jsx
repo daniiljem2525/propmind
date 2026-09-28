@@ -202,7 +202,7 @@ export default function Settings() {
     }
     setPwSaving(true);
     try {
-      changePassword(user.id, pw.current, pw.next);
+      await changePassword(user.id, pw.current, pw.next);
       toast.success(t("auth.passwordChanged"));
       setPw({ current: "", next: "", repeat: "" });
     } catch (err) {
