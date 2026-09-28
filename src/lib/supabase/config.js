@@ -11,8 +11,8 @@ import { createClient } from "@supabase/supabase-js";
 // RLS-политики в supabase/schema.sql, а не секретность ключа.
 // ============================================================
 
-export const SUPABASE_URL = "https://ТВОЙ-ПРОЕКТ.supabase.co";
-export const SUPABASE_ANON_KEY = "ТВОЙ-ANON-КЛЮЧ";
+export const SUPABASE_URL = "https://bhxwpkplqjzhfqwckine.supabase.co";
+export const SUPABASE_ANON_KEY = "sb_publishable_H3Vk7JOk4DJWMBod6CvV6Q_IRDhrqww";
 
 export const isSupabaseConfigured =
   SUPABASE_URL.startsWith("https://") &&
