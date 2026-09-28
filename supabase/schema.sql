@@ -62,7 +62,7 @@ declare
   v_role   text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
   v_name   text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
   v_code   text := new.raw_user_meta_data->>'invite_code';
-  v_invite record;
+  v_invite public.invites%ROWTYPE;
 begin
   if v_role = 'owner' then
     if not exists (select 1 from public.profiles where role = 'owner') then
