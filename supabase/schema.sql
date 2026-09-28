@@ -370,9 +370,9 @@ begin
     ) returning id into v_id;
 
     insert into auth.identities (
-      id, user_id, provider_id, identity_data, last_sign_in_at, created_at, updated_at
+      id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at
     ) values (
-      gen_random_uuid(), v_id, 'email',
+      gen_random_uuid(), v_id, 'email', 'email',
       jsonb_build_object('sub', v_id::text, 'email', 'owner@propmind.test'),
       now(), now(), now()
     );
