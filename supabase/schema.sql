@@ -1,6 +1,7 @@
 -- ============================================================
--- PropMind: схема Supabase (версия 2 — идемпотентная, можно
--- запускать повторно: всё делается через drop if exists).
+-- PropMind: схема Supabase (версия 3)
+-- Порядок важен: сначала все таблицы, потом функции,
+-- которые на них ссылаются. Идемпотентна — можно перезапускать.
 -- Вставить целиком в SQL Editor → Run.
 -- ============================================================
 
@@ -49,54 +50,6 @@ create policy "profiles: владелец управляет ролями"
       where me.id = auth.uid() and me.role = 'owner'
     )
   );
-
--- Триггер: профиль создаётся автоматически при регистрации.
--- Роль берётся из metadata: по коду приглашения (tenant/contractor),
--- иначе первый пользователь становится владельцем, остальные — жильцами.
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer set search_path = public
-as $$
-declare
-  v_role   text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
-  v_name   text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
-  v_code   text := new.raw_user_meta_data->>'invite_code';
-  v_invite public.invites%ROWTYPE;
-begin
-  if v_role = 'owner' then
-    if not exists (select 1 from public.profiles where role = 'owner') then
-      v_role := 'owner';
-    else
-      v_role := 'tenant';
-    end if;
-  elsif v_role in ('tenant', 'contractor') and v_code is not null then
-    select * into v_invite from public.invites
-     where code = v_code and used_by is null and role = v_role;
-    if found then
-      update public.invites set used_by = new.id where code = v_invite.code;
-    else
-      v_role := 'tenant';
-    end if;
-  end if;
-
-  insert into public.profiles (id, full_name, email, role)
-  values (new.id, v_name, new.email, v_role);
-
-  if v_invite is not null and v_invite.property_id is not null then
-    update public.properties
-       set tenant_id = new.id, tenant_name = v_name, status = 'rented'
-     where id = v_invite.property_id;
-  end if;
-
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
 
 -- ============================================================
 -- 2. Объекты недвижимости
@@ -323,7 +276,56 @@ create policy "notifications: только свои"
   with check (user_id = auth.uid());
 
 -- ============================================================
--- 8. Realtime
+-- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
+--    он ссылается (profiles, properties, invites)
+-- ============================================================
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_invite public.invites%ROWTYPE;
+  v_role   text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
+  v_name   text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
+  v_code   text := new.raw_user_meta_data->>'invite_code';
+begin
+  if v_role = 'owner' then
+    if not exists (select 1 from public.profiles where role = 'owner') then
+      v_role := 'owner';
+    else
+      v_role := 'tenant';
+    end if;
+  elsif v_role in ('tenant', 'contractor') and v_code is not null then
+    select * into v_invite from public.invites
+     where code = v_code and used_by is null and role = v_role;
+    if found then
+      update public.invites set used_by = new.id where code = v_invite.code;
+    else
+      v_role := 'tenant';
+    end if;
+  end if;
+
+  insert into public.profiles (id, full_name, email, role)
+  values (new.id, v_name, new.email, v_role);
+
+  if v_invite is not null and v_invite.property_id is not null then
+    update public.properties
+       set tenant_id = new.id, tenant_name = v_name, status = 'rented'
+     where id = v_invite.property_id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ============================================================
+-- 9. Realtime
 -- ============================================================
 do $rt1$
 begin
@@ -347,7 +349,7 @@ exception when duplicate_object then null;
 end $rt4$;
 
 -- ============================================================
--- 9. Демо-аккаунт владельца: owner@propmind.test / secret123
+-- 10. Демо-аккаунт владельца: owner@propmind.test / secret123
 -- ============================================================
 do $seed$
 declare
