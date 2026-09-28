@@ -19,14 +19,14 @@ import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 
 const NAV_ITEMS = [
-  { to: "/app", icon: LayoutDashboard, key: "nav.dashboard", end: true },
-  { to: "/app/properties", icon: Building2, key: "nav.properties" },
-  { to: "/app/tenants", icon: Users, key: "nav.tenants" },
-  { to: "/app/payments", icon: CreditCard, key: "nav.payments" },
-  { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance" },
-  { to: "/app/documents", icon: FileText, key: "nav.documents" },
-  { to: "/app/analytics", icon: BarChart3, key: "nav.analytics" },
-  { to: "/app/settings", icon: Settings, key: "nav.settings" },
+  { to: "/app", icon: LayoutDashboard, key: "nav.dashboard", end: true, roles: ["owner", "admin"] },
+  { to: "/app/properties", icon: Building2, key: "nav.properties", roles: ["owner", "admin"] },
+  { to: "/app/tenants", icon: Users, key: "nav.tenants", roles: ["owner", "admin"] },
+  { to: "/app/payments", icon: CreditCard, key: "nav.payments", roles: ["owner", "admin", "tenant"] },
+  { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance", roles: ["owner", "admin", "contractor"] },
+  { to: "/app/documents", icon: FileText, key: "nav.documents", roles: ["owner", "admin", "tenant"] },
+  { to: "/app/analytics", icon: BarChart3, key: "nav.analytics", roles: ["owner", "admin"] },
+  { to: "/app/settings", icon: Settings, key: "nav.settings", roles: ["owner", "admin", "tenant", "contractor"] },
   { to: "/app/admin", icon: ShieldCheck, key: "admin.title", adminOnly: true },
 ];
 
@@ -34,7 +34,11 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const items = NAV_ITEMS.filter((item) => !item.adminOnly || user?.role === "admin");
+  // роль owner = легаси-админ; видимость пунктов по ролям
+  const visibleRole = user?.role === "owner" || user?.role === "admin" ? "admin" : user?.role;
+  const items = NAV_ITEMS.filter(
+    (item) => (!item.adminOnly || visibleRole === "admin") && (!item.roles || item.roles.includes(visibleRole))
+  );
 
   return (
     <>

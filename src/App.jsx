@@ -3,7 +3,7 @@ import { ToastProvider } from "@/components/ui/toast";
 import ConnectionBanner from "@/components/ConnectionBanner";
 import { LangProvider } from "@/lib/i18n/LangContext";
 import { ThemeProvider } from "@/lib/theme";
-import { AuthProvider } from "@/lib/authContext";
+import { AuthProvider, useAuth as useAuthSafe } from "@/lib/authContext";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
@@ -11,6 +11,16 @@ import AppLayout from "@/components/layout/AppLayout";
 import Landing from "@/pages/Landing";
 import { Blog, BlogPost } from "@/pages/Blog";
 import Dashboard from "@/pages/Dashboard";
+import TenantPortal from "@/pages/TenantPortal";
+import ContractorJobs from "@/pages/ContractorJobs";
+
+// Роль-зависимый главный экран: у жильца и исполнителя — свои порталы
+function RoleDashboard() {
+  const { user } = useAuthSafe();
+  if (user?.role === "contractor") return <ContractorJobs />;
+  if (user?.role === "tenant") return <TenantPortal />;
+  return <Dashboard />;
+}
 import Properties from "@/pages/Properties";
 import Tenants from "@/pages/Tenants";
 import Payments from "@/pages/Payments";
@@ -48,7 +58,7 @@ export default function App() {
                 {/* Приложение */}
                 <Route element={<ProtectedRoute />}>
                   <Route path="/app" element={<AppLayout />}>
-                    <Route index element={<Dashboard />} />
+                    <Route index element={<RoleDashboard />} />
                     <Route path="properties" element={<Properties />} />
                     <Route path="tenants" element={<Tenants />} />
                     <Route path="payments" element={<Payments />} />

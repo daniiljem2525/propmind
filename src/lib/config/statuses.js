@@ -102,11 +102,29 @@ export const MAINTENANCE_STATUS_CONFIG = {
     badge: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400",
     dot: "bg-sky-500",
   },
+  assigned: {
+    label_ru: "Назначена",
+    label_en: "Assigned",
+    badge: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
+    dot: "bg-indigo-500",
+  },
   in_progress: {
     label_ru: "В работе",
     label_en: "In progress",
     badge: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
     dot: "bg-amber-500",
+  },
+  done: {
+    label_ru: "Выполнена",
+    label_en: "Done",
+    badge: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400",
+    dot: "bg-violet-500",
+  },
+  closed: {
+    label_ru: "Принята",
+    label_en: "Closed",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+    dot: "bg-emerald-500",
   },
   completed: {
     label_ru: "Завершена",
@@ -208,3 +226,11 @@ export function typeLabel(config, value, lang) {
 }
 
 export const CHART_COLORS = ["#0F766E", "#14B8A6", "#6366F1", "#F43F5E", "#F59E0B", "#10B981", "#8B5CF6", "#64748B"];
+
+// ——— Роли пользователей ———
+export const ROLES = {
+  owner: { label_ru: "Владелец", label_en: "Owner" },
+  tenant: { label_ru: "Жилец", label_en: "Tenant" },
+  contractor: { label_ru: "Исполнитель", label_en: "Contractor" },
+  admin: { label_ru: "Администратор", label_en: "Admin" },
+};
