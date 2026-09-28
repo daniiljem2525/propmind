@@ -7,6 +7,19 @@
 
 create extension if not exists pgcrypto;
 
+-- Проверка владельца без рекурсии RLS (security definer)
+create or replace function public.is_platform_owner()
+returns boolean
+language sql
+security definer set search_path = public
+stable as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'owner'
+  );
+$$;
+
+
 -- ============================================================
 -- 1. Профили пользователей
 -- ============================================================
@@ -307,18 +320,6 @@ begin
 
   return new;
 end;
-$$;
-
--- Проверка владельца без рекурсии RLS (security definer)
-create or replace function public.is_platform_owner()
-returns boolean
-language sql
-security definer set search_path = public
-stable as $$
-  select exists (
-    select 1 from public.profiles
-    where id = auth.uid() and role = 'owner'
-  );
 $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
