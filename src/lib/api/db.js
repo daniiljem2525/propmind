@@ -1,46 +1,20 @@
-// Локальное хранилище с pub/sub и realtime-синхронизацией между вкладками.
-// Все мутации проходят через writeCollection — подписчики обновляются мгновенно.
+// Фасад подписок и сырого чтения: localStorage или Supabase realtime.
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { subscribeSupabase } from "@/lib/supabase/db";
+import * as local from "@/lib/data/localDb";
 
-const PREFIX = "propmind:";
+export const subscribe = (name, cb) =>
+  isSupabaseConfigured ? subscribeSupabase(name, cb) : local.subscribe(name, cb);
 
-const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("propmind-sync") : null;
-const listeners = new Map();
+// Синхронное raw-чтение — только для localStorage-режима.
+// В облачном режиме используй async-версию readCollectionAsync.
+export const readCollection = local.readCollection;
+export const writeCollection = local.writeCollection;
 
-function notify(name) {
-  const set = listeners.get(name);
-  if (set) [...set].forEach((cb) => cb());
-}
-
-if (channel) {
-  channel.onmessage = ({ data }) => notify(data);
-}
-
-export function subscribe(name, cb) {
-  if (!listeners.has(name)) listeners.set(name, new Set());
-  listeners.get(name).add(cb);
-  return () => listeners.get(name).delete(cb);
-}
-
-export function readCollection(name) {
-  try {
-    return JSON.parse(localStorage.getItem(PREFIX + name) || "[]");
-  } catch {
-    return [];
-  }
-}
-
-export function writeCollection(name, rows) {
-  try {
-    localStorage.setItem(PREFIX + name, JSON.stringify(rows));
-  } catch {
-    throw new Error("QUOTA_EXCEEDED");
-  }
-  notify(name);
-  if (channel) channel.postMessage(name);
-}
-
-// Сессия/пользователь меняются реже данных — отдельный канал событий
-export function notifyAuth() {
-  notify("auth");
-  if (channel) channel.postMessage("auth");
+export async function readCollectionAsync(name) {
+  if (!isSupabaseConfigured) return local.readCollection(name);
+  const { supabase } = await import("@/lib/supabase/config");
+  const { data, error } = await supabase.from(name).select("*");
+  if (error) return [];
+  return data || [];
 }
