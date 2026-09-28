@@ -1,14 +1,14 @@
 -- ============================================================
--- PropMind: схема Supabase для двусторонней системы заявок
--- Вставить целиком в Supabase SQL Editor и выполнить (Run).
--- Безопасность: RLS на всех таблицах, anon-ключ не даёт доступа
--- к данным без авторизации.
+-- PropMind: схема Supabase (версия 2 — идемпотентная, можно
+-- запускать повторно: всё делается через drop if exists).
+-- Вставить целиком в SQL Editor → Run.
 -- ============================================================
 
--- 0. Расширения ------------------------------------------------------------
 create extension if not exists pgcrypto;
 
--- 1. Профили пользователей (роль и контакты) --------------------------------
+-- ============================================================
+-- 1. Профили пользователей
+-- ============================================================
 create table if not exists public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   full_name   text not null default '',
@@ -18,30 +18,41 @@ create table if not exists public.profiles (
               check (role in ('owner', 'tenant', 'contractor')),
   created_date timestamptz not null default now()
 );
-
 alter table public.profiles enable row level security;
 
+drop policy if exists "profiles: читаю свой" on public.profiles;
 create policy "profiles: читаю свой"
   on public.profiles for select
   using (auth.uid() = id);
 
+drop policy if exists "profiles: обновляю свой" on public.profiles;
 create policy "profiles: обновляю свой"
   on public.profiles for update
   using (auth.uid() = id);
 
-create policy "profiles: владелец видит профили своих пользователей"
+drop policy if exists "profiles: владелец видит всех" on public.profiles;
+create policy "profiles: владелец видит всех"
   on public.profiles for select
   using (
     exists (
       select 1 from public.profiles me
       where me.id = auth.uid() and me.role = 'owner'
     )
-    or role in ('owner')  -- владельцы видят друг друга (публичный справочник)
   );
 
--- Автоматическое создание профиля при регистрации.
--- Роль берётся из user metadata: owner (не через UI), либо по коду
--- приглашения (tenant/contractor), иначе tenant.
+drop policy if exists "profiles: владелец управляет ролями" on public.profiles;
+create policy "profiles: владелец управляет ролями"
+  on public.profiles for update
+  using (
+    exists (
+      select 1 from public.profiles me
+      where me.id = auth.uid() and me.role = 'owner'
+    )
+  );
+
+-- Триггер: профиль создаётся автоматически при регистрации.
+-- Роль берётся из metadata: по коду приглашения (tenant/contractor),
+-- иначе первый пользователь становится владельцем, остальные — жильцами.
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -54,8 +65,6 @@ declare
   v_invite record;
 begin
   if v_role = 'owner' then
-    -- первый зарегистрировавшийся без кода становится владельцем,
-    -- остальные без кода — tenant (защита от захвата роли)
     if not exists (select 1 from public.profiles where role = 'owner') then
       v_role := 'owner';
     else
@@ -74,7 +83,6 @@ begin
   insert into public.profiles (id, full_name, email, role)
   values (new.id, v_name, new.email, v_role);
 
-  -- если это жилец с приглашением конкретного владельца — привяжем квартиру
   if v_invite is not null and v_invite.property_id is not null then
     update public.properties
        set tenant_id = new.id, tenant_name = v_name, status = 'rented'
@@ -90,7 +98,9 @@ create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
--- 3. Объекты -----------------------------------------------------------------
+-- ============================================================
+-- 2. Объекты недвижимости
+-- ============================================================
 create table if not exists public.properties (
   id          uuid primary key default gen_random_uuid(),
   owner_id    uuid not null default auth.uid() references public.profiles(id) on delete cascade,
@@ -112,58 +122,22 @@ create table if not exists public.properties (
   lease_end   date,
   created_date timestamptz not null default now()
 );
-
 alter table public.properties enable row level security;
 
+drop policy if exists "properties: владелец — полные права" on public.properties;
 create policy "properties: владелец — полные права"
   on public.properties for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+drop policy if exists "properties: жилец видит свою" on public.properties;
 create policy "properties: жилец видит свою"
   on public.properties for select
   using (tenant_id = auth.uid());
 
-create policy "properties: исполнитель видит объекты своих заявок"
-  on public.properties for select
-  using (
-    exists (
-      select 1 from public.maintenance_requests r
-      where r.contractor_id = auth.uid() and r.property_id = id
-    )
-  );
-
--- 3b. Приглашения (коды для жильцов и исполнителей) ------------------------------
-create table if not exists public.invites (
-  code        text primary key default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)),
-  owner_id    uuid not null default auth.uid() references public.profiles(id) on delete cascade,
-  role        text not null check (role in ('tenant', 'contractor')),
-  property_id uuid references public.properties(id) on delete set null,
-  used_by     uuid references public.profiles(id),
-  created_date timestamptz not null default now()
-);
-
-alter table public.invites enable row level security;
-
-create policy "invites: владелец управляет своими"
-  on public.invites for all
-  using (owner_id = auth.uid())
-  with check (owner_id = auth.uid());
-
--- аноним/новый пользователь проверяет код через RPC (SECURITY DEFINER)
-create or replace function public.validate_invite(p_code text)
-returns table (role text, property_id uuid, owner_name text)
-language sql
-security definer set search_path = public
-as $$
-  select i.role, i.property_id, coalesce(p.full_name, '')
-    from public.invites i
-    left join public.profiles p on p.id = i.owner_id
-   where i.code = upper(p_code) and i.used_by is null;
-$$;
-
-
--- 4. Платежи -----------------------------------------------------------------
+-- ============================================================
+-- 3. Платежи
+-- ============================================================
 create table if not exists public.payments (
   id            uuid primary key default gen_random_uuid(),
   owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
@@ -181,24 +155,46 @@ create table if not exists public.payments (
   period_year   numeric,
   payment_method text,
   notes         text,
-  created_date timestamptz not null default now()
+  created_date  timestamptz not null default now()
 );
-
 alter table public.payments enable row level security;
 
+drop policy if exists "payments: владелец — полные права" on public.payments;
 create policy "payments: владелец — полные права"
   on public.payments for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+drop policy if exists "payments: жилец видит свои" on public.payments;
 create policy "payments: жилец видит свои"
   on public.payments for select
   using (tenant_id = auth.uid());
 
--- 5. Заявки на обслуживание (двусторонние) ------------------------------------
+-- ============================================================
+-- 4. Приглашения (коды для жильцов и исполнителей)
+-- ============================================================
+create table if not exists public.invites (
+  code        text primary key default upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)),
+  owner_id    uuid not null references public.profiles(id) on delete cascade,
+  role        text not null check (role in ('tenant', 'contractor')),
+  property_id uuid references public.properties(id) on delete set null,
+  used_by     uuid references public.profiles(id),
+  created_date timestamptz not null default now()
+);
+alter table public.invites enable row level security;
+
+drop policy if exists "invites: владелец управляет своими" on public.invites;
+create policy "invites: владелец управляет своими"
+  on public.invites for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());
+
+-- ============================================================
+-- 5. Заявки на обслуживание (двусторонние)
+-- ============================================================
 create table if not exists public.maintenance_requests (
   id             uuid primary key default gen_random_uuid(),
-  owner_id       uuid not null references public.profiles(id) on delete cascade,
+  owner_id       uuid not null default auth.uid() references public.profiles(id) on delete cascade,
   property_id    uuid references public.properties(id) on delete cascade,
   property_name  text,
   created_by     uuid references public.profiles(id),
@@ -212,30 +208,32 @@ create table if not exists public.maintenance_requests (
   photo_url      text,
   source         text not null default 'manual'
                  check (source in ('manual', 'ai_bot', 'tenant_portal')),
-  created_at     timestamptz not null default now(),
+  created_date   timestamptz not null default now(),
 
   -- блок исполнителя
-  contractor_id   uuid references public.profiles(id) on delete set null,
-  contractor_name text,
+  contractor_id     uuid references public.profiles(id) on delete set null,
+  contractor_name   text,
   contractor_status text check (contractor_status in ('accepted', 'in_progress', 'done')),
-  work_cost       numeric,
-  work_photo_url  text,
-  work_notes      text,
-  started_at      timestamptz,
-  completed_at    timestamptz
+  work_cost         numeric,
+  work_photo_url    text,
+  work_notes        text,
+  started_at        timestamptz,
+  completed_at      timestamptz
 );
-
 alter table public.maintenance_requests enable row level security;
 
+drop policy if exists "requests: владелец — полные права" on public.maintenance_requests;
 create policy "requests: владелец — полные права"
   on public.maintenance_requests for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
-create policy "requests: жилец видит свои и создаёт"
+drop policy if exists "requests: жилец видит свои" on public.maintenance_requests;
+create policy "requests: жилец видит свои"
   on public.maintenance_requests for select
   using (created_by = auth.uid());
 
+drop policy if exists "requests: жилец создаёт по своей квартире" on public.maintenance_requests;
 create policy "requests: жилец создаёт по своей квартире"
   on public.maintenance_requests for insert
   with check (
@@ -246,16 +244,31 @@ create policy "requests: жилец создаёт по своей кварти�
     )
   );
 
+drop policy if exists "requests: исполнитель видит свои" on public.maintenance_requests;
 create policy "requests: исполнитель видит свои"
   on public.maintenance_requests for select
   using (contractor_id = auth.uid());
 
-create policy "requests: исполнитель меняет только свой блок"
+drop policy if exists "requests: исполнитель меняет свой блок" on public.maintenance_requests;
+create policy "requests: исполнитель меняет свой блок"
   on public.maintenance_requests for update
   using (contractor_id = auth.uid())
   with check (contractor_id = auth.uid());
 
--- 6. Документы ----------------------------------------------------------------
+-- Политика объектов, зависящая от заявок (таблица уже создана)
+drop policy if exists "properties: исполнитель видит объекты своих заявок" on public.properties;
+create policy "properties: исполнитель видит объекты своих заявок"
+  on public.properties for select
+  using (
+    exists (
+      select 1 from public.maintenance_requests r
+      where r.contractor_id = auth.uid() and r.property_id = id
+    )
+  );
+
+-- ============================================================
+-- 6. Документы
+-- ============================================================
 create table if not exists public.documents (
   id            uuid primary key default gen_random_uuid(),
   owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
@@ -267,16 +280,17 @@ create table if not exists public.documents (
   file_name     text,
   file_size     numeric,
   notes         text,
-  created_date timestamptz not null default now()
+  created_date  timestamptz not null default now()
 );
-
 alter table public.documents enable row level security;
 
+drop policy if exists "documents: владелец — полные права" on public.documents;
 create policy "documents: владелец — полные права"
   on public.documents for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+drop policy if exists "documents: жилец видит документы своей квартиры" on public.documents;
 create policy "documents: жилец видит документы своей квартиры"
   on public.documents for select
   using (
@@ -286,7 +300,9 @@ create policy "documents: жилец видит документы своей к
     )
   );
 
--- 7. Уведомления --------------------------------------------------------------
+-- ============================================================
+-- 7. Уведомления
+-- ============================================================
 create table if not exists public.notifications (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references public.profiles(id) on delete cascade,
@@ -298,22 +314,41 @@ create table if not exists public.notifications (
   is_read    boolean not null default false,
   created_date timestamptz not null default now()
 );
-
 alter table public.notifications enable row level security;
 
+drop policy if exists "notifications: только свои" on public.notifications;
 create policy "notifications: только свои"
   on public.notifications for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
--- 8. Realtime: включить рассылку изменений -------------------------------------
-alter publication supabase_realtime add table public.maintenance_requests;
-alter publication supabase_realtime add table public.notifications;
-alter publication supabase_realtime add table public.payments;
-alter publication supabase_realtime add table public.properties;
+-- ============================================================
+-- 8. Realtime
+-- ============================================================
+do $$
+begin
+  alter publication supabase_realtime add table public.maintenance_requests;
+exception when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table public.notifications;
+exception when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table public.payments;
+exception when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table public.properties;
+exception when duplicate_object then null;
+end $$;
 
--- 9. Демо-аккаунт владельца -----------------------------------------------------
--- owner@propmind.test / secret123 (создаётся вместе с профилем через триггер)
+-- ============================================================
+-- 9. Демо-аккаунт владельца: owner@propmind.test / secret123
+-- ============================================================
 do $$
 declare
   v_id uuid;
