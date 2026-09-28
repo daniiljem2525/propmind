@@ -312,7 +312,7 @@ begin
     end if;
   end if;
 
-  if v_role not in ('owner') or not exists (select 1 from public.profiles where id = new.id) then
+  if not exists (select 1 from public.profiles where id = new.id) then
     insert into public.profiles (id, full_name, email, role)
     values (new.id, v_name, new.email, v_role);
   end if;
