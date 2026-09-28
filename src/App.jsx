@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "@/components/ui/toast";
+import ConnectionBanner from "@/components/ConnectionBanner";
 import { LangProvider } from "@/lib/i18n/LangContext";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider } from "@/lib/authContext";
