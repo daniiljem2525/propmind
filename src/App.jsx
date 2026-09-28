@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import AppLayout from "@/components/layout/AppLayout";
 
 import Landing from "@/pages/Landing";
+import { Blog, BlogPost } from "@/pages/Blog";
 import Dashboard from "@/pages/Dashboard";
 import Properties from "@/pages/Properties";
 import Tenants from "@/pages/Tenants";
@@ -37,6 +38,8 @@ export default function App() {
                 <Route path="/" element={<Landing />} />
 
                 <Route path="/login" element={<Login />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />

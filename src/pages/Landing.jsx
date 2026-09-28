@@ -57,7 +57,7 @@ export default function Landing() {
     { href: "#features", key: "land.navFeatures" },
     { href: "#how", key: "land.navHow" },
     { href: "#pricing", key: "land.navPricing" },
-    { href: "#faq", key: "land.navFaq" },
+    { href: "/blog", key: "nav.blog" },
   ];
 
   return (
@@ -73,11 +73,17 @@ export default function Landing() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
-            {anchorNav.map((a) => (
-              <a key={a.href} href={a.href} className="transition-colors hover:text-foreground">
-                {t(a.key)}
-              </a>
-            ))}
+            {anchorNav.map((a) =>
+              a.href.startsWith("#") ? (
+                <a key={a.href} href={a.href} className="transition-colors hover:text-foreground">
+                  {t(a.key)}
+                </a>
+              ) : (
+                <Link key={a.href} to={a.href} className="transition-colors hover:text-foreground">
+                  {t(a.key)}
+                </Link>
+              )
+            )}
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
