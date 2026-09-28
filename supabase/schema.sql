@@ -325,31 +325,31 @@ create policy "notifications: только свои"
 -- ============================================================
 -- 8. Realtime
 -- ============================================================
-do $$
+do $rt1$
 begin
   alter publication supabase_realtime add table public.maintenance_requests;
 exception when duplicate_object then null;
-end $$;
-do $$
+end $rt1$;
+do $rt2$
 begin
   alter publication supabase_realtime add table public.notifications;
 exception when duplicate_object then null;
-end $$;
-do $$
+end $rt2$;
+do $rt3$
 begin
   alter publication supabase_realtime add table public.payments;
 exception when duplicate_object then null;
-end $$;
-do $$
+end $rt3$;
+do $rt4$
 begin
   alter publication supabase_realtime add table public.properties;
 exception when duplicate_object then null;
-end $$;
+end $rt4$;
 
 -- ============================================================
 -- 9. Демо-аккаунт владельца: owner@propmind.test / secret123
 -- ============================================================
-do $$
+do $seed$
 declare
   v_id uuid;
 begin
@@ -375,4 +375,4 @@ begin
       now(), now(), now()
     );
   end if;
-end $$;
+end $seed$;
