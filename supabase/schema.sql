@@ -34,22 +34,12 @@ create policy "profiles: обновляю свой"
 drop policy if exists "profiles: владелец видит всех" on public.profiles;
 create policy "profiles: владелец видит всех"
   on public.profiles for select
-  using (
-    exists (
-      select 1 from public.profiles me
-      where me.id = auth.uid() and me.role = 'owner'
-    )
-  );
+  using (public.is_platform_owner());
 
 drop policy if exists "profiles: владелец управляет ролями" on public.profiles;
 create policy "profiles: владелец управляет ролями"
   on public.profiles for update
-  using (
-    exists (
-      select 1 from public.profiles me
-      where me.id = auth.uid() and me.role = 'owner'
-    )
-  );
+  using (public.is_platform_owner());
 
 -- ============================================================
 -- 2. Объекты недвижимости
@@ -317,6 +307,18 @@ begin
 
   return new;
 end;
+$$;
+
+-- Проверка владельца без рекурсии RLS (security definer)
+create or replace function public.is_platform_owner()
+returns boolean
+language sql
+security definer set search_path = public
+stable as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid() and role = 'owner'
+  );
 $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
