@@ -58,6 +58,8 @@ export const en = {
   "common.copied": "Copied",
 
   "auth.signInTitle": "Sign in to PropMind",
+  "auth.checkEmailTitle": "Check your email",
+  "auth.checkEmailText": "We sent a confirmation email for your account",
   "auth.signInSubtitle": "Apartments, tenants and rent — in one window. 15-minute setup.",
   "auth.signUpTitle": "Create an account",
   "auth.signUpSubtitle": "Up and running in 15 minutes — no onboarding required",

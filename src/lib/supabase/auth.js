@@ -53,8 +53,10 @@ export async function signup({ full_name, email, password, invite_code }) {
     if (error.message.toLowerCase().includes("already")) throw new Error("EMAIL_EXISTS");
     throw new Error("SIGNUP_FAILED");
   }
-  // Если подтверждение email выключено в Supabase — сессия приходит сразу
-  return data.user ? currentUserWithProfile() : null;
+  // Если подтверждение email включено в Supabase — сессии не будет:
+  // сообщаем интерфейсу показать экран «проверь почту»
+  if (!data.session) return { needsConfirmation: true, email };
+  return currentUserWithProfile();
 }
 
 export async function logout() {

@@ -32,9 +32,18 @@ export default function Register() {
 
     setLoading(true);
     try {
-      const { otp: code } = await signup(form);
-      setDemoCode(code);
-      setStep("otp");
+      const result = await signup(form);
+      if (result?.needsConfirmation) {
+        setStep("confirm-email");
+        return;
+      }
+      if (result?.otp) {
+        setDemoCode(result.otp);
+        setStep("otp");
+        return;
+      }
+      // облачный режим с выключенным подтверждением — сразу в приложение
+      navigate("/app", { replace: true });
     } catch (err) {
       setError(mapAuthError(err, t));
     } finally {
@@ -59,8 +68,8 @@ export default function Register() {
 
   return (
     <AuthLayout
-      title={step === "form" ? t("auth.signUpTitle") : t("auth.otpTitle")}
-      subtitle={step === "form" ? t("auth.signUpSubtitle") : t("auth.otpSubtitle").replace("{email}", form.email)}
+      title={step === "confirm-email" ? t("auth.checkEmailTitle") : step === "form" ? t("auth.signUpTitle") : t("auth.otpTitle")}
+      subtitle={step === "confirm-email" ? form.email : step === "form" ? t("auth.signUpSubtitle") : t("auth.otpSubtitle").replace("{email}", form.email)}
       footer={
         <>
           {t("auth.haveAccount")}{" "}
@@ -70,7 +79,23 @@ export default function Register() {
         </>
       }
     >
-      {step === "form" ? (
+      {step === "confirm-email" ? (
+        <div className="space-y-4">
+          <div className="flex items-start gap-3 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm dark:border-emerald-500/20 dark:bg-emerald-500/10">
+            <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div className="leading-relaxed text-emerald-800 dark:text-emerald-300">
+              Мы отправили письмо для подтверждения на {form.email}.
+              Подтверди аккаунт и войди под своим паролем.
+            </div>
+          </div>
+          <Link
+            to="/login"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md brand-gradient text-sm font-semibold text-white"
+          >
+            {t("auth.signIn")}
+          </Link>
+        </div>
+      ) : step === "form" ? (
         <form onSubmit={submitForm} className="space-y-4">
           <Field label={t("auth.fullName")}>
             <Input value={form.full_name} onChange={set("full_name")} placeholder={lang === "ru" ? "Иван Петров" : "John Smith"} autoComplete="name" />

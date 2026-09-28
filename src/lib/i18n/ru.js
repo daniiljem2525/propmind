@@ -58,6 +58,8 @@ export const ru = {
   "common.copied": "Скопировано",
 
   "auth.signInTitle": "Вход в PropMind",
+  "auth.checkEmailTitle": "Проверь почту",
+  "auth.checkEmailText": "Мы отправили письмо для подтверждения аккаунта",
   "auth.signInSubtitle": "Квартиры, жильцы и оплаты — в одном окне. Настройка — 15 минут.",
   "auth.signUpTitle": "Создать аккаунт",
   "auth.signUpSubtitle": "Запуск за 15 минут — без внедрения и обучения",
