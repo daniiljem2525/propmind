@@ -174,6 +174,8 @@ export const ru = {
   "dashboard.renew": "Продлить на год",
   "dashboard.renewed": "Договор продлён до {date}. Платежей в графике: {n}",
   "dashboard.renewedNoTenant": "Договор продлён до {date}",
+  "dashboard.videoTitle": "Обзор продукта — 40 секунд",
+  "dashboard.videoSub": "Дашборд, объекты, платежи, рассылка, заявки и аналитика — всё, что внутри",
 
   // ——— Upsell лимитов тарифа ———
   "upsell.title": "Лимит тарифа Free достигнут",

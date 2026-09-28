@@ -174,6 +174,8 @@ export const en = {
   "dashboard.renew": "Renew for a year",
   "dashboard.renewed": "Lease renewed until {date}. Payments scheduled: {n}",
   "dashboard.renewedNoTenant": "Lease renewed until {date}",
+  "dashboard.videoTitle": "Product tour — 40 seconds",
+  "dashboard.videoSub": "Dashboard, properties, payments, broadcast, requests and analytics — everything inside",
 
   // ——— Plan limit upsell ———
   "upsell.title": "Free plan limit reached",
