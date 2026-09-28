@@ -5,3 +5,4 @@ dist-ssr
 .DS_Store
 npm-debug.log*
 video/shots/
+vite.log
