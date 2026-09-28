@@ -57,7 +57,7 @@ export const ru = {
   "common.copied": "Скопировано",
 
   "auth.signInTitle": "Вход в PropMind",
-  "auth.signInSubtitle": "Управляйте объектами, арендаторами и платежами в одном месте",
+  "auth.signInSubtitle": "Квартиры, жильцы и оплаты — в одном окне. Настройка — 15 минут.",
   "auth.signUpTitle": "Создать аккаунт",
   "auth.signUpSubtitle": "Запуск за 15 минут — без внедрения и обучения",
   "auth.email": "Email",
@@ -228,7 +228,7 @@ export const ru = {
   "land.stickyCta": "Начать бесплатно",
 
   "properties.title": "Объекты",
-  "properties.subtitle": "Портфель недвижимости",
+  "properties.subtitle": "Все квартиры в одном месте",
   "properties.addProperty": "Добавить объект",
   "properties.editProperty": "Редактировать объект",
   "properties.searchPlaceholder": "Название или адрес…",
@@ -258,7 +258,7 @@ export const ru = {
   "properties.required": "Укажите название, адрес и сумму аренды",
 
   "tenants.title": "Арендаторы",
-  "tenants.subtitle": "Жильцы и компании",
+  "tenants.subtitle": "Жильцы и их оплаты",
   "tenants.addTenant": "Добавить арендатора",
   "tenants.editTenant": "Редактировать арендатора",
   "tenants.fullName": "Имя / название",
@@ -282,7 +282,7 @@ export const ru = {
   "tenants.noProperty": "Без объекта",
 
   "payments.title": "Платежи",
-  "payments.subtitle": "Арендные платежи и статусы",
+  "payments.subtitle": "Кто оплатил, кто должен — видно сразу",
   "payments.addPayment": "Добавить платёж",
   "payments.editPayment": "Редактировать платёж",
   "payments.tenant": "Арендатор",
@@ -307,7 +307,7 @@ export const ru = {
   "payments.autofillHint": "Объект и сумма подставятся автоматически",
 
   "maintenance.title": "Заявки на обслуживание",
-  "maintenance.subtitle": "Ремонты и обращения",
+  "maintenance.subtitle": "Ничего не потеряется",
   "maintenance.addRequest": "Новая заявка",
   "maintenance.editRequest": "Редактировать заявку",
   "maintenance.titleField": "Заголовок",
@@ -332,7 +332,7 @@ export const ru = {
   "maintenance.autofillHint": "Арендатор подставится автоматически",
 
   "documents.title": "Документы",
-  "documents.subtitle": "Договоры, акты и счета",
+  "documents.subtitle": "Договоры и счета — под рукой",
   "documents.upload": "Загрузить документ",
   "documents.name": "Название",
   "documents.type": "Тип",
@@ -351,7 +351,7 @@ export const ru = {
   "documents.quota": "Хранилище переполнено — удалите часть данных",
 
   "analytics.title": "Аналитика",
-  "analytics.subtitle": "Доходы и структура портфеля",
+  "analytics.subtitle": "Сколько вы зарабатываете",
   "analytics.incomeByMonth": "Доход по месяцам",
   "analytics.incomeByMonthSub": "Оплаченные платежи за 12 месяцев",
   "analytics.propertyStatuses": "Статусы объектов",
@@ -364,7 +364,7 @@ export const ru = {
   "analytics.expected": "Ожидается в этом месяце",
 
   "settings.title": "Настройки",
-  "settings.subtitle": "Профиль, интерфейс и тариф",
+  "settings.subtitle": "Профиль, тариф и команда",
   "settings.tabProfile": "Профиль",
   "settings.tabAppearance": "Интерфейс",
   "settings.tabNotifications": "Уведомления",
@@ -416,7 +416,7 @@ export const ru = {
   "plans.business.features": "Без ограничений|Команда и роли|Приоритетная поддержка",
 
   "notifications.title": "Уведомления",
-  "notifications.subtitle": "События по объектам и платежам",
+  "notifications.subtitle": "Что происходит по вашим квартирам",
   "notifications.markAllRead": "Прочитать все",
   "notifications.empty": "Уведомлений нет",
   "notifications.unread": "Непрочитанных: {n}",

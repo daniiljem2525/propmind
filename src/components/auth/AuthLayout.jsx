@@ -35,7 +35,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
 
         <div className="relative space-y-7">
           <h1 className="text-3xl font-bold leading-tight">
-            {lang === "ru" ? "Управляйте портфелем недвижимости без таблиц и хаоса" : "Run your property portfolio without spreadsheets and chaos"}
+            {lang === "ru" ? "Ваши квартиры и платежи — в одном окне" : "Your apartments and payments — in one window"}
           </h1>
           <ul className="space-y-4">
             {FEATURES[lang].map((f, i) => (

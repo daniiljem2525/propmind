@@ -57,7 +57,7 @@ export const en = {
   "common.copied": "Copied",
 
   "auth.signInTitle": "Sign in to PropMind",
-  "auth.signInSubtitle": "Properties, tenants and payments in one place",
+  "auth.signInSubtitle": "Apartments, tenants and rent — in one window. 15-minute setup.",
   "auth.signUpTitle": "Create an account",
   "auth.signUpSubtitle": "Up and running in 15 minutes — no onboarding required",
   "auth.email": "Email",
@@ -228,7 +228,7 @@ export const en = {
   "land.stickyCta": "Start free",
 
   "properties.title": "Properties",
-  "properties.subtitle": "Your real estate portfolio",
+  "properties.subtitle": "All apartments in one place",
   "properties.addProperty": "Add property",
   "properties.editProperty": "Edit property",
   "properties.searchPlaceholder": "Name or address…",
@@ -258,7 +258,7 @@ export const en = {
   "properties.required": "Provide name, address and rent amount",
 
   "tenants.title": "Tenants",
-  "tenants.subtitle": "Residents and companies",
+  "tenants.subtitle": "Tenants and their rent",
   "tenants.addTenant": "Add tenant",
   "tenants.editTenant": "Edit tenant",
   "tenants.fullName": "Name",
@@ -282,7 +282,7 @@ export const en = {
   "tenants.noProperty": "No property",
 
   "payments.title": "Payments",
-  "payments.subtitle": "Rent payments and statuses",
+  "payments.subtitle": "Who paid, who owes — visible instantly",
   "payments.addPayment": "Add payment",
   "payments.editPayment": "Edit payment",
   "payments.tenant": "Tenant",
@@ -307,7 +307,7 @@ export const en = {
   "payments.autofillHint": "Property and amount fill in automatically",
 
   "maintenance.title": "Maintenance",
-  "maintenance.subtitle": "Repairs and requests",
+  "maintenance.subtitle": "Nothing gets lost",
   "maintenance.addRequest": "New request",
   "maintenance.editRequest": "Edit request",
   "maintenance.titleField": "Title",
@@ -332,7 +332,7 @@ export const en = {
   "maintenance.autofillHint": "Tenant fills in automatically",
 
   "documents.title": "Documents",
-  "documents.subtitle": "Contracts, acts and invoices",
+  "documents.subtitle": "Contracts and invoices at hand",
   "documents.upload": "Upload document",
   "documents.name": "Name",
   "documents.type": "Type",
@@ -351,7 +351,7 @@ export const en = {
   "documents.quota": "Storage is full — remove some data",
 
   "analytics.title": "Analytics",
-  "analytics.subtitle": "Revenue and portfolio structure",
+  "analytics.subtitle": "See what you earn",
   "analytics.incomeByMonth": "Income by month",
   "analytics.incomeByMonthSub": "Paid payments over 12 months",
   "analytics.propertyStatuses": "Property statuses",
@@ -364,7 +364,7 @@ export const en = {
   "analytics.expected": "Expected this month",
 
   "settings.title": "Settings",
-  "settings.subtitle": "Profile, interface and plan",
+  "settings.subtitle": "Profile, plan and team",
   "settings.tabProfile": "Profile",
   "settings.tabAppearance": "Interface",
   "settings.tabNotifications": "Notifications",
@@ -416,7 +416,7 @@ export const en = {
   "plans.business.features": "Unlimited|Team and roles|Priority support",
 
   "notifications.title": "Notifications",
-  "notifications.subtitle": "Property and payment events",
+  "notifications.subtitle": "What's happening across your apartments",
   "notifications.markAllRead": "Mark all read",
   "notifications.empty": "No notifications",
   "notifications.unread": "Unread: {n}",

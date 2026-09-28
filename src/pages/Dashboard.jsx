@@ -166,23 +166,6 @@ export default function Dashboard() {
         />
       </div>
 
-      {/* Видео-обзор продукта */}
-      <Card className="mt-6">
-        <CardHeader className="pb-2">
-          <CardTitle>{t("dashboard.videoTitle")}</CardTitle>
-          <CardDescription>{t("dashboard.videoSub")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <video
-            className="w-full rounded-md border"
-            controls
-            preload="none"
-            poster={`${import.meta.env.BASE_URL}video/propmind-demo-poster.jpg`}
-            src={`${import.meta.env.BASE_URL}video/propmind-demo.mp4`}
-          />
-        </CardContent>
-      </Card>
-
       {/* Последние платежи и заявки */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <Card>
