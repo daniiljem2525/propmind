@@ -27,7 +27,7 @@ export default function Register() {
     e.preventDefault();
     setError("");
     if (!form.full_name || !form.email || !form.password) return setError(t("auth.errors.required"));
-    if (form.password.length < 6) return setError(t("auth.errors.weakPassword"));
+    if (form.password.length < 8) return setError(t("auth.errors.weakPassword"));
     if (form.password !== form.confirm) return setError(t("auth.errors.passwordMismatch"));
 
     setLoading(true);

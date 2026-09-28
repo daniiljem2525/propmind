@@ -66,14 +66,16 @@ function setSession(userId) {
 
 export async function signup({ full_name, email, password }) {
   const normalized = String(email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized)) throw new Error("EMAIL_INVALID");
   const users = readUsers();
   const existing = users.find((u) => u.email === normalized);
   if (existing && existing.status !== "invited") throw new Error("EMAIL_EXISTS");
 
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   const password_hash = await hash(password);
+  const otp_created = Date.now(); // код живёт 15 минут
   if (existing) {
-    Object.assign(existing, { full_name, password_hash, status: "pending", otp });
+    Object.assign(existing, { full_name, password_hash, status: "pending", otp, otp_created, otp_fails: 0 });
     writeUsers(users);
   } else {
     users.push({
@@ -84,6 +86,7 @@ export async function signup({ full_name, email, password }) {
       role: "user",
       status: "pending",
       otp,
+      otp_created,
       created_date: new Date().toISOString(),
     });
     writeUsers(users);
@@ -95,11 +98,25 @@ export function verifyOtp(email, otp) {
   const normalized = String(email || "").trim().toLowerCase();
   const users = readUsers();
   const user = users.find((u) => u.email === normalized);
-  if (!user || user.status !== "pending" || String(user.otp) !== String(otp)) {
+  if (!user || user.status !== "pending" || !user.otp) {
+    throw new Error("WRONG_OTP");
+  }
+  // Код живёт 15 минут, перебор ограничен 5 попытками
+  if (Date.now() - (user.otp_created || 0) > 15 * 60 * 1000) {
+    throw new Error("OTP_EXPIRED");
+  }
+  if ((user.otp_fails || 0) >= 5) {
+    throw new Error("OTP_EXPIRED");
+  }
+  if (String(user.otp) !== String(otp)) {
+    user.otp_fails = (user.otp_fails || 0) + 1;
+    writeUsers(users);
     throw new Error("WRONG_OTP");
   }
   user.status = "active";
   user.otp = null;
+  user.otp_created = null;
+  user.otp_fails = 0;
   writeUsers(users);
   setSession(user.id);
   return publicUser(user);
@@ -178,6 +195,7 @@ export function requestPasswordReset(email) {
   if (!user) throw new Error("USER_NOT_FOUND");
   const token = uid().replace(/-/g, "").slice(0, 10);
   user.reset_token = token;
+  user.reset_created = Date.now(); // ссылка живёт 30 минут
   writeUsers(users);
   return { token, email: normalized };
 }
@@ -186,6 +204,8 @@ export async function resetPassword(token, password) {
   const users = readUsers();
   const user = users.find((u) => u.reset_token === String(token || "").trim());
   if (!user) throw new Error("USER_NOT_FOUND");
+  // Токен сброса живёт 30 минут
+  if (Date.now() - (user.reset_created || 0) > 30 * 60 * 1000) throw new Error("USER_NOT_FOUND");
   user.password_hash = await hash(password);
   user.reset_token = null;
   if (user.status === "pending") user.status = "active";
@@ -231,6 +251,7 @@ export function updateUserRole(id, role) {
 
 export function inviteUser(email, role = "user") {
   const normalized = String(email || "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized)) throw new Error("EMAIL_INVALID");
   const users = readUsers();
   if (users.some((u) => u.email === normalized)) throw new Error("EMAIL_EXISTS");
   users.push({

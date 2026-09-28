@@ -25,7 +25,7 @@ export default function ResetPassword() {
     e.preventDefault();
     setError("");
     if (!password || !token) return setError(t("auth.errors.required"));
-    if (password.length < 6) return setError(t("auth.errors.weakPassword"));
+    if (password.length < 8) return setError(t("auth.errors.weakPassword"));
     if (password !== confirm) return setError(t("auth.errors.passwordMismatch"));
 
     setLoading(true);

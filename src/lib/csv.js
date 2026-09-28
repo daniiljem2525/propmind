@@ -40,8 +40,10 @@ export function parseCSV(text) {
 }
 
 export function toCSV(rows, headers) {
+  // Защита от CSV-инъекции: значения, начинающиеся с = + - @, Excel исполняет как формулы
   const escape = (v) => {
-    const s = String(v ?? "");
+    let s = String(v ?? "");
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const head = headers.map((h) => escape(h.label)).join(";");

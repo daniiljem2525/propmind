@@ -196,7 +196,7 @@ export default function Settings() {
   const [pwSaving, setPwSaving] = useState(false);
   const submitPassword = async (e) => {
     e.preventDefault();
-    if (!pw.current || pw.next.length < 6 || pw.next !== pw.repeat) {
+    if (!pw.current || pw.next.length < 8 || pw.next !== pw.repeat) {
       toast.error(pw.next !== pw.repeat ? t("auth.errors.passwordMismatch") : t("auth.errors.weakPassword"));
       return;
     }

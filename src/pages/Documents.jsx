@@ -11,7 +11,7 @@ import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Document, Property } from "@/lib/api/entities";
-import { uploadFile } from "@/lib/api/files";
+import { uploadFile, SAFE_DOC_TYPES } from "@/lib/api/files";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { DOC_TYPE_CONFIG } from "@/lib/config/statuses";
@@ -93,7 +93,7 @@ function DocumentFormDialog({ open, onClose, editing, properties }) {
       let file_name = editing?.file_name || null;
       let file_size = editing?.file_size || null;
       if (file) {
-        file_url = await uploadFile(file);
+        file_url = await uploadFile(file, SAFE_DOC_TYPES);
         file_name = file.name;
         file_size = file.size;
       }
@@ -117,6 +117,7 @@ function DocumentFormDialog({ open, onClose, editing, properties }) {
       onClose();
     } catch (err) {
       if (err.message === "FILE_TOO_LARGE") toast.error(t("documents.fileTooLarge"));
+        else if (err.message === "BAD_TYPE") toast.error(t("documents.badType"));
       else if (err.message === "QUOTA_EXCEEDED") toast.error(t("documents.quota"));
       else toast.error(t("documents.uploadFailed"));
     } finally {

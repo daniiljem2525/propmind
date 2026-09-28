@@ -13,6 +13,8 @@ export function mapAuthError(e, t) {
     REQUIRED: "auth.errors.required",
     PENDING_ACCOUNT: "auth.errors.wrongCredentials",
     TOO_MANY_ATTEMPTS: "auth.errors.tooMany",
+    OTP_EXPIRED: "auth.errors.otpExpired",
+    EMAIL_INVALID: "auth.errors.emailInvalid",
   };
   return t(map[e?.message] || "errors.generic");
 }
