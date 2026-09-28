@@ -160,7 +160,7 @@ export default function Landing() {
           <p className="mt-4 text-sm text-muted-foreground">{t("land.heroTrust")}</p>
 
           {/* Живой пример дашборда + лента событий */}
-          <LiveDemo />
+          <HeroVideo />
         </div>
       </section>
 
@@ -206,23 +206,6 @@ export default function Landing() {
               </div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Видео-обзор внутрянки */}
-      <section id="demo-video" className="border-t py-20">
-        <div className="mx-auto max-w-5xl px-4 lg:px-8">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-3xl font-extrabold tracking-tight">{t("land.videoTitle")}</h2>
-            <p className="mt-3 text-muted-foreground">{t("land.videoSub")}</p>
-          </div>
-          <video
-            className="mt-10 w-full rounded-lg border shadow-card-hover"
-            controls
-            preload="metadata"
-            poster={`${import.meta.env.BASE_URL}video/propmind-demo-poster.jpg`}
-            src={`${import.meta.env.BASE_URL}video/propmind-demo.mp4`}
-          />
         </div>
       </section>
 
@@ -423,56 +406,18 @@ export default function Landing() {
   );
 }
 
-// ——— Живой пример дашборда: цифры тикают, оплаты «проходят», события появляются ———
-function LiveDemo() {
+// ——— Видео работы всей системы (плавные кроссфейды) + живая лента событий ———
+function HeroVideo() {
   const { t } = useLang();
-  const [stats, setStats] = useState({ props: 0, tenants: 0, requests: 0, income: 0 });
-  const [paidRow, setPaidRow] = useState(-1);
   const [feedIdx, setFeedIdx] = useState(0);
 
   const events = [t("land.feed1"), t("land.feed2"), t("land.feed3"), t("land.feed4"), t("land.feed5")];
-  const rows = [
-    { name: "Марина Ким", amount: "260 000 ₽" },
-    { name: "Дмитрий Орлов", amount: "350 000 ₽" },
-    { name: "ООО «Меридиан»", amount: "480 000 ₽" },
-  ];
 
   useEffect(() => {
-    // счётчики разгоняются при появлении блока
-    let raf;
-    const t0 = performance.now();
-    const tick = (now) => {
-      const k = Math.min((now - t0) / 1600, 1);
-      const e = 1 - Math.pow(1 - k, 3);
-      setStats({
-        props: Math.round(8 * e),
-        tenants: Math.round(6 * e),
-        requests: Math.round(3 * e),
-        income: Math.round(645000 * e),
-      });
-      if (k < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-
-    // оплаты «проходят» по очереди
-    const badgeTimer = setInterval(() => setPaidRow((v) => (v + 1) % 4), 3200);
-    // лента событий
-    const feedTimer = setInterval(() => setFeedIdx((v) => (v + 1) % events.length), 2600);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearInterval(badgeTimer);
-      clearInterval(feedTimer);
-    };
+    const timer = setInterval(() => setFeedIdx((v) => (v + 1) % events.length), 2600);
+    return () => clearInterval(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const money = (v) => v.toLocaleString("ru-RU");
-  const statTiles = [
-    { icon: Building2, tile: "bg-teal-500", label: t("land.mockProps"), value: String(stats.props) },
-    { icon: Users, tile: "bg-indigo-500", label: t("land.mockTenants"), value: String(stats.tenants) },
-    { icon: Wrench, tile: "bg-amber-500", label: t("land.mockRequests"), value: String(stats.requests) },
-    { icon: CreditCard, tile: "bg-emerald-500", label: t("land.mockIncome"), value: money(stats.income) + " ₽" },
-  ];
 
   return (
     <div className="relative mx-auto mt-14 max-w-4xl text-left">
@@ -482,47 +427,18 @@ function LiveDemo() {
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
         </div>
-
-        {/* Статистика с тикающими цифрами */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {statTiles.map((s, i) => (
-            <div key={i} className="rounded-md border bg-background p-3">
-              <div className="flex items-center gap-2">
-                <span className={cn("flex h-7 w-7 items-center justify-center rounded-md text-white", s.tile)}>
-                  <s.icon className="h-3.5 w-3.5" />
-                </span>
-                <p className="truncate text-[11px] text-muted-foreground">{s.label}</p>
-              </div>
-              <p className="mt-1.5 truncate text-sm font-bold tabular-nums">{s.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Платежи, которые «проходят» */}
-        <div className="mt-3 divide-y rounded-md border bg-background">
-          {rows.map((r, i) => (
-            <div key={i} className="flex items-center gap-3 px-3 py-2.5">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
-                {r.name.slice(0, 2).toUpperCase()}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-xs font-medium">{r.name}</span>
-              <span className="shrink-0 text-xs font-semibold tabular-nums">{r.amount}</span>
-              <span
-                className={cn(
-                  "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors duration-500",
-                  i < paidRow
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400"
-                    : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400"
-                )}
-              >
-                {i < paidRow ? t("land.mockPaid") : t("land.mockPending")}
-              </span>
-            </div>
-          ))}
-        </div>
+        <video
+          className="w-full rounded-md"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          poster={`${import.meta.env.BASE_URL}video/propmind-demo-poster.jpg`}
+          src={`${import.meta.env.BASE_URL}video/propmind-demo.mp4`}
+        />
       </div>
 
-      {/* Лента событий — «прямой эфир» платформы (референс any.run) */}
       <div className="mt-3 flex items-center gap-3 rounded-lg border bg-card px-4 py-3 shadow-card">
         <span className="relative flex h-2.5 w-2.5 shrink-0">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />

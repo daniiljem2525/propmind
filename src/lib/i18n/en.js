@@ -10,6 +10,7 @@ export const en = {
   "nav.maintenance": "Maintenance",
   "nav.documents": "Documents",
   "nav.analytics": "Analytics",
+  "nav.blog": "Blog",
   "nav.settings": "Settings",
   "nav.notifications": "Notifications",
 

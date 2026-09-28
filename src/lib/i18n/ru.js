@@ -10,6 +10,7 @@ export const ru = {
   "nav.maintenance": "Заявки",
   "nav.documents": "Документы",
   "nav.analytics": "Аналитика",
+  "nav.blog": "Блог",
   "nav.settings": "Настройки",
   "nav.notifications": "Уведомления",
 
