@@ -249,6 +249,38 @@ create policy "requests: исполнитель видит свои"
 -- обновления ему запрещены — снимаем политику прямой записи.
 drop policy if exists "requests: исполнитель меняет свой блок" on public.maintenance_requests;
 
+-- Владелец заявки = владелец объекта, даже если заявку создал жилец.
+-- Default auth.uid() проставил бы в owner_id жильца — и владелец
+-- объекта не увидел бы заявку. Переназначаем до записи строки.
+create or replace function public.set_request_owner()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_tenant uuid;
+begin
+  if new.property_id is not null and new.created_by is not null and new.created_by = auth.uid() then
+    select p.owner_id, p.tenant_id into v_owner, v_tenant
+    from public.properties p where p.id = new.property_id;
+
+    if v_tenant = auth.uid() and v_owner is not null then
+      new.owner_id := v_owner;
+      if new.tenant_id is null then
+        new.tenant_id := v_tenant;
+      end if;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_request_insert_owner on public.maintenance_requests;
+create trigger on_request_insert_owner
+  before insert on public.maintenance_requests
+  for each row execute function public.set_request_owner();
+
 -- Политика объектов, зависящая от заявок (таблица уже создана)
 drop policy if exists "properties: исполнитель видит объекты своих заявок" on public.properties;
 create policy "properties: исполнитель видит объекты своих заявок"
