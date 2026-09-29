@@ -288,49 +288,20 @@ language plpgsql
 security definer set search_path = public
 as $$
 declare
-  v_invite public.invites%ROWTYPE;
-  v_role   text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
-  v_name   text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
-  v_code   text := new.raw_user_meta_data->>'invite_code';
+  v_role text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
+  v_name text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
 begin
-  if v_role = 'owner' then
-    if not exists (select 1 from public.profiles where role = 'owner') then
-      v_role := 'owner';
-    else
-      v_role := 'tenant';
-    end if;
-  elsif v_role in ('tenant', 'contractor') and v_code is not null then
-    select * into v_invite from public.invites
-     where code = v_code and used_by is null and role = v_role;
-    if found then
-      -- профиль создаём ПЕРВЫМ (FK used_by → profiles), затем помечаем код
-      insert into public.profiles (id, full_name, email, role)
-      values (new.id, v_name, new.email, v_role);
-      update public.invites set used_by = new.id where code = v_invite.code;
-    else
-      v_role := 'tenant';
-    end if;
+  -- Первый пользователь становится владельцем, остальные — жильцами.
+  -- Роли tenant/contractor по приглашению назначает RPC claim_invite
+  -- (вызывается приложением сразу после регистрации).
+  if v_role = 'owner' and not exists (select 1 from public.profiles where role = 'owner') then
+    v_role := 'owner';
+  else
+    v_role := 'tenant';
   end if;
 
-  if not exists (select 1 from public.profiles where id = new.id) then
-    insert into public.profiles (id, full_name, email, role)
-    values (new.id, v_name, new.email, v_role);
-  end if;
-
-  if v_invite is not null and v_invite.property_id is not null then
-    update public.properties
-       set tenant_id = new.id, tenant_name = v_name, status = 'rented'
-     where id = v_invite.property_id;
-  end if;
-
-  return new;
-
-  if v_invite is not null and v_invite.property_id is not null then
-    update public.properties
-       set tenant_id = new.id, tenant_name = v_name, status = 'rented'
-     where id = v_invite.property_id;
-  end if;
-
+  insert into public.profiles (id, full_name, email, role)
+  values (new.id, v_name, new.email, v_role);
   return new;
 end;
 $$;
@@ -363,6 +334,49 @@ begin
   alter publication supabase_realtime add table public.properties;
 exception when duplicate_object then null;
 end $rt4$;
+
+
+-- ============================================================
+-- 8b. claim_invite: применяет код приглашения ПОСЛЕ регистрации.
+-- Назначает роль, помечает код, привязывает квартиру. Без триггеров.
+-- ============================================================
+create or replace function public.claim_invite(p_code text)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $claim$
+declare
+  v_inv   public.invites%ROWTYPE;
+  v_role  text;
+  v_linked boolean := false;
+begin
+  select * into v_inv from public.invites
+   where code = upper(p_code) and used_by is null
+     and role in ('tenant', 'contractor')
+   limit 1;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'INVALID_CODE');
+  end if;
+
+  update public.invites set used_by = auth.uid() where code = v_inv.code;
+  v_role := v_inv.role;
+  update public.profiles set role = v_role where id = auth.uid();
+
+  if v_inv.property_id is not null then
+    update public.properties
+       set tenant_id = auth.uid(),
+           tenant_name = coalesce((select full_name from public.profiles where id = auth.uid()), ''),
+           status = 'rented'
+     where id = v_inv.property_id;
+    v_linked := true;
+  end if;
+
+  return jsonb_build_object('ok', true, 'role', v_role, 'property_linked', v_linked);
+end;
+$claim$;
+
+revoke all on function public.claim_invite(text) from anon;
+grant execute on function public.claim_invite(text) to authenticated;
 
 -- ============================================================
 -- 10. Демо-аккаунт владельца: owner@propmind.test / secret123
