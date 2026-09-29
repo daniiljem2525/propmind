@@ -1,23 +1,35 @@
 import { useState } from "react";
-import { CheckCircle2, HardHat, MapPin, Play, Wrench } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  ClipboardCheck,
+  HardHat,
+  MapPin,
+  Wrench,
+  XCircle,
+} from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import EmptyState from "@/components/EmptyState";
+import RequestDetails from "@/components/RequestDetails";
 import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { MaintenanceRequest } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { useToast } from "@/components/ui/toast";
-import { pushNotification } from "@/lib/services";
+import { requestActionError } from "@/lib/services";
+import { formatDate, formatMoney } from "@/lib/utils";
 import { MAINTENANCE_STATUS_CONFIG, URGENCY_CONFIG } from "@/lib/config/statuses";
 
-// Портал исполнителя: назначенные работы, приём, выполнение с фото и стоимостью
+// Портал исполнителя: назначенные работы, приём/отклонение, отчёт с фото и стоимостью.
+// Все переходы — через RPC (accept/decline/report), уведомления рассылает БД.
 export default function ContractorJobs() {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -26,67 +38,68 @@ export default function ContractorJobs() {
 
   const mine = (requests || []).filter((r) => r.contractor_id === user.id);
   const active = mine.filter((r) => ["assigned", "in_progress"].includes(r.status));
-  const finished = mine.filter((r) => r.status === "done" || r.status === "closed");
-  const earned = finished.reduce((s, r) => s + (Number(r.work_cost) || 0), 0);
+  const finished = mine.filter((r) => ["done", "closed"].includes(r.status));
+  const earned = mine
+    .filter((r) => r.status === "closed")
+    .reduce((s, r) => s + (Number(r.work_cost) || 0), 0);
 
   const [busy, setBusy] = useState(null);
   const [finishFor, setFinishFor] = useState(null);
+  const [declining, setDeclining] = useState(null);
+  const [detailsFor, setDetailsFor] = useState(null);
   const [cost, setCost] = useState("");
   const [photo, setPhoto] = useState("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const update = async (id, patch, notif) => {
-    setBusy(id + patch.status);
+  const runAction = async (id, key, fn, successTitle) => {
+    setBusy(id + key);
     try {
-      await MaintenanceRequest.update(id, patch);
-      if (notif) await pushNotification(notif);
-      toast.success(notif ? notif.title : t("common.save"));
+      const res = await fn();
+      if (res.ok === false) {
+        toast.error(requestActionError(res, t));
+        return;
+      }
+      if (successTitle) toast.success(successTitle);
       refresh();
+    } catch {
+      toast.error(t("req.err.generic"));
     } finally {
       setBusy(null);
     }
   };
 
   const accept = (r) =>
-    update(
-      r.id,
-      { status: "in_progress", contractor_status: "accepted", started_at: new Date().toISOString() },
-      { type: "maintenance_updated", title: t("jobs.acceptedTitle"), message: `${r.title || ""} — ${user.full_name}`, link: "/app/maintenance", related_id: r.id }
-    );
+    runAction(r.id, "accept", () => MaintenanceRequest.accept(r.id), t("jobs.acceptedToast"));
 
-  const startWork = (r) =>
-    update(
-      r.id,
-      { status: "in_progress", contractor_status: "in_progress" },
-      { type: "maintenance_updated", title: t("jobs.startedTitle"), message: `${r.title || ""} — ${user.full_name}`, link: "/app/maintenance", related_id: r.id }
-    );
+  const decline = async () => {
+    if (!declining) return;
+    await runAction(declining.id, "decline", () => MaintenanceRequest.decline(declining.id), t("jobs.declinedToast"));
+    setDeclining(null);
+  };
 
-  const finish = async () => {
+  const finish = async (e) => {
+    e.preventDefault();
     if (!finishFor) return;
     setSaving(true);
     try {
-      await MaintenanceRequest.update(finishFor.id, {
-        status: "done",
-        contractor_status: "done",
+      const res = await MaintenanceRequest.report(finishFor.id, {
         work_cost: Number(cost) || 0,
         work_photo_url: photo,
         work_notes: notes,
-        completed_at: new Date().toISOString(),
       });
-      await pushNotification({
-        type: "maintenance_updated",
-        title: t("jobs.doneTitle"),
-        message: `${finishFor.title || ""} — ${formatMoney(Number(cost) || 0, "RUB", lang)}`,
-        link: "/app/maintenance",
-        related_id: finishFor.id,
-      });
+      if (res.ok === false) {
+        toast.error(requestActionError(res, t));
+        return;
+      }
       toast.success(t("jobs.doneToast"));
       setFinishFor(null);
       setCost("");
       setPhoto("");
       setNotes("");
       refresh();
+    } catch {
+      toast.error(t("req.err.generic"));
     } finally {
       setSaving(false);
     }
@@ -99,7 +112,7 @@ export default function ContractorJobs() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard icon={HardHat} tile="bg-amber-500" label={t("jobs.active")} value={active.length} />
         <StatCard icon={CheckCircle2} tile="bg-emerald-500" label={t("jobs.finished")} value={finished.length} />
-        <StatCard icon={Wrench} tile="bg-teal-500" label={t("jobs.earned")} value={`${earned.toLocaleString("ru-RU")} ₽`} />
+        <StatCard icon={Wrench} tile="bg-teal-500" label={t("jobs.earned")} value={formatMoney(earned, "RUB", lang)} />
       </div>
 
       <Card className="mt-6">
@@ -112,7 +125,11 @@ export default function ContractorJobs() {
             <EmptyState icon={HardHat} title={t("jobs.empty")} description={t("jobs.emptySub")} />
           )}
           {active.map((r) => (
-            <div key={r.id} className="rounded-md border p-4">
+            <div
+              key={r.id}
+              className="cursor-pointer rounded-md border p-4 transition-colors hover:bg-muted/40"
+              onClick={() => setDetailsFor(r)}
+            >
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="font-semibold">{r.title || r.description?.slice(0, 60)}</p>
@@ -127,23 +144,56 @@ export default function ContractorJobs() {
                 </div>
               </div>
               <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>
-              <div className="mt-3 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                {r.scheduled_at && (
+                  <Badge className="bg-muted text-muted-foreground">
+                    <CalendarClock className="h-3 w-3" />
+                    {formatDate(r.scheduled_at, lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </Badge>
+                )}
+                {r.estimate_cost != null && (
+                  <Badge className="bg-muted text-muted-foreground">
+                    {t("jobs.estimate")}: {formatMoney(r.estimate_cost, "RUB", lang)}
+                  </Badge>
+                )}
+              </div>
+              <div className="mt-3 flex gap-2" onClick={(e) => e.stopPropagation()}>
                 {r.status === "assigned" && (
-                  <Button size="sm" onClick={() => accept(r)} loading={busy === r.id + "in_progress"}>
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {t("jobs.accept")}
-                  </Button>
+                  <>
+                    <Button
+                      size="sm"
+                      onClick={() => accept(r)}
+                      loading={busy === r.id + "accept"}
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                      {t("jobs.accept")}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-rose-600"
+                      onClick={() => setDeclining(r)}
+                    >
+                      <XCircle className="h-3.5 w-3.5" />
+                      {t("jobs.decline")}
+                    </Button>
+                  </>
                 )}
                 {r.status === "in_progress" && (
-                  <Button size="sm" variant="outline" onClick={() => startWork(r)} loading={busy === r.id + "in_progress2"}>
-                    <Play className="h-3.5 w-3.5" />
-                    {t("jobs.startedTitle")}
+                  <Button
+                    size="sm"
+                    variant="gradient"
+                    onClick={() => {
+                      setFinishFor(r);
+                      setCost(r.estimate_cost != null ? String(r.estimate_cost) : "");
+                      setPhoto("");
+                      setNotes("");
+                    }}
+                  >
+                    <ClipboardCheck className="h-3.5 w-3.5" />
+                    {t("jobs.finish")}
                   </Button>
                 )}
-                <Button size="sm" variant="gradient" onClick={() => { setFinishFor(r); setCost(""); setPhoto(""); setNotes(""); }}>
-                  <Wrench className="h-3.5 w-3.5" />
-                  {t("jobs.finish")}
-                </Button>
               </div>
             </div>
           ))}
@@ -157,13 +207,17 @@ export default function ContractorJobs() {
           </CardHeader>
           <CardContent className="divide-y">
             {finished.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 py-3">
+              <div
+                key={r.id}
+                className="flex cursor-pointer items-center gap-3 py-3"
+                onClick={() => setDetailsFor(r)}
+              >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{r.title || r.description?.slice(0, 50)}</p>
                   <p className="truncate text-xs text-muted-foreground">{r.property_name}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold">
-                  {r.work_cost ? `${Number(r.work_cost).toLocaleString("ru-RU")} ₽` : "—"}
+                  {r.work_cost ? formatMoney(r.work_cost, "RUB", lang) : "—"}
                 </span>
                 <StatusBadge config={MAINTENANCE_STATUS_CONFIG} value={r.status} />
               </div>
@@ -172,7 +226,7 @@ export default function ContractorJobs() {
         </Card>
       )}
 
-      {/* Диалог завершения работы */}
+      {/* Диалог сдачи работы */}
       <Dialog
         open={!!finishFor}
         onClose={() => setFinishFor(null)}
@@ -198,6 +252,17 @@ export default function ContractorJobs() {
           </Field>
         </div>
       </Dialog>
+
+      <RequestDetails request={detailsFor} open={!!detailsFor} onClose={() => setDetailsFor(null)} />
+
+      <ConfirmDialog
+        open={!!declining}
+        onClose={() => setDeclining(null)}
+        onConfirm={decline}
+        title={t("jobs.decline")}
+        description={t("jobs.declineConfirm")}
+        confirmLabel={t("jobs.decline")}
+      />
     </div>
   );
 }

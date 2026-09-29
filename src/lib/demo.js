@@ -1,7 +1,7 @@
 // Демо-данные в один клик: объекты, арендаторы, история платежей,
 // заявки, документы и уведомления для текущего пользователя.
 
-import { Property, Tenant, Payment, MaintenanceRequest, Document, NotificationEntity } from "@/lib/api/entities";
+import { Property, Tenant, Payment, MaintenanceRequest, RequestComment, RequestEvent, Document, NotificationEntity } from "@/lib/api/entities";
 import { getCurrentUser } from "@/lib/api/auth";
 import { todayISO, addDaysISO, addMonthsISO } from "@/lib/utils";
 
@@ -129,7 +129,7 @@ export async function seedDemoData({ reset = false } = {}) {
   // с RLS никто чужой не пострадает; в локальном режиме — свои же записи)
   if (reset) {
     // Порядок важен: сначала то, что ссылается на объекты (FK)
-    const collections = [MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
+    const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
     for (const entity of collections) {
       const rows = await entity.list();
       for (const row of rows) {
@@ -233,20 +233,33 @@ export async function seedDemoData({ reset = false } = {}) {
   }
 
   // ——— Заявки ———
+  const iso = (daysAgo, hours = 10) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    d.setHours(hours, 0, 0, 0);
+    return d.toISOString();
+  };
   const requests = [
     {
       title: "Течёт труба под раковиной",
       description: "На кухне под мойкой образовалась течь, вода собирается в поддон. Нужно срочно вызвать сантехника.",
       propertyIndex: 0,
+      category: "plumbing",
       urgency: "emergency",
       status: "in_progress",
       source: "tenant_portal",
-      assigned_to: "Сантехник Пётр Смирнов",
+      contractor_name: "Сантехник Пётр Смирнов",
+      contractor_status: "accepted",
+      estimate_cost: 5000,
+      assigned_at: iso(-2, 9),
+      scheduled_at: iso(-1, 14),
+      started_at: iso(-1, 14),
     },
     {
       title: "Не работает домофон",
       description: "Домофон не открывает подъезд с трубки, гости не могут дозвониться.",
       propertyIndex: 1,
+      category: "other",
       urgency: "medium",
       status: "new",
       source: "ai_bot",
@@ -255,17 +268,23 @@ export async function seedDemoData({ reset = false } = {}) {
       title: "Заклинило оконную раму",
       description: "Одно окно в переговорной не закрывается до конца, сквозит.",
       propertyIndex: 3,
+      category: "furniture",
       urgency: "low",
-      status: "completed",
+      status: "closed",
       source: "manual",
-      assigned_to: "Мастер Артём Кузнецов",
-      resolution_notes: "Заменён регулировочный механизм створки, окно работает штатно.",
-      completed_date: addDaysISO(todayISO(), -12),
+      contractor_name: "Мастер Артём Кузнецов",
+      contractor_status: "done",
+      work_notes: "Заменён регулировочный механизм створки, окно работает штатно.",
+      work_cost: 3500,
+      assigned_at: iso(-14, 10),
+      completed_at: iso(-12, 16),
+      closed_at: iso(-11, 12),
     },
     {
       title: "Перегорело освещение витрины",
-      description: "Часть витринной подсветки не работает, нужен замена ламп.",
+      description: "Часть витринной подсветки не работает, нужна замена ламп.",
       propertyIndex: 4,
+      category: "electrical",
       urgency: "high",
       status: "new",
       source: "manual",

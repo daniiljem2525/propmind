@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Navigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
@@ -43,7 +42,6 @@ export default function Landing() {
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
   const [yearly, setYearly] = useState(false);
-  if (user) return <Navigate to="/app" replace />;
 
   // Клик по логотипу: если мы уже на "/", плавно поднимаемся наверх
   const logoClick = (e) => {
@@ -96,19 +94,30 @@ export default function Landing() {
                 {lang === "ru" ? "RU" : "EN"}
               </span>
             </button>
-            <Link
-              to="/login"
-              className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-            >
-              <LogIn className="h-4 w-4" />
-              {t("auth.signIn")}
-            </Link>
-            <Link
-              to="/register"
-              className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-            >
-              {t("land.cta")}
-            </Link>
+            {user ? (
+              <Link
+                to="/app"
+                className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+              >
+                {t("land.openApp")}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+                >
+                  <LogIn className="h-4 w-4" />
+                  {t("auth.signIn")}
+                </Link>
+                <Link
+                  to="/register"
+                  className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+                >
+                  {t("land.cta")}
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </header>

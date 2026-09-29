@@ -88,6 +88,32 @@ export function registerCurrentUserFn(fn) {
   CURRENT_USER_FN = fn;
 }
 
+// Журнал событий заявки в localStorage: строка без owner_id была бы
+// невидима для list() (он фильтрует по владельцу)
+function pushLocalEvent(requestId, event, details = "") {
+  const user = CURRENT_USER_FN();
+  const rows = readCollection("request_events");
+  rows.push({
+    id: uid(),
+    request_id: requestId,
+    actor_id: user?.id || null,
+    actor_name: user?.full_name || "",
+    actor_role: user?.role || "system",
+    event,
+    details,
+    owner_id: user?.id || null,
+    created_date: new Date().toISOString(),
+  });
+  writeCollection("request_events", rows);
+}
+
+const requestBase = makeEntity("maintenance_requests", {
+  urgency: "medium",
+  status: "new",
+  source: "manual",
+  category: "other",
+});
+
 export const Property = makeEntity("properties", {
   type: "apartment",
   currency: "RUB",
@@ -105,11 +131,87 @@ export const Payment = makeEntity("payments", {
   status: "pending",
 });
 
-export const MaintenanceRequest = makeEntity("maintenance_requests", {
-  urgency: "medium",
-  status: "new",
-  source: "manual",
-});
+export const MaintenanceRequest = {
+  ...makeEntity("maintenance_requests", {
+    urgency: "medium",
+    status: "new",
+    source: "manual",
+    category: "other",
+  }),
+  // Локальный (демо) бэкенд: те же переходы, что и RPC в облаке,
+  // плюс запись в журнал событий — интерфейс одинаковый у страниц.
+  async create(data) {
+    const row = await requestBase.create(data);
+    pushLocalEvent(row.id, "created");
+    return row;
+  },
+  async assign(id, { contractor_id, contractor_name, scheduled_at, estimate_cost } = {}) {
+    const row = await this.update(id, {
+      status: "assigned",
+      contractor_id: contractor_id || null,
+      contractor_name: contractor_name || null,
+      contractor_status: null,
+      assigned_at: new Date().toISOString(),
+      scheduled_at: scheduled_at || null,
+      estimate_cost: estimate_cost ?? null,
+    });
+    pushLocalEvent(id, "assigned");
+    return { ok: true, row };
+  },
+  async decline(id) {
+    const row = await this.update(id, {
+      status: "new",
+      contractor_id: null,
+      contractor_name: null,
+      contractor_status: null,
+      assigned_at: null,
+    });
+    pushLocalEvent(id, "declined");
+    return { ok: true, row };
+  },
+  async accept(id) {
+    const row = await this.update(id, {
+      status: "in_progress",
+      contractor_status: "accepted",
+      started_at: new Date().toISOString(),
+    });
+    pushLocalEvent(id, "accepted");
+    return { ok: true, row };
+  },
+  async report(id, { work_cost = 0, work_photo_url, work_notes } = {}) {
+    const row = await this.update(id, {
+      status: "done",
+      contractor_status: "done",
+      work_cost: Number(work_cost) || 0,
+      work_photo_url: work_photo_url || null,
+      work_notes: work_notes || null,
+      completed_at: new Date().toISOString(),
+    });
+    pushLocalEvent(
+      id,
+      "reported",
+      Number(work_cost) ? `Стоимость: ${Number(work_cost).toLocaleString("ru-RU")} ₽` : ""
+    );
+    return { ok: true, row };
+  },
+  async close(id) {
+    const row = await this.update(id, { status: "closed", closed_at: new Date().toISOString() });
+    pushLocalEvent(id, "closed");
+    return { ok: true, row };
+  },
+  async cancel(id, reason) {
+    const row = await this.update(id, {
+      status: "cancelled",
+      cancel_reason: reason || null,
+      closed_at: new Date().toISOString(),
+    });
+    pushLocalEvent(id, "cancelled", reason ? `Причина: ${reason}` : "");
+    return { ok: true, row };
+  },
+};
+
+export const RequestComment = makeEntity("request_comments", {});
+export const RequestEvent = makeEntity("request_events", {});
 
 export const Document = makeEntity("documents", {
   type: "other",

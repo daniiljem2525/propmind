@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   AlertCircle,
+  Armchair,
   Banknote,
   BellRing,
   Briefcase,
@@ -9,17 +10,24 @@ import {
   CheckCircle2,
   CircleDashed,
   CircleEllipsis,
+  ClipboardCheck,
   Clock,
+  Droplets,
   FileText,
   Home,
   Layers,
+  Play,
+  Plus,
   Receipt,
   ScrollText,
   Store,
+  UserMinus,
   UserPlus,
   Warehouse,
+  WashingMachine,
   Wrench,
   XCircle,
+  Zap,
 } from "lucide-react";
 
 // ——— Статусы платежей ———
@@ -164,6 +172,47 @@ export const URGENCY_CONFIG = {
   },
 };
 
+// ——— Категории заявок ———
+export const CATEGORY_CONFIG = {
+  plumbing: { label_ru: "Сантехника", label_en: "Plumbing", icon: Droplets },
+  electrical: { label_ru: "Электрика", label_en: "Electrical", icon: Zap },
+  appliances: { label_ru: "Бытовая техника", label_en: "Appliances", icon: WashingMachine },
+  furniture: { label_ru: "Мебель и интерьер", label_en: "Furniture", icon: Armchair },
+  other: { label_ru: "Другое", label_en: "Other", icon: Wrench },
+};
+
+// ——— События в истории заявки ———
+export const REQUEST_EVENT_CONFIG = {
+  created: {
+    label_ru: "Заявка создана", label_en: "Request created", icon: Plus,
+    chip: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400",
+  },
+  assigned: {
+    label_ru: "Назначена исполнитель", label_en: "Assigned to contractor", icon: UserPlus,
+    chip: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
+  },
+  accepted: {
+    label_ru: "Принята в работу", label_en: "Accepted for work", icon: Play,
+    chip: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+  },
+  reported: {
+    label_ru: "Работа сдана", label_en: "Work reported", icon: ClipboardCheck,
+    chip: "bg-violet-100 text-violet-700 dark:bg-violet-500/15 dark:text-violet-400",
+  },
+  closed: {
+    label_ru: "Работа принята", label_en: "Work accepted", icon: CheckCircle2,
+    chip: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  },
+  cancelled: {
+    label_ru: "Заявка отменена", label_en: "Request cancelled", icon: XCircle,
+    chip: "bg-slate-100 text-slate-600 dark:bg-slate-500/15 dark:text-slate-400",
+  },
+  declined: {
+    label_ru: "Исполнитель отклонил", label_en: "Declined by contractor", icon: UserMinus,
+    chip: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400",
+  },
+};
+
 // ——— Статусы арендаторов ———
 export const TENANT_STATUS_CONFIG = {
   active: {
@@ -197,6 +246,7 @@ export const NOTIFICATION_TYPE_CONFIG = {
   payment_overdue: { icon: AlertCircle, tile: "bg-rose-500" },
   payment_received: { icon: Banknote, tile: "bg-emerald-500" },
   maintenance_new: { icon: Wrench, tile: "bg-amber-500" },
+  maintenance_assigned: { icon: Wrench, tile: "bg-indigo-500" },
   maintenance_updated: { icon: Clock, tile: "bg-sky-500" },
   lease_expiring: { icon: CalendarClock, tile: "bg-orange-500" },
   new_tenant: { icon: UserPlus, tile: "bg-indigo-500" },

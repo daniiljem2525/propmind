@@ -1,11 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
-import { Pencil, Plus, Play, CheckCircle2, Search, Trash2, User, Wrench, Building2 } from "lucide-react";
+import {
+  Building2,
+  CalendarClock,
+  CheckCircle2,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  User,
+  UserPlus,
+  Wrench,
+  XCircle,
+} from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
+import RequestDetails from "@/components/RequestDetails";
 import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
@@ -13,21 +26,28 @@ import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { MaintenanceRequest, Property } from "@/lib/api/entities";
-import { pushNotification } from "@/lib/services";
 import { useLang } from "@/lib/i18n/LangContext";
+import { useAuth } from "@/lib/authContext";
 import { useToast } from "@/components/ui/toast";
-import { MAINTENANCE_STATUS_CONFIG, URGENCY_CONFIG } from "@/lib/config/statuses";
+import { requestActionError } from "@/lib/services";
+import {
+  CATEGORY_CONFIG,
+  MAINTENANCE_STATUS_CONFIG,
+  URGENCY_CONFIG,
+} from "@/lib/config/statuses";
 import { listProfiles } from "@/lib/supabase/entities";
 import { MAINTENANCE_SOURCE_CONFIG } from "@/lib/config/misc";
-import { todayISO } from "@/lib/utils";
+import { formatDate, formatMoney } from "@/lib/utils";
 
-const STATUS_OPTIONS = ["new", "in_progress", "completed", "cancelled"];
+const STATUS_OPTIONS = ["new", "assigned", "in_progress", "done", "closed", "cancelled"];
 const URGENCY_OPTIONS = ["low", "medium", "high", "emergency"];
-const SOURCE_OPTIONS = ["manual", "ai_bot", "tenant_portal"];
+const CATEGORY_OPTIONS = Object.keys(CATEGORY_CONFIG);
 
 // ——— Форма заявки: выбор объекта автозаполняет арендатора ———
+// Статусы меняются только действиями (назначить/принять/отменить), не в форме.
 function RequestFormDialog({ open, onClose, editing, properties }) {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const toast = useToast();
   const [form, setForm] = useState({});
   const [error, setError] = useState("");
@@ -38,29 +58,19 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
       setError("");
       setForm({
         property_id: editing?.property_id || "",
-        tenant_id: editing?.tenant_id || "",
-        tenant_name: editing?.tenant_name || "",
         title: editing?.title || "",
         description: editing?.description || "",
+        category: editing?.category || "other",
         urgency: editing?.urgency || "medium",
-        status: editing?.status || "new",
-        source: editing?.source || "manual",
         photo_url: editing?.photo_url || "",
-        assigned_to: editing?.assigned_to || "",
-        resolution_notes: editing?.resolution_notes || "",
-        completed_date: editing?.completed_date || "",
+        scheduled_at: editing?.scheduled_at ? editing.scheduled_at.slice(0, 16) : "",
+        estimate_cost: editing?.estimate_cost != null ? String(editing.estimate_cost) : "",
       });
     }
   }, [open, editing]);
 
   const onPropertyChange = (value) => {
-    const property = properties.find((p) => p.id === value);
-    setForm((f) => ({
-      ...f,
-      property_id: value,
-      tenant_id: property?.tenant_id || "",
-      tenant_name: property?.tenant_name || "",
-    }));
+    setForm((f) => ({ ...f, property_id: value }));
   };
 
   const submit = async (e) => {
@@ -72,33 +82,29 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
       const payload = {
         property_id: property.id,
         property_name: property.name,
-        tenant_id: form.tenant_id || null,
-        tenant_name: form.tenant_name || null,
-        title: form.title.trim() || null,
+        title: form.title.trim(),
         description: form.description.trim(),
+        category: form.category,
         urgency: form.urgency,
-        status: form.status,
-        source: form.source,
         photo_url: form.photo_url || "",
-        assigned_to: form.assigned_to || null,
-        resolution_notes: form.resolution_notes || null,
-        completed_date: form.status === "completed" ? form.completed_date || todayISO() : null,
+        scheduled_at: form.scheduled_at ? new Date(form.scheduled_at).toISOString() : null,
+        estimate_cost: form.estimate_cost === "" ? null : Number(form.estimate_cost),
       };
       if (editing) {
         await MaintenanceRequest.update(editing.id, payload);
       } else {
-        await MaintenanceRequest.create(payload);
-        pushNotification({
-          type: "maintenance_new",
-          title: "Новая заявка",
-          message: `${payload.title || payload.description.slice(0, 50)} — ${property.name}`,
-          link: "/app/maintenance",
+        await MaintenanceRequest.create({
+          ...payload,
+          created_by: user.id,
+          created_by_name: user.full_name,
+          source: "manual",
+          status: "new",
         });
       }
       toast.success(t("maintenance.saved"));
       onClose();
-    } catch (err) {
-      toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
+    } catch {
+      toast.error(t("errors.generic"));
     } finally {
       setSaving(false);
     }
@@ -133,10 +139,13 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
           </Select>
         </Field>
 
-        {form.tenant_name && (
+        {properties.find((p) => p.id === form.property_id)?.tenant_name && (
           <p className="flex items-center gap-1.5 rounded-md bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
             <User className="h-3.5 w-3.5" />
-            {t("payments.tenant")}: <span className="font-medium text-foreground">{form.tenant_name}</span>
+            {t("payments.tenant")}:{" "}
+            <span className="font-medium text-foreground">
+              {properties.find((p) => p.id === form.property_id).tenant_name}
+            </span>
           </p>
         )}
 
@@ -149,6 +158,15 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
         </Field>
 
         <div className="grid grid-cols-2 gap-3">
+          <Field label={t("req.category")}>
+            <Select value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}>
+              {CATEGORY_OPTIONS.map((c) => (
+                <option key={c} value={c}>
+                  {lang === "ru" ? CATEGORY_CONFIG[c].label_ru : CATEGORY_CONFIG[c].label_en}
+                </option>
+              ))}
+            </Select>
+          </Field>
           <Field label={t("maintenance.urgency")}>
             <Select value={form.urgency} onChange={(e) => setForm((f) => ({ ...f, urgency: e.target.value }))}>
               {URGENCY_OPTIONS.map((u) => (
@@ -158,20 +176,7 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
               ))}
             </Select>
           </Field>
-          <Field label={t("common.status")}>
-            <Select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {MAINTENANCE_STATUS_CONFIG[s][lang === "ru" ? "label_ru" : "label_en"]}
-                </option>
-              ))}
-            </Select>
-          </Field>
         </div>
-
-        <Field label={t("maintenance.assignedTo")}>
-          <Input value={form.assigned_to} onChange={(e) => setForm((f) => ({ ...f, assigned_to: e.target.value }))} placeholder={lang === "ru" ? "Сантехник Пётр Смирнов" : "Plumber John Doe"} />
-        </Field>
 
         <Field label={t("maintenance.photo")}>
           <ImageUpload
@@ -183,25 +188,24 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
         </Field>
 
         {editing && (
-          <>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label={t("maintenance.source")}>
-                <Select value={form.source} onChange={(e) => setForm((f) => ({ ...f, source: e.target.value }))}>
-                  {SOURCE_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {MAINTENANCE_SOURCE_CONFIG[s][lang === "ru" ? "label_ru" : "label_en"]}
-                    </option>
-                  ))}
-                </Select>
-              </Field>
-              <Field label={t("maintenance.completedDate")}>
-                <Input type="date" value={form.completed_date} onChange={(e) => setForm((f) => ({ ...f, completed_date: e.target.value }))} />
-              </Field>
-            </div>
-            <Field label={t("maintenance.resolution")}>
-              <Textarea value={form.resolution_notes} onChange={(e) => setForm((f) => ({ ...f, resolution_notes: e.target.value }))} rows={2} />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t("maintenance.scheduleField")}>
+              <Input
+                type="datetime-local"
+                value={form.scheduled_at}
+                onChange={(e) => setForm((f) => ({ ...f, scheduled_at: e.target.value }))}
+              />
             </Field>
-          </>
+            <Field label={t("maintenance.estimateField")}>
+              <Input
+                type="number"
+                min="0"
+                value={form.estimate_cost}
+                onChange={(e) => setForm((f) => ({ ...f, estimate_cost: e.target.value }))}
+                placeholder="0"
+              />
+            </Field>
+          </div>
         )}
 
         {error && (
@@ -212,29 +216,181 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
   );
 }
 
+// ——— Назначение исполнителя через RPC assign_request ———
+function AssignDialog({ request, onClose }) {
+  const { t } = useLang();
+  const toast = useToast();
+  const [contractors, setContractors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [contractorId, setContractorId] = useState("");
+  const [scheduled, setScheduled] = useState(request?.scheduled_at ? request.scheduled_at.slice(0, 16) : "");
+  const [estimate, setEstimate] = useState(request?.estimate_cost != null ? String(request.estimate_cost) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    listProfiles("contractor")
+      .then((rows) => alive && setContractors(rows || []))
+      .catch(() => {})
+      .finally(() => alive && setLoading(false));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!request) return;
+    setContractorId("");
+    setScheduled(request.scheduled_at ? request.scheduled_at.slice(0, 16) : "");
+    setEstimate(request.estimate_cost != null ? String(request.estimate_cost) : "");
+  }, [request]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!contractorId) return;
+    setSaving(true);
+    try {
+      const c = contractors.find((x) => x.id === contractorId);
+      const res = await MaintenanceRequest.assign(request.id, {
+        contractor_id: contractorId,
+        scheduled_at: scheduled ? new Date(scheduled).toISOString() : null,
+        estimate_cost: estimate === "" ? null : Number(estimate),
+      });
+      if (res.ok === false) {
+        toast.error(requestActionError(res, t));
+        return;
+      }
+      toast.success(t("maint.assignedToast").replace("{name}", c?.full_name || ""));
+      onClose(true);
+    } catch {
+      toast.error(t("req.err.generic"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={!!request}
+      onClose={() => onClose(false)}
+      title={t("maint.assignTitle")}
+      description={request?.property_name}
+      size="md"
+      footer={
+        <>
+          <Button variant="outline" onClick={() => onClose(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" form="assign-form" loading={saving} disabled={loading || !contractorId}>
+            {t("maint.assign")}
+          </Button>
+        </>
+      }
+    >
+      <form id="assign-form" onSubmit={submit} className="space-y-4">
+        <Field label={t("maintenance.assignedTo")} required>
+          <Select value={contractorId} onChange={(e) => setContractorId(e.target.value)} disabled={loading}>
+            <option value="">{loading ? "…" : "—"}</option>
+            {contractors.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.full_name}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t("maintenance.scheduleField")}>
+            <Input type="datetime-local" value={scheduled} onChange={(e) => setScheduled(e.target.value)} />
+          </Field>
+          <Field label={t("maintenance.estimateField")}>
+            <Input type="number" min="0" value={estimate} onChange={(e) => setEstimate(e.target.value)} placeholder="0" />
+          </Field>
+        </div>
+        {contractors.length === 0 && !loading && (
+          <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+            {t("maint.noContractors")}
+          </p>
+        )}
+      </form>
+    </Dialog>
+  );
+}
+
+// ——— Отмена заявки с причиной ———
+function CancelDialog({ request, onClose }) {
+  const { t } = useLang();
+  const toast = useToast();
+  const [reason, setReason] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (request) setReason("");
+  }, [request]);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await MaintenanceRequest.cancel(request.id, reason.trim() || null);
+      if (res.ok === false) {
+        toast.error(requestActionError(res, t));
+        return;
+      }
+      toast.success(t("maint.cancelledToast"));
+      onClose(true);
+    } catch {
+      toast.error(t("req.err.generic"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      open={!!request}
+      onClose={() => onClose(false)}
+      title={t("maint.cancelTitle")}
+      description={request?.title || request?.description?.slice(0, 60)}
+      size="md"
+      footer={
+        <>
+          <Button variant="outline" onClick={() => onClose(false)}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="submit" form="cancel-form" variant="destructive" loading={saving}>
+            {t("maintenance.cancelRequest")}
+          </Button>
+        </>
+      }
+    >
+      <form id="cancel-form" onSubmit={submit}>
+        <Field label={t("maint.cancelReason")}>
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} autoFocus />
+        </Field>
+      </form>
+    </Dialog>
+  );
+}
+
 export default function Maintenance() {
   const { t, lang } = useLang();
   const toast = useToast();
   const demo = useDemoSeed();
-  const { data: requests, loading } = useCollection(MaintenanceRequest);
+  const { data: requests, loading, refresh } = useCollection(MaintenanceRequest);
   const { data: properties } = useCollection(Property);
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [urgency, setUrgency] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [confirming, setConfirming] = useState(null);
-  const [assignFor, setAssignFor] = useState(null);
-  const [contractors, setContractors] = useState([]);
-  const [contractorId, setContractorId] = useState("");
-  useNewParam(() => setDialogOpen(true));
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [assignFor, setAssignFor] = useState(null);
+  const [cancelling, setCancelling] = useState(null);
+  const [detailsFor, setDetailsFor] = useState(null);
+  useNewParam(() => setDialogOpen(true));
 
-  const doneRequests = useMemo(
-    () => requests.filter((r) => r.status === "done"),
-    [requests]
-  );
+  const doneRequests = useMemo(() => requests.filter((r) => r.status === "done"), [requests]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -243,7 +399,8 @@ export default function Maintenance() {
         !query ||
         (r.title || "").toLowerCase().includes(query) ||
         (r.property_name || "").toLowerCase().includes(query) ||
-        (r.description || "").toLowerCase().includes(query);
+        (r.description || "").toLowerCase().includes(query) ||
+        (r.contractor_name || "").toLowerCase().includes(query);
       return (
         matchesQ &&
         (status === "all" || r.status === status) &&
@@ -252,43 +409,18 @@ export default function Maintenance() {
     });
   }, [requests, q, status, urgency]);
 
-  const openAssign = async (r) => {
-    setAssignFor(r);
-    setContractorId("");
-    setContractors(await listProfiles("contractor"));
-  };
-
-  const assign = async () => {
-    const c = contractors.find((x) => x.id === contractorId);
-    if (!c || !assignFor) return;
-    await MaintenanceRequest.update(assignFor.id, {
-      status: "assigned",
-      contractor_id: c.id,
-      contractor_name: c.full_name,
-    });
-    setAssignFor(null);
-    toast.success(t("maint.assignedToast").replace("{name}", c.full_name));
-  };
-
+  // Владелец принимает выполненную работу (RPC close_request)
   const acceptWork = async (r) => {
-    await MaintenanceRequest.update(r.id, { status: "closed" });
-    toast.success(t("maint.acceptedWork"));
-  };
-
-  const advance = async (r, nextStatus) => {
-    await MaintenanceRequest.update(r.id, {
-      status: nextStatus,
-      completed_date: nextStatus === "completed" ? todayISO() : null,
-    });
-    if (nextStatus === "completed") {
-      toast.success(t("maintenance.completedMsg"));
-      pushNotification({
-        type: "maintenance_updated",
-        title: "Заявка завершена",
-        message: `${r.title || r.description?.slice(0, 50)} — ${r.property_name}`,
-        link: "/app/maintenance",
-        related_id: r.id,
-      });
+    try {
+      const res = await MaintenanceRequest.close(r.id);
+      if (res.ok === false) {
+        toast.error(requestActionError(res, t));
+        return;
+      }
+      toast.success(t("maint.acceptedWork"));
+      refresh();
+    } catch {
+      toast.error(t("req.err.generic"));
     }
   };
 
@@ -297,6 +429,7 @@ export default function Maintenance() {
     await MaintenanceRequest.delete(deleting.id);
     toast.success(t("maintenance.deleted"));
     setDeleting(null);
+    refresh();
   };
 
   return (
@@ -389,78 +522,113 @@ export default function Maintenance() {
         />
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((r) => (
-            <Card key={r.id} className="flex flex-col hover:shadow-card-hover">
-              <div className="flex items-start justify-between gap-2 p-4 pb-0">
-                <div className="flex flex-wrap gap-1.5">
-                  <StatusBadge config={URGENCY_CONFIG} value={r.urgency} />
-                  <StatusBadge config={MAINTENANCE_STATUS_CONFIG} value={r.status} />
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => {
-                      setEditing(r);
-                      setDialogOpen(true);
-                    }}
-                    title={t("common.edit")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" onClick={() => setDeleting(r)} className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10" title={t("common.delete")}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex-1 p-4">
-                <h3 className="font-semibold leading-snug">{r.title || r.description?.slice(0, 60)}</h3>
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Building2 className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{r.property_name}</span>
-                  {r.tenant_name && <span className="shrink-0">· {r.tenant_name}</span>}
-                </p>
-                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>
-
-                {r.photo_url && (
-                  <img
-                    src={r.photo_url}
-                    alt=""
-                    className="mt-3 h-24 w-full rounded-md object-cover"
-                    onError={(e) => e.currentTarget.remove()}
-                  />
-                )}
-
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  {r.assigned_to && (
-                    <Badge className="bg-muted text-muted-foreground">
-                      <User className="h-3 w-3" />
-                      {r.assigned_to}
-                    </Badge>
-                  )}
-                  <Badge className="bg-muted text-muted-foreground">
-                    {MAINTENANCE_SOURCE_CONFIG[r.source]?.[lang === "ru" ? "label_ru" : "label_en"] || r.source}
-                  </Badge>
-                </div>
-              </div>
-
-              {(r.status === "new" || r.status === "in_progress") && (
-                <div className="flex gap-2 border-t p-4 pt-3">
-                  {r.status === "new" && (
-                    <Button size="sm" variant="outline" onClick={() => openAssign(r)}>
-                      <Play className="h-3.5 w-3.5" />
-                      {t("maint.assign")}
+          {filtered.map((r) => {
+            const categoryCfg = CATEGORY_CONFIG[r.category] || CATEGORY_CONFIG.other;
+            const actionable = ["new", "assigned", "in_progress", "done"].includes(r.status);
+            return (
+              <Card key={r.id} className="flex flex-col cursor-pointer hover:shadow-card-hover" onClick={() => setDetailsFor(r)}>
+                <div className="flex items-start justify-between gap-2 p-4 pb-0">
+                  <div className="flex flex-wrap gap-1.5">
+                    <StatusBadge config={URGENCY_CONFIG} value={r.urgency} />
+                    <StatusBadge config={MAINTENANCE_STATUS_CONFIG} value={r.status} />
+                  </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditing(r);
+                        setDialogOpen(true);
+                      }}
+                      title={t("common.edit")}
+                    >
+                      <Pencil className="h-4 w-4" />
                     </Button>
-                  )}
-                  <Button size="sm" onClick={() => setConfirming(r)}>
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    {t("maintenance.complete")}
-                  </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleting(r);
+                      }}
+                      className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                      title={t("common.delete")}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-              )}
-            </Card>
-          ))}
+
+                <div className="flex-1 p-4">
+                  <h3 className="font-semibold leading-snug">{r.title || r.description?.slice(0, 60)}</h3>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <categoryCfg.icon className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{lang === "ru" ? categoryCfg.label_ru : categoryCfg.label_en}</span>
+                    <Building2 className="h-3.5 w-3.5 shrink-0" />
+                    <span className="truncate">{r.property_name}</span>
+                  </p>
+                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>
+
+                  {r.photo_url && (
+                    <img
+                      src={r.photo_url}
+                      alt=""
+                      className="mt-3 h-24 w-full rounded-md object-cover"
+                      onError={(e) => e.currentTarget.remove()}
+                    />
+                  )}
+
+                  <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    {r.contractor_name && (
+                      <Badge className="bg-muted text-muted-foreground">
+                        <Wrench className="h-3 w-3" />
+                        {r.contractor_name}
+                      </Badge>
+                    )}
+                    {r.scheduled_at && (
+                      <Badge className="bg-muted text-muted-foreground">
+                        <CalendarClock className="h-3 w-3" />
+                        {formatDate(r.scheduled_at, lang, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                      </Badge>
+                    )}
+                    {r.source === "tenant_portal" && r.tenant_name && (
+                      <Badge className="bg-muted text-muted-foreground">
+                        <User className="h-3 w-3" />
+                        {r.tenant_name}
+                      </Badge>
+                    )}
+                    <Badge className="bg-muted text-muted-foreground">
+                      {MAINTENANCE_SOURCE_CONFIG[r.source]?.[lang === "ru" ? "label_ru" : "label_en"] || r.source}
+                    </Badge>
+                  </div>
+                </div>
+
+                {actionable && (
+                  <div className="flex flex-wrap gap-2 border-t p-4 pt-3" onClick={(e) => e.stopPropagation()}>
+                    {r.status === "new" && (
+                      <Button size="sm" variant="outline" onClick={() => setAssignFor(r)}>
+                        <UserPlus className="h-3.5 w-3.5" />
+                        {t("maint.assign")}
+                      </Button>
+                    )}
+                    {r.status === "done" && (
+                      <Button size="sm" onClick={() => acceptWork(r)}>
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        {t("maint.accept")}
+                      </Button>
+                    )}
+                    {["new", "assigned", "in_progress"].includes(r.status) && (
+                      <Button size="sm" variant="ghost" className="text-rose-600" onClick={() => setCancelling(r)}>
+                        <XCircle className="h-3.5 w-3.5" />
+                        {t("maintenance.cancelRequest")}
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </Card>
+            );
+          })}
         </div>
       )}
 
@@ -475,7 +643,10 @@ export default function Maintenance() {
               <div key={r.id} className="flex flex-wrap items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{r.title || r.description?.slice(0, 50)}</p>
-                  <p className="truncate text-xs text-muted-foreground">{r.property_name} · {r.contractor_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {r.property_name} · {r.contractor_name}
+                    {r.work_cost != null && ` · ${formatMoney(r.work_cost, "RUB", lang)}`}
+                  </p>
                   {r.work_notes && <p className="mt-1 text-xs text-muted-foreground">{r.work_notes}</p>}
                 </div>
                 <Button size="sm" onClick={() => acceptWork(r)}>{t("maint.accept")}</Button>
@@ -487,21 +658,25 @@ export default function Maintenance() {
 
       <RequestFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
 
-      <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting?.title || deleting?.description?.slice(0, 80)} />
-
-      {/* Второе подтверждение при завершении заявки */}
-      <ConfirmDialog
-        open={!!confirming}
-        onClose={() => setConfirming(null)}
-        onConfirm={() => {
-          const r = confirming;
-          setConfirming(null);
-          advance(r, "completed");
+      <AssignDialog
+        request={assignFor}
+        onClose={(changed) => {
+          setAssignFor(null);
+          if (changed) refresh();
         }}
-        title={t("maintenance.confirmTitle")}
-        description={confirming ? `${confirming.title || confirming.description?.slice(0, 60)} — ${confirming.property_name}` : ""}
-        confirmLabel={t("maintenance.complete")}
       />
+
+      <CancelDialog
+        request={cancelling}
+        onClose={(changed) => {
+          setCancelling(null);
+          if (changed) refresh();
+        }}
+      />
+
+      <RequestDetails request={detailsFor} open={!!detailsFor} onClose={() => setDetailsFor(null)} />
+
+      <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting?.title || deleting?.description?.slice(0, 80)} />
     </div>
   );
 }

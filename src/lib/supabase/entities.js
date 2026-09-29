@@ -1,6 +1,13 @@
 import { supabase } from "./config";
 import { makeEntity } from "./db";
 
+// RPC-вызов смены статуса заявки: возвращает { ok, error? } из БД
+async function rpcAction(fn, args) {
+  const { data, error } = await supabase.rpc(fn, args);
+  if (error) throw error;
+  return data || { ok: false, error: "no_result" };
+}
+
 // Supabase-сущности: те же имена и интерфейс, что у localStorage-версии.
 // owner_id проставляется в БД (default auth.uid()), доступ ограничен RLS.
 
@@ -15,11 +22,47 @@ export const Payment = makeEntity("payments", {
   status: "pending",
 });
 
-export const MaintenanceRequest = makeEntity("maintenance_requests", {
-  urgency: "medium",
-  status: "new",
-  source: "manual",
-});
+export const MaintenanceRequest = {
+  ...makeEntity("maintenance_requests", {
+    urgency: "medium",
+    status: "new",
+    source: "manual",
+    category: "other",
+  }),
+  // Смена статуса — только через RPC БД: проверяют права и переходы,
+  // события и уведомления пишет триггер on_request_changed.
+  async assign(id, { contractor_id, scheduled_at, estimate_cost } = {}) {
+    return rpcAction("assign_request", {
+      p_request: id,
+      p_contractor: contractor_id,
+      p_scheduled: scheduled_at || null,
+      p_estimate: estimate_cost ?? null,
+    });
+  },
+  async decline(id) {
+    return rpcAction("decline_request", { p_request: id });
+  },
+  async accept(id) {
+    return rpcAction("accept_request", { p_request: id });
+  },
+  async report(id, { work_cost = 0, work_photo_url, work_notes } = {}) {
+    return rpcAction("report_work", {
+      p_request: id,
+      p_cost: Number(work_cost) || 0,
+      p_photo: work_photo_url || null,
+      p_notes: work_notes || null,
+    });
+  },
+  async close(id) {
+    return rpcAction("close_request", { p_request: id });
+  },
+  async cancel(id, reason) {
+    return rpcAction("cancel_request", { p_request: id, p_reason: reason || null });
+  },
+};
+
+export const RequestComment = makeEntity("request_comments", {});
+export const RequestEvent = makeEntity("request_events", {});
 
 export const Document = makeEntity("documents", {
   type: "other",

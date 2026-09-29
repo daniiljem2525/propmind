@@ -80,6 +80,15 @@ export async function pushNotification({ type, title, message, link, related_id 
   await NotificationEntity.create({ type, title, message, link, related_id, user_id: user.id });
 }
 
+// Человекочитаемая ошибка RPC-перехода заявки ({ ok, error }) —
+// коды приходят из функций schema.sql (assign/accept/report/…)
+export function requestActionError(res, t) {
+  const known = ["unauthorized", "not_found", "forbidden", "wrong_status", "contractor_not_found"];
+  const code = res && res.ok === false ? res.error : null;
+  if (code && known.includes(code)) return t(`req.err.${code}`);
+  return t("req.err.generic");
+}
+
 // Автопросрочка: pending-платежи с прошедшей датой становятся overdue,
 // владельцу создаётся уведомление (ровно одно — при самом переходе статуса).
 export function syncOverduePayments() {

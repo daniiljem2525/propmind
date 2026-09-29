@@ -1,7 +1,8 @@
 -- ============================================================
--- PropMind: схема Supabase (версия 3)
+-- PropMind: схема Supabase (версия 4)
 -- Порядок важен: сначала все таблицы, потом функции,
--- которые на них ссылаются. Идемпотентна — можно перезапускать.
+-- которые на них ссылаются. Идемпотентна — можно перезапускать
+-- поверх версии 3 (новые колонки добавляются через add column if not exists).
 -- Вставить целиком в SQL Editor → Run.
 -- ============================================================
 
@@ -147,6 +148,9 @@ create policy "invites: владелец управляет своими"
 
 -- ============================================================
 -- 5. Заявки на обслуживание (двусторонние)
+--    Жизненный цикл: new → assigned → in_progress → done → closed,
+--    плюс cancelled. Отклонение исполнителя возвращает заявку в new.
+--    Все смены статусов — через RPC (см. раздел 5в), не напрямую.
 -- ============================================================
 create table if not exists public.maintenance_requests (
   id             uuid primary key default gen_random_uuid(),
@@ -157,6 +161,7 @@ create table if not exists public.maintenance_requests (
   created_by_name text,
   title          text not null default '',
   description    text not null default '',
+  category       text not null default 'other',
   urgency        text not null default 'medium'
                  check (urgency in ('low', 'medium', 'high', 'emergency')),
   status         text not null default 'new'
@@ -164,6 +169,11 @@ create table if not exists public.maintenance_requests (
   photo_url      text,
   source         text not null default 'manual'
                  check (source in ('manual', 'ai_bot', 'tenant_portal')),
+  tenant_id      uuid references public.profiles(id) on delete set null,
+  tenant_name    text,
+  scheduled_at   timestamptz,
+  estimate_cost  numeric,
+  cancel_reason  text,
   created_date   timestamptz not null default now(),
 
   -- блок исполнителя
@@ -173,9 +183,29 @@ create table if not exists public.maintenance_requests (
   work_cost         numeric,
   work_photo_url    text,
   work_notes        text,
+  assigned_at       timestamptz,
   started_at        timestamptz,
-  completed_at      timestamptz
+  completed_at      timestamptz,
+  closed_at         timestamptz
 );
+
+-- Новые колонки для установок поверх версии 3 (create table их уже включает)
+alter table public.maintenance_requests add column if not exists category text not null default 'other';
+alter table public.maintenance_requests add column if not exists tenant_id uuid references public.profiles(id) on delete set null;
+alter table public.maintenance_requests add column if not exists tenant_name text;
+alter table public.maintenance_requests add column if not exists scheduled_at timestamptz;
+alter table public.maintenance_requests add column if not exists estimate_cost numeric;
+alter table public.maintenance_requests add column if not exists cancel_reason text;
+alter table public.maintenance_requests add column if not exists assigned_at timestamptz;
+alter table public.maintenance_requests add column if not exists closed_at timestamptz;
+
+alter table public.maintenance_requests drop constraint if exists requests_category_check;
+alter table public.maintenance_requests add constraint requests_category_check
+  check (category in ('plumbing', 'electrical', 'appliances', 'furniture', 'other'));
+
+create index if not exists requests_property_idx on public.maintenance_requests(property_id);
+create index if not exists requests_contractor_idx on public.maintenance_requests(contractor_id);
+
 alter table public.maintenance_requests enable row level security;
 
 drop policy if exists "requests: владелец — полные права" on public.maintenance_requests;
@@ -184,10 +214,20 @@ create policy "requests: владелец — полные права"
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
 
+-- Жилец видит заявки, которые подал сам, которые заведены на него
+-- и любые заявки по своей квартире (в т.ч. созданные владельцем вручную)
 drop policy if exists "requests: жилец видит свои" on public.maintenance_requests;
-create policy "requests: жилец видит свои"
+drop policy if exists "requests: жилец видит свои заявки" on public.maintenance_requests;
+create policy "requests: жилец видит свои заявки"
   on public.maintenance_requests for select
-  using (created_by = auth.uid());
+  using (
+    created_by = auth.uid()
+    or tenant_id = auth.uid()
+    or exists (
+      select 1 from public.properties p
+      where p.id = property_id and p.tenant_id = auth.uid()
+    )
+  );
 
 drop policy if exists "requests: жилец создаёт по своей квартире" on public.maintenance_requests;
 create policy "requests: жилец создаёт по своей квартире"
@@ -205,11 +245,9 @@ create policy "requests: исполнитель видит свои"
   on public.maintenance_requests for select
   using (contractor_id = auth.uid());
 
+-- Исполнитель меняет заявку только через RPC (раздел 5в): прямые
+-- обновления ему запрещены — снимаем политику прямой записи.
 drop policy if exists "requests: исполнитель меняет свой блок" on public.maintenance_requests;
-create policy "requests: исполнитель меняет свой блок"
-  on public.maintenance_requests for update
-  using (contractor_id = auth.uid())
-  with check (contractor_id = auth.uid());
 
 -- Политика объектов, зависящая от заявок (таблица уже создана)
 drop policy if exists "properties: исполнитель видит объекты своих заявок" on public.properties;
@@ -221,6 +259,514 @@ create policy "properties: исполнитель видит объекты св
       where r.contractor_id = auth.uid() and r.property_id = id
     )
   );
+
+-- ============================================================
+-- 5а. Комментарии и события заявок
+--     Видят и пишут только участники заявки
+--     (владелец, жилец, исполнитель).
+-- ============================================================
+create table if not exists public.request_comments (
+  id          uuid primary key default gen_random_uuid(),
+  request_id  uuid not null references public.maintenance_requests(id) on delete cascade,
+  author_id   uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  author_name text not null default '',
+  author_role text not null default 'owner'
+              check (author_role in ('owner', 'tenant', 'contractor', 'system')),
+  body        text not null,
+  created_date timestamptz not null default now()
+);
+
+create table if not exists public.request_events (
+  id          uuid primary key default gen_random_uuid(),
+  request_id  uuid not null references public.maintenance_requests(id) on delete cascade,
+  actor_id    uuid references public.profiles(id) on delete set null,
+  actor_name  text not null default '',
+  actor_role  text not null default 'system',
+  event       text not null,
+  details     text not null default '',
+  created_date timestamptz not null default now()
+);
+
+create index if not exists request_comments_request_idx on public.request_comments(request_id, created_date);
+create index if not exists request_events_request_idx on public.request_events(request_id, created_date);
+
+alter table public.request_comments enable row level security;
+alter table public.request_events enable row level security;
+
+-- Участник заявки: владелец, автор, жилец объекта или назначенный исполнитель
+create or replace function public.is_request_participant(p_request uuid)
+returns boolean
+language sql
+security definer set search_path = public
+stable as $$
+  select exists (
+    select 1 from public.maintenance_requests r
+    where r.id = p_request
+      and (
+        r.owner_id = auth.uid()
+        or r.created_by = auth.uid()
+        or r.tenant_id = auth.uid()
+        or r.contractor_id = auth.uid()
+      )
+  );
+$$;
+
+drop policy if exists "comments: участник заявки" on public.request_comments;
+create policy "comments: участник заявки"
+  on public.request_comments for all
+  using (public.is_request_participant(request_id))
+  with check (
+    author_id = auth.uid()
+    and public.is_request_participant(request_id)
+  );
+
+drop policy if exists "events: участник заявки" on public.request_events;
+create policy "events: участник заявки"
+  on public.request_events for all
+  using (public.is_request_participant(request_id))
+  with check (public.is_request_participant(request_id));
+
+-- ============================================================
+-- 5б. Триггер заявок: журнал событий + уведомления участникам.
+--     Пишет события при создании и смене статуса, рассылает
+--     уведомления адресатам (кроме автора действия).
+-- ============================================================
+create or replace function public.on_request_changed()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_actor_name text;
+  v_actor_role text;
+  v_event text;
+  v_details text := '';
+  v_title text;
+begin
+  select full_name, role into v_actor_name, v_actor_role
+  from public.profiles where id = v_actor;
+
+  if tg_op = 'INSERT' then
+    insert into public.request_events(request_id, actor_id, actor_name, actor_role, event, details)
+    values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), 'created', '');
+
+    -- Жилец подал заявку → уведомляем владельца
+    if new.created_by is not null and new.created_by <> new.owner_id then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (
+        new.owner_id, 'maintenance_new', 'Новая заявка',
+        coalesce(nullif(new.title, ''), left(new.description, 60)) || ' — ' || coalesce(new.property_name, ''),
+        '/app/maintenance', new.id
+      );
+    end if;
+    return new;
+  end if;
+
+  -- UPDATE: реагируем только на смену статуса
+  if new.status is not distinct from old.status then
+    return new;
+  end if;
+
+  v_title := coalesce(nullif(new.title, ''), left(new.description, 60));
+  v_event := case new.status
+    when 'assigned'    then 'assigned'
+    when 'in_progress' then 'accepted'
+    when 'done'        then 'reported'
+    when 'closed'      then 'closed'
+    when 'cancelled'   then 'cancelled'
+    when 'new'         then 'declined'
+    else new.status
+  end;
+  if new.status = 'done' and new.work_cost is not null then
+    v_details := 'Стоимость: ' || to_char(new.work_cost, 'FM999999990') || ' ₽';
+  elsif new.status = 'cancelled' and new.cancel_reason is not null then
+    v_details := 'Причина: ' || new.cancel_reason;
+  end if;
+
+  insert into public.request_events(request_id, actor_id, actor_name, actor_role, event, details)
+  values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), v_event, v_details);
+
+  if new.status = 'assigned' then
+    if new.contractor_id is not null and new.contractor_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.contractor_id, 'maintenance_assigned', 'Новая работа',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+
+  elsif new.status = 'in_progress' then
+    if new.owner_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.owner_id, 'maintenance_updated', 'Исполнитель принял заявку',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
+    end if;
+    if new.created_by is not null and new.created_by <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.created_by, 'maintenance_updated', 'Заявка в работе',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.tenant_id is not null and new.tenant_id <> v_actor
+       and (new.created_by is null or new.tenant_id <> new.created_by) then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.tenant_id, 'maintenance_updated', 'Заявка в работе',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+
+  elsif new.status = 'done' then
+    if new.owner_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.owner_id, 'maintenance_updated', 'Работа выполнена — принять',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
+    end if;
+    if new.created_by is not null and new.created_by <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.created_by, 'maintenance_updated', 'Работа выполнена',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.tenant_id is not null and new.tenant_id <> v_actor
+       and (new.created_by is null or new.tenant_id <> new.created_by) then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.tenant_id, 'maintenance_updated', 'Работа выполнена',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+
+  elsif new.status = 'closed' then
+    if new.created_by is not null and new.created_by <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.created_by, 'maintenance_updated', 'Заявка закрыта',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.tenant_id is not null and new.tenant_id <> v_actor
+       and (new.created_by is null or new.tenant_id <> new.created_by) then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.tenant_id, 'maintenance_updated', 'Заявка закрыта',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.contractor_id is not null and new.contractor_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.contractor_id, 'maintenance_updated', 'Работа принята владельцем',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+
+  elsif new.status = 'cancelled' then
+    if new.created_by is not null and new.created_by <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.created_by, 'maintenance_updated', 'Заявка отменена',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.tenant_id is not null and new.tenant_id <> v_actor
+       and (new.created_by is null or new.tenant_id <> new.created_by) then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.tenant_id, 'maintenance_updated', 'Заявка отменена',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+    if new.contractor_id is not null and new.contractor_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.contractor_id, 'maintenance_updated', 'Заявка отменена',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+    end if;
+
+  elsif new.status = 'new' and old.status = 'assigned' then
+    -- Исполнитель отклонил назначение
+    if new.owner_id <> v_actor then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (new.owner_id, 'maintenance_new', 'Исполнитель отклонил заявку',
+              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_request_changed on public.maintenance_requests;
+create trigger on_request_changed
+  after insert or update on public.maintenance_requests
+  for each row execute function public.on_request_changed();
+
+-- ============================================================
+-- 5в. RPC смены статусов (security definer).
+--     Единственный путь менять статус: проверяют права и переходы.
+--     События и уведомления пишет триггер on_request_changed.
+--     Все возвращают { ok: boolean, error: text? }.
+-- ============================================================
+
+-- Владелец назначает исполнителя (только из «new»)
+create or replace function public.assign_request(
+  p_request uuid, p_contractor uuid,
+  p_scheduled timestamptz default null, p_estimate numeric default null
+)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+  v_name text;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  if v_req.owner_id <> auth.uid() then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+  if v_req.status <> 'new' then
+    return jsonb_build_object('ok', false, 'error', 'wrong_status');
+  end if;
+
+  select full_name into v_name
+  from public.profiles where id = p_contractor and role = 'contractor';
+  if v_name is null then
+    return jsonb_build_object('ok', false, 'error', 'contractor_not_found');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'assigned',
+    contractor_id = p_contractor,
+    contractor_name = v_name,
+    contractor_status = null,
+    assigned_at = now(),
+    scheduled_at = p_scheduled,
+    estimate_cost = p_estimate
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Исполнитель отклоняет назначение — заявка возвращается в «новые»
+create or replace function public.decline_request(p_request uuid)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  if v_req.contractor_id is distinct from auth.uid() then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+  if v_req.status <> 'assigned' then
+    return jsonb_build_object('ok', false, 'error', 'wrong_status');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'new',
+    contractor_id = null,
+    contractor_name = null,
+    contractor_status = null,
+    assigned_at = null
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Исполнитель принимает работу
+create or replace function public.accept_request(p_request uuid)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  if v_req.contractor_id is distinct from auth.uid() then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+  if v_req.status <> 'assigned' then
+    return jsonb_build_object('ok', false, 'error', 'wrong_status');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'in_progress',
+    contractor_status = 'accepted',
+    started_at = coalesce(started_at, now())
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Исполнитель сдаёт работу: фото, стоимость, заметки
+create or replace function public.report_work(
+  p_request uuid,
+  p_cost numeric default 0, p_photo text default null, p_notes text default null
+)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  if v_req.contractor_id is distinct from auth.uid() then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+  if v_req.status <> 'in_progress' then
+    return jsonb_build_object('ok', false, 'error', 'wrong_status');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'done',
+    contractor_status = 'done',
+    work_cost = p_cost,
+    work_photo_url = nullif(p_photo, ''),
+    work_notes = p_notes,
+    completed_at = now()
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Владелец принимает работу (из «done»; из активных — если сделал всё сам)
+create or replace function public.close_request(p_request uuid)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+  if v_req.owner_id <> auth.uid() then
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+  if v_req.status not in ('new', 'assigned', 'in_progress', 'done') then
+    return jsonb_build_object('ok', false, 'error', 'wrong_status');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'closed',
+    closed_at = now()
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Отмена: владелец — любую активную; жилец — свою, пока она «новая»
+create or replace function public.cancel_request(p_request uuid, p_reason text default null)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_req public.maintenance_requests;
+  v_is_owner boolean;
+  v_is_tenant boolean;
+begin
+  if auth.uid() is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_req from public.maintenance_requests where id = p_request;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'not_found');
+  end if;
+
+  v_is_owner := v_req.owner_id = auth.uid();
+  v_is_tenant := v_req.created_by = auth.uid() or v_req.tenant_id = auth.uid();
+
+  if v_is_owner then
+    if v_req.status in ('closed', 'cancelled') then
+      return jsonb_build_object('ok', false, 'error', 'wrong_status');
+    end if;
+  elsif v_is_tenant then
+    if v_req.status <> 'new' then
+      return jsonb_build_object('ok', false, 'error', 'wrong_status');
+    end if;
+  else
+    return jsonb_build_object('ok', false, 'error', 'forbidden');
+  end if;
+
+  update public.maintenance_requests set
+    status = 'cancelled',
+    cancel_reason = p_reason,
+    closed_at = now()
+  where id = p_request;
+
+  return jsonb_build_object('ok', true);
+end;
+$$;
+
+-- Применение кода приглашения после регистрации:
+-- назначает роль, привязывает жильца к объекту, помечает код использованным
+create or replace function public.claim_invite(p_code text)
+returns jsonb
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_inv public.invites;
+  v_uid uuid := auth.uid();
+  v_property uuid;
+begin
+  if v_uid is null then
+    return jsonb_build_object('ok', false, 'error', 'unauthorized');
+  end if;
+
+  select * into v_inv from public.invites where code = upper(trim(p_code));
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'invite_not_found');
+  end if;
+  if v_inv.used_by is not null and v_inv.used_by <> v_uid then
+    return jsonb_build_object('ok', false, 'error', 'invite_used');
+  end if;
+
+  update public.profiles set role = v_inv.role where id = v_uid;
+
+  v_property := v_inv.property_id;
+  if v_inv.role = 'tenant' and v_property is not null then
+    update public.properties set
+      tenant_id = v_uid,
+      tenant_name = (select full_name from public.profiles where id = v_uid),
+      status = 'rented'
+    where id = v_property and owner_id = v_inv.owner_id;
+  end if;
+
+  update public.invites set used_by = v_uid where code = v_inv.code;
+
+  return jsonb_build_object('ok', true, 'role', v_inv.role, 'property_id', v_property);
+end;
+$$;
 
 -- ============================================================
 -- 6. Документы
@@ -316,6 +862,7 @@ create trigger on_auth_user_created
 --    deadlock с realtime-воркером: Database → Publications →
 --    supabase_realtime → включить таблицы:
 --    maintenance_requests, notifications, payments, properties
+--    (опционально для живого чата: request_comments, request_events)
 -- ============================================================
 
 -- ============================================================
