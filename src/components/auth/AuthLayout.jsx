@@ -26,7 +26,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
         <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10" />
         <div className="absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-white/10" />
 
-        <Link to="/login" className="relative flex items-center gap-3">
+        <Link to="/" className="relative flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <House className="h-6 w-6" />
           </span>
