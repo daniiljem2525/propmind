@@ -13,3 +13,6 @@ fcode.txt
 tok.json
 reg*.json
 chk.json
+del-*.json
+repo.json
+del-*
