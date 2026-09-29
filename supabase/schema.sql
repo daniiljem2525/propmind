@@ -312,71 +312,11 @@ create trigger on_auth_user_created
   for each row execute function public.handle_new_user();
 
 -- ============================================================
--- 9. Realtime
+-- 9. Realtime — включается руками (один раз), чтобы не ловить
+--    deadlock с realtime-воркером: Database → Publications →
+--    supabase_realtime → включить таблицы:
+--    maintenance_requests, notifications, payments, properties
 -- ============================================================
-do $rt1$
-begin
-  alter publication supabase_realtime add table public.maintenance_requests;
-exception when duplicate_object then null;
-end $rt1$;
-do $rt2$
-begin
-  alter publication supabase_realtime add table public.notifications;
-exception when duplicate_object then null;
-end $rt2$;
-do $rt3$
-begin
-  alter publication supabase_realtime add table public.payments;
-exception when duplicate_object then null;
-end $rt3$;
-do $rt4$
-begin
-  alter publication supabase_realtime add table public.properties;
-exception when duplicate_object then null;
-end $rt4$;
-
-
--- ============================================================
--- 8b. claim_invite: применяет код приглашения ПОСЛЕ регистрации.
--- Назначает роль, помечает код, привязывает квартиру. Без триггеров.
--- ============================================================
-create or replace function public.claim_invite(p_code text)
-returns jsonb
-language plpgsql
-security definer set search_path = public
-as $claim$
-declare
-  v_inv   public.invites%ROWTYPE;
-  v_role  text;
-  v_linked boolean := false;
-begin
-  select * into v_inv from public.invites
-   where code = upper(p_code) and used_by is null
-     and role in ('tenant', 'contractor')
-   limit 1;
-  if not found then
-    return jsonb_build_object('ok', false, 'error', 'INVALID_CODE');
-  end if;
-
-  update public.invites set used_by = auth.uid() where code = v_inv.code;
-  v_role := v_inv.role;
-  update public.profiles set role = v_role where id = auth.uid();
-
-  if v_inv.property_id is not null then
-    update public.properties
-       set tenant_id = auth.uid(),
-           tenant_name = coalesce((select full_name from public.profiles where id = auth.uid()), ''),
-           status = 'rented'
-     where id = v_inv.property_id;
-    v_linked := true;
-  end if;
-
-  return jsonb_build_object('ok', true, 'role', v_role, 'property_linked', v_linked);
-end;
-$claim$;
-
-revoke all on function public.claim_invite(text) from anon;
-grant execute on function public.claim_invite(text) to authenticated;
 
 -- ============================================================
 -- 10. Демо-аккаунт владельца: owner@propmind.test / secret123
