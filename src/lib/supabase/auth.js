@@ -57,11 +57,19 @@ export async function signup({ full_name, email, password, invite_code }) {
   // сообщаем интерфейсу показать экран «проверь почту»
   if (!data.session) return { needsConfirmation: true, email };
 
-  // Роль и квартиру по коду приглашения назначает RPC (детерминированно)
+  // Роль и квартиру по коду приглашения назначает RPC (детерминированно).
+  // Если схема не обновлена (RPC нет) — аккаунт всё равно создаётся,
+  // но код нужно применить после обновления схемы.
+  let claimed = false;
   if (invite_code) {
-    await supabase.rpc("claim_invite", { p_code: invite_code });
+    try {
+      const { data: claimedData, error: rpcError } = await supabase.rpc("claim_invite", { p_code: invite_code });
+      claimed = !rpcError && claimedData?.ok === true;
+    } catch {
+      claimed = false;
+    }
   }
-  return currentUserWithProfile();
+  return { ...(await currentUserWithProfile()), invite_claimed: claimed, invite_code };
 }
 
 export async function logout() {
