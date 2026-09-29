@@ -6,3 +6,4 @@ dist-ssr
 npm-debug.log*
 video/shots/
 vite.log
+.v2c/
