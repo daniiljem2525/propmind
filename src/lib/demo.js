@@ -128,10 +128,17 @@ export async function seedDemoData({ reset = false } = {}) {
   // Reset: вычищаем данные владельца перед полным демо (только в облаке
   // с RLS никто чужой не пострадает; в локальном режиме — свои же записи)
   if (reset) {
-    const collections = [Property, Tenant, Payment, MaintenanceRequest, Document, NotificationEntity];
+    // Порядок важен: сначала то, что ссылается на объекты (FK)
+    const collections = [MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
     for (const entity of collections) {
       const rows = await entity.list();
-      for (const row of rows) await entity.delete(row.id);
+      for (const row of rows) {
+        try {
+          await entity.delete(row.id);
+        } catch {
+          // пропускаем упрямые записи — демо не должно падать
+        }
+      }
     }
   }
 
