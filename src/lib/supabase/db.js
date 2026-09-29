@@ -75,14 +75,40 @@ export function makeEntity(collection, defaults = {}) {
   };
 }
 
-// Realtime: подписка на изменения таблицы (устройство A меняет — устройство B видит)
+// Realtime: много подписчиков на одну таблицу — один канал, набор колбэков.
+// Имена каналов уникальны (счётчик), чтобы дубли не конфликтовали.
+const channels = new Map();
+let channelSeq = 0;
+
 export function subscribeSupabase(collection, cb) {
   if (!supabase) return () => {};
-  const channel = supabase
-    .channel(`rt-${collection}`)
-    .on("postgres_changes", { event: "*", schema: "public", table: collection }, () => cb())
-    .subscribe();
+  if (!channels.has(collection)) {
+    const cbs = new Set();
+    channelSeq += 1;
+    const channel = supabase
+      .channel(`rt-${collection}-${channelSeq}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: collection },
+        () => cbs.forEach((f) => f())
+      )
+      .subscribe();
+    channels.set(collection, { channel, cbs });
+  }
+  const entry = channels.get(collection);
+  entry.cbs.add(cb);
   return () => {
-    supabase.removeChannel(channel);
+    entry.cbs.delete(cb);
+    if (entry.cbs.size === 0) {
+      supabase.removeChannel(entry.channel);
+      channels.delete(collection);
+    }
   };
+}
+
+// События авторизации: не realtime-таблица, а onAuthStateChange
+export function subscribeAuth(cb) {
+  if (!supabase) return () => {};
+  const { data } = supabase.auth.onAuthStateChange(() => cb());
+  return () => data?.subscription?.unsubscribe();
 }
