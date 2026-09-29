@@ -7,3 +7,9 @@ npm-debug.log*
 video/shots/
 vite.log
 .v2c/
+props*.json
+inv*.json
+fcode.txt
+tok.json
+reg*.json
+chk.json
