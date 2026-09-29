@@ -17,6 +17,7 @@ import { pushNotification } from "@/lib/services";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { MAINTENANCE_STATUS_CONFIG, URGENCY_CONFIG } from "@/lib/config/statuses";
+import { listProfiles } from "@/lib/supabase/entities";
 import { MAINTENANCE_SOURCE_CONFIG } from "@/lib/config/misc";
 import { todayISO } from "@/lib/utils";
 
@@ -223,9 +224,17 @@ export default function Maintenance() {
   const [urgency, setUrgency] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirming, setConfirming] = useState(null);
+  const [assignFor, setAssignFor] = useState(null);
+  const [contractors, setContractors] = useState([]);
+  const [contractorId, setContractorId] = useState("");
   useNewParam(() => setDialogOpen(true));
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+
+  const doneRequests = useMemo(
+    () => requests.filter((r) => r.status === "done"),
+    [requests]
+  );
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -242,6 +251,29 @@ export default function Maintenance() {
       );
     });
   }, [requests, q, status, urgency]);
+
+  const openAssign = async (r) => {
+    setAssignFor(r);
+    setContractorId("");
+    setContractors(await listProfiles("contractor"));
+  };
+
+  const assign = async () => {
+    const c = contractors.find((x) => x.id === contractorId);
+    if (!c || !assignFor) return;
+    await MaintenanceRequest.update(assignFor.id, {
+      status: "assigned",
+      contractor_id: c.id,
+      contractor_name: c.full_name,
+    });
+    setAssignFor(null);
+    toast.success(t("maint.assignedToast").replace("{name}", c.full_name));
+  };
+
+  const acceptWork = async (r) => {
+    await MaintenanceRequest.update(r.id, { status: "closed" });
+    toast.success(t("maint.acceptedWork"));
+  };
 
   const advance = async (r, nextStatus) => {
     await MaintenanceRequest.update(r.id, {
@@ -416,9 +448,9 @@ export default function Maintenance() {
               {(r.status === "new" || r.status === "in_progress") && (
                 <div className="flex gap-2 border-t p-4 pt-3">
                   {r.status === "new" && (
-                    <Button size="sm" variant="outline" onClick={() => advance(r, "in_progress")}>
+                    <Button size="sm" variant="outline" onClick={() => openAssign(r)}>
                       <Play className="h-3.5 w-3.5" />
-                      {t("maintenance.start")}
+                      {t("maint.assign")}
                     </Button>
                   )}
                   <Button size="sm" onClick={() => setConfirming(r)}>
@@ -430,6 +462,27 @@ export default function Maintenance() {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Выполнена исполнителем → владелец принимает */}
+      {doneRequests.length > 0 && (
+        <Card className="mt-6">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{t("maint.awaitingAccept")}</CardTitle>
+          </CardHeader>
+          <CardContent className="divide-y">
+            {doneRequests.map((r) => (
+              <div key={r.id} className="flex flex-wrap items-center gap-3 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{r.title || r.description?.slice(0, 50)}</p>
+                  <p className="truncate text-xs text-muted-foreground">{r.property_name} · {r.contractor_name}</p>
+                  {r.work_notes && <p className="mt-1 text-xs text-muted-foreground">{r.work_notes}</p>}
+                </div>
+                <Button size="sm" onClick={() => acceptWork(r)}>{t("maint.accept")}</Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
       )}
 
       <RequestFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />

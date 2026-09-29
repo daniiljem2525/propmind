@@ -15,7 +15,7 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState("form");
-  const [form, setForm] = useState({ full_name: "", email: "", password: "", confirm: "" });
+  const [form, setForm] = useState({ full_name: "", email: "", password: "", confirm: "", invite_code: "" });
   const [otp, setOtp] = useState("");
   const [demoCode, setDemoCode] = useState("");
   const [error, setError] = useState("");
@@ -108,6 +108,9 @@ export default function Register() {
           </Field>
           <Field label={t("auth.confirmPassword")}>
             <Input type="password" value={form.confirm} onChange={set("confirm")} placeholder="••••••••" autoComplete="new-password" />
+          </Field>
+          <Field label={t("auth.inviteCode")} hint={t("auth.inviteHint")}>
+            <Input value={form.invite_code} onChange={set("invite_code")} placeholder="AB12CD34" className="uppercase" />
           </Field>
 
           {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">{error}</p>}

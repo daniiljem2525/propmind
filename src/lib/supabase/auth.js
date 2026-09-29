@@ -56,6 +56,11 @@ export async function signup({ full_name, email, password, invite_code }) {
   // Если подтверждение email включено в Supabase — сессии не будет:
   // сообщаем интерфейсу показать экран «проверь почту»
   if (!data.session) return { needsConfirmation: true, email };
+
+  // Роль и квартиру по коду приглашения назначает RPC (детерминированно)
+  if (invite_code) {
+    await supabase.rpc("claim_invite", { p_code: invite_code });
+  }
   return currentUserWithProfile();
 }
 

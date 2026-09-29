@@ -13,6 +13,7 @@ import UpsellDialog from "@/components/UpsellDialog";
 import { getPlanLimits } from "@/lib/config/misc";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Tenant, Property } from "@/lib/api/entities";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { linkTenantToProperty, unlinkTenantFromProperty, createMonthlySchedule } from "@/lib/services";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -76,6 +77,12 @@ function TenantFormDialog({ open, onClose, editing, properties }) {
         }
       } else {
         const tenant = await Tenant.create(payload);
+        if (tenant.invite_code) {
+          // Облачный режим: показываем код — жилец зарегистрируется сам
+          setInviteCode(tenant.invite_code);
+          onClose();
+          return;
+        }
         if (property) {
           // Автосвязывание: объект → rented, первый платёж создаётся сам
           await linkTenantToProperty(tenant, property);
@@ -175,6 +182,7 @@ export default function Tenants() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [inviteCode, setInviteCode] = useState(null);
   const [scheduleConfirm, setScheduleConfirm] = useState(null);
 
   const propertyById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
@@ -361,6 +369,27 @@ export default function Tenants() {
       )}
 
       <TenantFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
+
+      {/* Код приглашения новому жильцу (облачный режим) */}
+      <Dialog open={!!inviteCode} onClose={() => setInviteCode(null)} title={t("tenants.inviteTitle")} size="md">
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">{t("tenants.inviteText")}</p>
+          <div className="rounded-md border bg-muted/40 px-4 py-4 text-center font-mono text-2xl font-bold tracking-[0.3em] text-primary">
+            {inviteCode}
+          </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              navigator.clipboard?.writeText(inviteCode || "");
+              toast.success(t("common.copied"));
+            }}
+          >
+            {t("common.copied")}
+          </Button>
+          <p className="text-center text-xs text-muted-foreground">{t("tenants.inviteNote")}</p>
+        </div>
+      </Dialog>
 
       <ConfirmDialog
         open={!!deleting}
