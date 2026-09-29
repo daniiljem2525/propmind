@@ -121,9 +121,19 @@ const DEMO_TENANTS = [
   { full_name: "Марина Ким", email: "marina.kim@example.com", phone: "+7 921 988-03-61", propertyIndex: 4 },
 ];
 
-export async function seedDemoData() {
+export async function seedDemoData({ reset = false } = {}) {
   const user = getCurrentUser();
   if (!user) throw new Error("UNAUTHORIZED");
+
+  // Reset: вычищаем данные владельца перед полным демо (только в облаке
+  // с RLS никто чужой не пострадает; в локальном режиме — свои же записи)
+  if (reset) {
+    const collections = [Property, Tenant, Payment, MaintenanceRequest, Document, NotificationEntity];
+    for (const entity of collections) {
+      const rows = await entity.list();
+      for (const row of rows) await entity.delete(row.id);
+    }
+  }
 
   const existing = await Property.list();
   if (existing.length > 0) return { skipped: true };

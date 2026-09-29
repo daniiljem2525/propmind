@@ -175,6 +175,7 @@ export const en = {
   "dashboard.loadDemo": "Load demo data",
   "dashboard.confirmDemoTitle": "Load demo data?",
   "dashboard.confirmDemoDesc": "The demo adds 8 properties, tenants, payment history, requests and documents. Existing data is kept. The Pro plan is also unlocked (demo).",
+"dashboard.confirmDemoResetDesc": "Current data will be replaced with the demo portfolio: 8 properties, tenants, payments, requests. Continue?",
   "dashboard.inMonth": "this month",
 
   "onboarding.title": "First steps",

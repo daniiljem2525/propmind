@@ -8,10 +8,10 @@ export function useDemoSeed() {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
 
-  const run = async () => {
+  const run = async ({ reset = false } = {}) => {
     setLoading(true);
     try {
-      const res = await seedDemoData();
+      const res = await seedDemoData({ reset });
       toast.success(res.skipped ? t("demo.already") : `${t("demo.loaded")} · ${t("demo.planUnlocked")}`);
     } catch (e) {
       toast.error(e.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));

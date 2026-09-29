@@ -23,6 +23,7 @@ import { Property, Tenant, Payment, MaintenanceRequest } from "@/lib/api/entitie
 import { useLang } from "@/lib/i18n/LangContext";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/dialog";
 import { renewLease } from "@/lib/services";
 import { PAYMENT_STATUS_CONFIG, MAINTENANCE_STATUS_CONFIG } from "@/lib/config/statuses";
 import { daysUntil, formatDate, formatMoney, localeOf } from "@/lib/utils";
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const demo = useDemoSeed();
   const toast = useToast();
   const [renewingId, setRenewingId] = useState(null);
+  const [demoConfirm, setDemoConfirm] = useState(false);
 
   const { data: properties } = useCollection(Property);
   const { data: tenants } = useCollection(Tenant);
@@ -102,7 +104,7 @@ export default function Dashboard() {
               <p className="mt-1 text-sm leading-relaxed text-white/85">{t("dashboard.demoSubtitle")}</p>
             </div>
             <Button
-              onClick={demo.run}
+              onClick={() => setDemoConfirm(true)}
               loading={demo.loading}
               className="shrink-0 bg-white text-primary hover:bg-white/90"
             >
@@ -143,7 +145,7 @@ export default function Dashboard() {
                 ))}
               </div>
             </div>
-            <Button variant="outline" onClick={demo.run} loading={demo.loading} className="shrink-0">
+            <Button variant="outline" onClick={() => setDemoConfirm(true)} loading={demo.loading} className="shrink-0">
               <Sparkles className="h-4 w-4" />
               {t("common.demoData")}
             </Button>
@@ -280,6 +282,18 @@ export default function Dashboard() {
           })}
         </CardContent>
       </Card>
+    {/* Подтверждение загрузки демо-данных */}
+      <ConfirmDialog
+        open={demoConfirm}
+        onClose={() => setDemoConfirm(false)}
+        onConfirm={() => {
+          setDemoConfirm(false);
+          demo.run({ reset: true });
+        }}
+        title={t("dashboard.confirmDemoTitle")}
+        description={t("dashboard.confirmDemoResetDesc")}
+        confirmLabel={t("dashboard.loadDemo")}
+      />
     </div>
   );
 }
