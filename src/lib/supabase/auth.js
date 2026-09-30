@@ -4,8 +4,12 @@ import { supabase } from "./config";
 // Роль и имя хранятся в profiles (создаются триггером при регистрации).
 
 async function currentUserWithProfile() {
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) return null;
+  // getSession() читает локальную сессию без сетевого запроса. getUser()
+  // ходит в сеть под внутренним локом auth и в ряде окружений зависает
+  // навсегда — из-за него приложение "залипало" в загрузке.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user;
+  if (!user) return null;
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
