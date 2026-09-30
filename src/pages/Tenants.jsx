@@ -255,7 +255,8 @@ export default function Tenants() {
         }
       />
 
-      {/* Подключение жильцов по личному коду/ссылке */}
+      {/* Подключение жильцов по личному коду/ссылке — только для арендодателя */}
+      {!["tenant", "contractor"].includes(user?.role) && (
       <Card className="mb-5">
         <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
@@ -281,6 +282,7 @@ export default function Tenants() {
           </Button>
         </CardContent>
       </Card>
+      )}
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
