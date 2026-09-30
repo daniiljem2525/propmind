@@ -219,6 +219,11 @@ export async function getLandlordContact() {
   return user ? { full_name: user.full_name, phone: null, email: user.email } : null;
 }
 
+// В локальном демо-режиме воркспейс один — подключение по коду недоступно
+export async function claimInvite() {
+  return { ok: false, error: "not_supported" };
+}
+
 export const Document = makeEntity("documents", {
   type: "other",
 });

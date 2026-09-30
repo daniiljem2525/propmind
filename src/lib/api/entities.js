@@ -13,6 +13,7 @@ export const MaintenanceRequest = backend.MaintenanceRequest;
 export const RequestComment = backend.RequestComment;
 export const RequestEvent = backend.RequestEvent;
 export const getLandlordContact = backend.getLandlordContact;
+export const claimInvite = backend.claimInvite;
 export const Document = backend.Document;
 export const NotificationEntity = backend.NotificationEntity;
 export const registerCurrentUserFn = local.registerCurrentUserFn;

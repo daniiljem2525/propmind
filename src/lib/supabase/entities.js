@@ -82,21 +82,41 @@ export async function listProfiles(role) {
   return data || [];
 }
 
-// Контакт арендодателя для жильца: RLS отдаёт профиль только
-// хозяина той квартиры, где жилец прописан как tenant
-export async function getLandlordContact(propertyId) {
-  const { data: prop, error } = await supabase
-    .from("properties")
-    .select("owner_id")
-    .eq("id", propertyId)
-    .maybeSingle();
-  if (error || !prop?.owner_id) return null;
+// Контакт арендодателя для жильца: по квартире, а без квартиры —
+// по приглашению (RLS отдаёт профиль только «своего» арендодателя)
+export async function getLandlordContact(propertyId, userId) {
+  let ownerId = null;
+  if (propertyId) {
+    const { data: prop } = await supabase
+      .from("properties")
+      .select("owner_id")
+      .eq("id", propertyId)
+      .maybeSingle();
+    ownerId = prop?.owner_id || null;
+  }
+  if (!ownerId && userId) {
+    const { data: inv } = await supabase
+      .from("invites")
+      .select("owner_id, created_date")
+      .eq("used_by", userId)
+      .order("created_date", { ascending: false })
+      .limit(1);
+    ownerId = inv?.[0]?.owner_id || null;
+  }
+  if (!ownerId) return null;
   const { data: prof } = await supabase
     .from("profiles")
     .select("full_name, phone, email")
-    .eq("id", prop.owner_id)
+    .eq("id", ownerId)
     .maybeSingle();
   return prof || null;
+}
+
+// Подключение жильца к арендодателю по его персональному коду
+export async function claimInvite(code) {
+  const { data, error } = await supabase.rpc("claim_invite", { p_code: code });
+  if (error) throw error;
+  return data || { ok: false, error: "no_result" };
 }
 
 // Жильцы в облачном режиме = профили с ролью tenant.

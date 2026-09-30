@@ -21,7 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
-import { Property, MaintenanceRequest, Payment, Document, getLandlordContact } from "@/lib/api/entities";
+import { Property, MaintenanceRequest, Payment, Document, getLandlordContact, claimInvite } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { useToast } from "@/components/ui/toast";
@@ -68,21 +68,17 @@ export default function TenantPortal() {
     [documents, myProp]
   );
 
-  // Контакт арендодателя (профиль хозяина квартиры)
+  // Контакт арендодателя: по квартире, без квартиры — по приглашению
   const [landlord, setLandlord] = useState(null);
   useEffect(() => {
-    if (!myProp?.id) {
-      setLandlord(null);
-      return undefined;
-    }
     let alive = true;
-    getLandlordContact(myProp.id)
+    getLandlordContact(myProp?.id || null, user.id)
       .then((p) => alive && setLandlord(p))
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [myProp?.id]);
+  }, [myProp?.id, user.id]);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -156,7 +152,34 @@ export default function TenantPortal() {
     });
   }, [myPayments]);
 
+  // Подключение к арендодателю по его персональному коду
+  const [code, setCode] = useState("");
+  const [connecting, setConnecting] = useState(false);
+  const connect = async (e) => {
+    e.preventDefault();
+    const c = code.trim().toUpperCase();
+    if (!c) return;
+    setConnecting(true);
+    try {
+      const res = await claimInvite(c);
+      if (res.ok === false) {
+        toast.error(res.error === "not_supported" ? t("portal.connectLocal") : t("portal.connectError"));
+        return;
+      }
+      toast.success(t("portal.connectedToast"));
+      setCode("");
+      getLandlordContact(null, user.id)
+        .then((p) => setLandlord(p))
+        .catch(() => {});
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   if (!myProp) {
+    const connected = !!landlord;
     return (
       <div className="animate-fade-in">
         <PageHeader title={t("portal.tenantTitle")} subtitle={t("portal.tenantSubtitle")} />
@@ -165,6 +188,40 @@ export default function TenantPortal() {
           title={t("portal.tenantTitle")}
           description={t("portal.noProperty")}
         />
+
+        {/* Подключение к арендодателю по коду */}
+        <Card className="mx-auto mt-6 max-w-xl">
+          <CardHeader>
+            <CardTitle>{t("portal.connectTitle")}</CardTitle>
+            <CardDescription>{t("portal.connectDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {connected ? (
+              <div className="rounded-md bg-emerald-50 p-4 dark:bg-emerald-500/10">
+                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                  {t("portal.connected")}
+                </p>
+                <p className="mt-1 text-sm">
+                  {landlord.full_name || "—"}
+                  {landlord.email && <span className="text-muted-foreground"> · {landlord.email}</span>}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground">{t("portal.waitProperty")}</p>
+              </div>
+            ) : (
+              <form onSubmit={connect} className="flex flex-col gap-3 sm:flex-row">
+                <Input
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="AB12CD34"
+                  className="flex-1 uppercase"
+                />
+                <Button type="submit" loading={connecting} className="shrink-0">
+                  {t("portal.connectBtn")}
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
