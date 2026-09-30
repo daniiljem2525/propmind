@@ -21,7 +21,6 @@ import {
   X,
   Zap,
 } from "lucide-react";
-import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { PLANS } from "@/lib/config/misc";
 import { formatMoney } from "@/lib/utils";
@@ -40,7 +39,6 @@ const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4"];
 
 export default function Landing() {
   const { t, lang, setLang } = useLang();
-  const { user } = useAuth();
   const [yearly, setYearly] = useState(false);
 
   // Клик по логотипу: если мы уже на "/", плавно поднимаемся наверх
@@ -94,30 +92,19 @@ export default function Landing() {
                 {lang === "ru" ? "RU" : "EN"}
               </span>
             </button>
-            {user ? (
-              <Link
-                to="/app"
-                className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-              >
-                {t("land.openApp")}
-              </Link>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
-                >
-                  <LogIn className="h-4 w-4" />
-                  {t("auth.signIn")}
-                </Link>
-                <Link
-                  to="/register"
-                  className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-                >
-                  {t("land.cta")}
-                </Link>
-              </>
-            )}
+            <Link
+              to="/login"
+              className="hidden items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:flex"
+            >
+              <LogIn className="h-4 w-4" />
+              {t("auth.signIn")}
+            </Link>
+            <Link
+              to="/register"
+              className="brand-gradient inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            >
+              {t("land.cta")}
+            </Link>
           </div>
         </div>
       </header>

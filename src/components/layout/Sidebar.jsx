@@ -34,8 +34,12 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
   const navigate = useNavigate();
-  // роль owner = легаси-админ; видимость пунктов по ролям
-  const visibleRole = user?.role === "owner" || user?.role === "admin" ? "admin" : user?.role;
+  // роль owner = легаси-админ; неизвестные роли ("user" из локальной
+  // регистрации, undefined до загрузки) видят полное меню, иначе сайдбар пуст
+  const visibleRole =
+    !user?.role || user.role === "owner" || user.role === "admin" || user.role === "user"
+      ? "admin"
+      : user.role;
   const items = NAV_ITEMS.filter(
     (item) => (!item.adminOnly || visibleRole === "admin") && (!item.roles || item.roles.includes(visibleRole))
   );
