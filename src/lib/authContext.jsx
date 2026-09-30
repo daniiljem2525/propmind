@@ -19,8 +19,14 @@ export function AuthProvider({ children }) {
         .catch(() => alive && setUser(null));
     load();
     const unsub = subscribe("auth", load);
+    // Страховка: если сессия не определилась за 8 секунд (медленная сеть,
+    // подвисший SDK, битый storage) — считаем гостем, а не вечной загрузкой
+    const fallback = setTimeout(() => {
+      if (alive) setUser((u) => (u === undefined ? null : u));
+    }, 8000);
     return () => {
       alive = false;
+      clearTimeout(fallback);
       unsub();
     };
   }, []);
