@@ -801,6 +801,12 @@ begin
     return jsonb_build_object('ok', false, 'error', 'unauthorized');
   end if;
 
+  -- Владелец воркспейса не подключается по чужому коду:
+  -- иначе claim понизил бы его роль до жильца
+  if exists (select 1 from public.profiles where id = v_uid and role = 'owner') then
+    return jsonb_build_object('ok', false, 'error', 'owner_claim');
+  end if;
+
   select * into v_inv from public.invites where code = upper(trim(p_code));
   if not found then
     -- Персональный код арендодателя: подключаем жильца к его воркспейсу

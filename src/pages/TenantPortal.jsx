@@ -164,7 +164,13 @@ export default function TenantPortal() {
     try {
       const res = await claimInvite(c);
       if (res.ok === false) {
-        toast.error(res.error === "not_supported" ? t("portal.connectLocal") : t("portal.connectError"));
+        toast.error(
+          res.error === "not_supported"
+            ? t("portal.connectLocal")
+            : res.error === "owner_claim"
+              ? t("portal.ownerClaim")
+              : t("portal.connectError")
+        );
         return;
       }
       toast.success(t("portal.connectedToast"));

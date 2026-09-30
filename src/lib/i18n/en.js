@@ -114,6 +114,7 @@ export const en = {
   "portal.waitProperty": "They see you in their list and will assign you an apartment — refresh the page later",
   "portal.connectError": "Code not found — check it and try again",
   "portal.connectLocal": "Code connection works in the cloud version",
+  "portal.ownerClaim": "You're a landlord — no need to connect by code",
   "portal.dueUntil": "Due",
   "portal.paymentsSub": "Overdue first, history below",
   "portal.documents": "Documents",
