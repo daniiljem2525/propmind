@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { to: "/app", icon: LayoutDashboard, key: "nav.dashboard", end: true, roles: ["owner", "admin"] },
   { to: "/app/properties", icon: Building2, key: "nav.properties", roles: ["owner", "admin"] },
   { to: "/app/tenants", icon: Users, key: "nav.tenants", roles: ["owner", "admin"] },
+  { to: "/app", icon: House, key: "portal.myHome", end: true, roles: ["tenant"] },
   { to: "/app/payments", icon: CreditCard, key: "nav.payments", roles: ["owner", "admin", "tenant"] },
   { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance", roles: ["owner", "admin", "contractor"] },
   { to: "/app/documents", icon: FileText, key: "nav.documents", roles: ["owner", "admin", "tenant"] },

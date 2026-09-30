@@ -3,7 +3,7 @@ import { Building2, Download, FileText, Pencil, Plus, Search, Trash2, UploadClou
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
@@ -15,7 +15,8 @@ import { uploadFile, SAFE_DOC_TYPES } from "@/lib/api/files";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { DOC_TYPE_CONFIG } from "@/lib/config/statuses";
-import { formatFileSize } from "@/lib/utils";
+import { formatDate, formatFileSize } from "@/lib/utils";
+import { useAuth } from "@/lib/authContext";
 
 const TYPE_OPTIONS = Object.keys(DOC_TYPE_CONFIG);
 
@@ -184,6 +185,7 @@ export default function Documents() {
   const { t, lang } = useLang();
   const toast = useToast();
   const demo = useDemoSeed();
+  const { user } = useAuth();
   const { data: documents, loading } = useCollection(Document);
   const { data: properties } = useCollection(Property);
 
@@ -211,6 +213,48 @@ export default function Documents() {
     toast.success(t("documents.deleted"));
     setDeleting(null);
   };
+
+  // Жилец: только документы своей квартиры, без загрузки и удаления
+  if (user?.role === "tenant") {
+    return (
+      <div className="animate-fade-in">
+        <PageHeader title={t("documents.title")} subtitle={t("portal.documentsSub")} />
+        <Card>
+          <CardContent className="divide-y">
+            {!loading && documents.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">{t("portal.noDocuments")}</p>
+            )}
+            {documents.map((d) => {
+              const cfg = DOC_TYPE_CONFIG[d.type] || DOC_TYPE_CONFIG.other;
+              const Icon = cfg.icon;
+              return (
+                <div key={d.id} className="flex items-center gap-3 py-3">
+                  <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.tile || "bg-slate-500"} text-white`}>
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{d.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {lang === "ru" ? cfg.label_ru : cfg.label_en}
+                      {d.created_date && ` · ${formatDate(d.created_date, lang)}`}
+                    </p>
+                  </div>
+                  {d.file_url && (
+                    <a href={d.file_url} download={d.file_name || d.name} className="shrink-0">
+                      <Button size="sm" variant="outline">
+                        <Download className="h-3.5 w-3.5" />
+                        {t("portal.download")}
+                      </Button>
+                    </a>
+                  )}
+                </div>
+              );
+            })}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">

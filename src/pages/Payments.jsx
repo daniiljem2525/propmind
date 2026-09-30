@@ -17,10 +17,11 @@ import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
+import { useAuth } from "@/lib/authContext";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Payment, Tenant, Property } from "@/lib/api/entities";
@@ -30,7 +31,7 @@ import { useToast } from "@/components/ui/toast";
 import { PAYMENT_STATUS_CONFIG } from "@/lib/config/statuses";
 import { PAYMENT_METHOD_CONFIG } from "@/lib/config/misc";
 import { downloadFile, toCSV } from "@/lib/csv";
-import { cn, formatMoney, monthShort, todayISO, addDaysISO, uid } from "@/lib/utils";
+import { cn, formatDate, formatMoney, monthLong, monthShort, todayISO, addDaysISO, uid } from "@/lib/utils";
 
 const STATUS_OPTIONS = ["pending", "paid", "overdue", "partial", "cancelled"];
 const METHOD_OPTIONS = ["", "cash", "bank", "card", "stripe"];
@@ -188,6 +189,7 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
 
 export default function Payments() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const toast = useToast();
   const demo = useDemoSeed();
   const { data: payments, loading } = useCollection(Payment);
@@ -394,6 +396,49 @@ export default function Payments() {
       </Button>
     </div>
   );
+
+  // Жилец: только свои платежи, без кнопок управления
+  if (user?.role === "tenant") {
+    const rank = (s) => (s === "overdue" ? 0 : s === "pending" ? 1 : s === "partial" ? 2 : 3);
+    const own = [...payments].sort((a, b) => {
+      if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+      return (b.due_date || "").localeCompare(a.due_date || "");
+    });
+    return (
+      <div className="animate-fade-in">
+        <PageHeader title={t("nav.payments")} subtitle={t("portal.paymentsSub")} />
+        <Card>
+          <CardContent className="divide-y">
+            {!loading && own.length === 0 && (
+              <p className="py-6 text-center text-sm text-muted-foreground">{t("common.noResults")}</p>
+            )}
+            {own.map((p) => (
+              <div key={p.id} className="flex items-center justify-between gap-3 py-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">
+                    {p.period_month
+                      ? `${monthLong(p.period_month - 1, lang)} ${p.period_year}`
+                      : formatDate(p.due_date, lang)}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {t("portal.dueUntil")}: {formatDate(p.due_date, lang)}
+                  </p>
+                </div>
+                <span
+                  className={`shrink-0 text-sm font-semibold ${
+                    p.status === "overdue" ? "text-rose-600 dark:text-rose-400" : ""
+                  }`}
+                >
+                  {formatMoney(p.amount, p.currency || "RUB", lang)}
+                </span>
+                <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">
