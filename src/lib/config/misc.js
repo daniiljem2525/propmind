@@ -23,20 +23,25 @@ export const PLANS = [
   { id: "start", monthly: 990, yearly: 9900, highlight: false },
   { id: "pro", monthly: 2990, yearly: 29900, highlight: true },
   { id: "business", monthly: 7990, yearly: 79900, highlight: false },
+  // Индивидуальный: цена и лимиты согласуются лично, выдаёт администратор
+  { id: "individual", monthly: null, yearly: null, highlight: false },
 ];
 
 // Лимиты тарифов (null — без ограничения)
 export const PLAN_LIMITS = {
-  free: { properties: 3, tenants: 1 },
-  start: { properties: 15, tenants: null },
-  pro: { properties: 100, tenants: null },
-  business: { properties: null, tenants: null },
+  free: { properties: 1, tenants: 1 },
+  start: { properties: 4, tenants: null }, // 1 бесплатно + 3 доп.
+  pro: { properties: 8, tenants: null },
+  business: { properties: 14, tenants: null },
+  individual: { properties: null, tenants: null },
 };
 
-export function getPlanLimits() {
-  let plan = "free";
-  try {
-    plan = localStorage.getItem("propmind:plan") || "free";
-  } catch {}
-  return PLAN_LIMITS[plan] || PLAN_LIMITS.free;
+export function getPlanLimits(plan) {
+  let key = plan;
+  if (!key) {
+    try {
+      key = localStorage.getItem("propmind:plan");
+    } catch {}
+  }
+  return PLAN_LIMITS[key] || PLAN_LIMITS.free;
 }

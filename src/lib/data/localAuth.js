@@ -38,6 +38,7 @@ const publicUser = (u) =>
     full_name: u.full_name,
     email: u.email,
     role: u.role,
+    plan: u.plan || "free",
     status: u.status,
     created_date: u.created_date,
   };
@@ -237,6 +238,17 @@ export function listUsers() {
   return readUsers()
     .map(publicUser)
     .sort((a, b) => (a.created_date || "").localeCompare(b.created_date || ""));
+}
+
+// Назначение тарифа пользователю (локальный демо-режим)
+export function updateUserPlan(id, plan) {
+  const users = readUsers();
+  const user = users.find((u) => u.id === id);
+  if (!user) throw new Error("USER_NOT_FOUND");
+  user.plan = plan;
+  writeUsers(users);
+  notifyAuth();
+  return publicUser(user);
 }
 
 export function updateUserRole(id, role) {

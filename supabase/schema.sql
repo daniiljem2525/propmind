@@ -33,6 +33,10 @@ create table if not exists public.profiles (
               check (role in ('owner', 'tenant', 'contractor')),
   created_date timestamptz not null default now()
 );
+-- Тариф аккаунта: free | start | pro | business | individual.
+-- Назначается администратором платформы через админ-панель.
+alter table public.profiles add column if not exists plan text not null default 'free';
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles: читаю свой" on public.profiles;

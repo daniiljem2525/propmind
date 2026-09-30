@@ -19,6 +19,7 @@ import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPE_CONFIG } from "@/lib/config/statu
 import { CURRENCIES } from "@/lib/config/misc";
 import { parseCSV } from "@/lib/csv";
 import UpsellDialog from "@/components/UpsellDialog";
+import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
 import { addMonthsISO, cn, formatMoney, todayISO } from "@/lib/utils";
 
@@ -313,6 +314,7 @@ function PropertyCard({ property, onEdit, onDelete }) {
 // ——— Страница ———
 export default function Properties() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const toast = useToast();
   const demo = useDemoSeed();
 
@@ -322,7 +324,7 @@ export default function Properties() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const { data: properties, loading } = useCollection(Property);
-  const planLimits = getPlanLimits();
+  const planLimits = getPlanLimits(user?.plan);
 
   const tryCreate = () => {
     if (planLimits.properties !== null && properties.length >= planLimits.properties) {

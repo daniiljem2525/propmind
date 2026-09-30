@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/components/ui/toast";
@@ -52,6 +53,7 @@ function Segmented({ options, value, onChange }) {
 // ——— Тарифные планы ———
 function PricingPlans() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const toast = useToast();
   const [yearly, setYearly] = useState(false);
   const [plan, setPlan] = useState(() => {
@@ -62,7 +64,14 @@ function PricingPlans() {
     }
   });
 
+  // В облаке тариф привязан к аккаунту и выдаётся администратором
+  const current = isSupabaseConfigured ? user?.plan || "free" : plan;
+
   const choose = (id) => {
+    if (isSupabaseConfigured) {
+      toast.info(t("plans.adminOnly"));
+      return;
+    }
     try {
       localStorage.setItem(PLAN_KEY, id);
     } catch {}
@@ -91,7 +100,7 @@ function PricingPlans() {
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {PLANS.map((p) => {
           const price = yearly ? p.yearly : p.monthly;
-          const isCurrent = plan === p.id;
+          const isCurrent = current === p.id;
           return (
             <Card key={p.id} className={cn("relative flex flex-col p-5", p.highlight && "border-primary ring-2 ring-primary")}>
               {p.highlight && (
@@ -102,8 +111,14 @@ function PricingPlans() {
               <h3 className="text-lg font-bold">{t(`plans.${p.id}.name`)}</h3>
               <p className="mt-1 text-xs text-muted-foreground">{t(`plans.${p.id}.desc`)}</p>
               <p className="mt-4">
-                <span className="text-2xl font-extrabold">{formatMoney(price, "RUB", lang)}</span>
-                <span className="text-sm font-normal text-muted-foreground">{yearly ? t("plans.perYear") : t("plans.perMonth")}</span>
+                {p.monthly == null ? (
+                  <span className="text-2xl font-extrabold">{t("plans.individual.price")}</span>
+                ) : (
+                  <>
+                    <span className="text-2xl font-extrabold">{formatMoney(price, "RUB", lang)}</span>
+                    <span className="text-sm font-normal text-muted-foreground">{yearly ? t("plans.perYear") : t("plans.perMonth")}</span>
+                  </>
+                )}
               </p>
               <ul className="mt-4 flex-1 space-y-2.5">
                 {t(`plans.${p.id}.features`)
@@ -118,10 +133,10 @@ function PricingPlans() {
               <Button
                 className="mt-5 w-full"
                 variant={p.highlight ? "gradient" : "outline"}
-                disabled={isCurrent}
+                disabled={isCurrent || p.monthly == null}
                 onClick={() => choose(p.id)}
               >
-                {isCurrent ? t("plans.current") : t("plans.choose")}
+                {isCurrent ? t("plans.current") : p.monthly == null ? t("plans.contactUs") : t("plans.choose")}
               </Button>
             </Card>
           );

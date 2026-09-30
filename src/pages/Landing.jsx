@@ -298,8 +298,14 @@ export default function Landing() {
                 <h3 className="text-lg font-bold">{t(`plans.${p.id}.name`)}</h3>
                 <p className="mt-1 text-xs text-muted-foreground">{t(`plans.${p.id}.desc`)}</p>
                 <p className="mt-4">
-                  <span className="text-2xl font-extrabold">{formatMoney(price, "RUB", lang)}</span>
-                  <span className="text-sm text-muted-foreground">{yearly ? t("plans.perYear") : t("plans.perMonth")}</span>
+                  {p.monthly == null ? (
+                    <span className="text-2xl font-extrabold">{t("plans.individual.price")}</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl font-extrabold">{formatMoney(price, "RUB", lang)}</span>
+                      <span className="text-sm text-muted-foreground">{yearly ? t("plans.perYear") : t("plans.perMonth")}</span>
+                    </>
+                  )}
                 </p>
                 <ul className="mt-4 flex-1 space-y-2.5">
                   {t(`plans.${p.id}.features`)
@@ -311,17 +317,26 @@ export default function Landing() {
                       </li>
                     ))}
                 </ul>
-                <Link
-                  to="/register"
-                  className={cn(
-                    "mt-5 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity",
-                    p.highlight
-                      ? "brand-gradient text-white shadow-sm hover:opacity-90"
-                      : "border bg-card hover:bg-muted"
-                  )}
-                >
-                  {t("land.cta")}
-                </Link>
+                {p.monthly == null ? (
+                  <a
+                    href={`mailto:sales@propmind.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
+                    className="mt-5 inline-flex items-center justify-center rounded-md border bg-card px-4 py-2.5 text-sm font-semibold transition-opacity hover:bg-muted"
+                  >
+                    {t("plans.contactUs")}
+                  </a>
+                ) : (
+                  <Link
+                    to="/register"
+                    className={cn(
+                      "mt-5 inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity",
+                      p.highlight
+                        ? "brand-gradient text-white shadow-sm hover:opacity-90"
+                        : "border bg-card hover:bg-muted"
+                    )}
+                  >
+                    {t("land.cta")}
+                  </Link>
+                )}
               </div>
               );
             })}

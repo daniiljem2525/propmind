@@ -70,6 +70,7 @@ export function AuthProvider({ children }) {
         changePassword: authApi.changePassword,
         listUsers: authApi.listUsers,
         updateUserRole: authApi.updateUserRole,
+        updateUserPlan: authApi.updateUserPlan,
         inviteUser: authApi.inviteUser,
       }}
     >

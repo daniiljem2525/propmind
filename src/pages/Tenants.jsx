@@ -10,6 +10,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
 import UpsellDialog from "@/components/UpsellDialog";
+import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Tenant, Property } from "@/lib/api/entities";
@@ -158,6 +159,7 @@ function TenantFormDialog({ open, onClose, editing, properties }) {
 
 export default function Tenants() {
   const { t, lang } = useLang();
+  const { user } = useAuth();
   const toast = useToast();
   const demo = useDemoSeed();
   const { data: tenants, loading } = useCollection(Tenant);
@@ -167,7 +169,7 @@ export default function Tenants() {
   const [status, setStatus] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
-  const planLimits = getPlanLimits();
+  const planLimits = getPlanLimits(user?.plan);
 
   const tryCreate = () => {
     if (planLimits.tenants !== null && tenants.length >= planLimits.tenants) {

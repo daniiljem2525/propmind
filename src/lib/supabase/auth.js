@@ -20,6 +20,7 @@ async function currentUserWithProfile() {
     email: user.email,
     full_name: profile?.full_name || user.user_metadata?.full_name || "",
     role: profile?.role || user.user_metadata?.role || "tenant",
+    plan: profile?.plan || "free",
     status: "active",
     created_date: profile?.created_date || user.created_at,
   };
@@ -115,7 +116,7 @@ export async function createInvite(role, propertyId) {
 export async function listUsers() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, created_date")
+    .select("id, full_name, email, role, plan, created_date")
     .order("created_date");
   if (error) return [];
   return (data || []).map((p) => ({
@@ -123,9 +124,17 @@ export async function listUsers() {
     full_name: p.full_name,
     email: p.email,
     role: p.role,
+    plan: p.plan || "free",
     status: "active",
     created_date: p.created_date,
   }));
+}
+
+// Выдача тарифа пользователю (только владелец платформы — RLS)
+export async function updateUserPlan(id, plan) {
+  const { error } = await supabase.from("profiles").update({ plan }).eq("id", id);
+  if (error) throw error;
+  return true;
 }
 
 export async function updateUserRole(id, role) {

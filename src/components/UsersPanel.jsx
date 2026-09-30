@@ -7,13 +7,21 @@ import { Field, Input, Select } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { ROLES } from "@/lib/config/statuses";
 import { cn, initials } from "@/lib/utils";
+
+// Роли зависят от бэкенда: в облаке — owner/tenant/contractor, локально — user/admin
+const ROLE_OPTIONS = isSupabaseConfigured
+  ? ["owner", "tenant", "contractor"]
+  : ["user", "admin"];
+const PLAN_OPTIONS = ["free", "start", "pro", "business", "individual"];
 
 // Управление пользователями — используется в Настройках и Админ-панели (только admin)
 export default function UsersPanel() {
   const { t, lang } = useLang();
   const toast = useToast();
-  const { user, listUsers, updateUserRole, inviteUser } = useAuth();
+  const { user, listUsers, updateUserRole, updateUserPlan, inviteUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteForm, setInviteForm] = useState({ email: "", role: "user" });
@@ -32,6 +40,17 @@ export default function UsersPanel() {
     try {
       await updateUserRole(u.id, role);
       toast.success(t("settings.roleChanged"));
+      reload();
+    } catch {
+      toast.error(t("errors.generic"));
+    }
+  };
+
+  // Ручная выдача тарифа пользователю (админ)
+  const changePlan = async (u, plan) => {
+    try {
+      await updateUserPlan(u.id, plan);
+      toast.success(t("admin.planChanged"));
       reload();
     } catch {
       toast.error(t("errors.generic"));
@@ -94,10 +113,27 @@ export default function UsersPanel() {
               value={u.role}
               disabled={u.id === user.id}
               onChange={(e) => changeRole(u, e.target.value)}
-              className="h-9 shrink-0 sm:w-44"
+              className="h-9 shrink-0 sm:w-40"
+              title={t("settings.roleAdmin")}
             >
-              <option value="user">{t("settings.roleUser")}</option>
-              <option value="admin">{t("settings.roleAdmin")}</option>
+              {ROLE_OPTIONS.map((r) => (
+                <option key={r} value={r}>
+                  {lang === "ru" ? ROLES[r].label_ru : ROLES[r].label_en}
+                </option>
+              ))}
+            </Select>
+            <Select
+              value={u.plan || "free"}
+              disabled={u.id === user.id}
+              onChange={(e) => changePlan(u, e.target.value)}
+              className="h-9 shrink-0 sm:w-44"
+              title={t("plans.adminOnly")}
+            >
+              {PLAN_OPTIONS.map((p) => (
+                <option key={p} value={p}>
+                  {t(`plans.${p}.name`)}
+                </option>
+              ))}
             </Select>
           </div>
         ))}
