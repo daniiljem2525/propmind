@@ -106,9 +106,12 @@ export function subscribeSupabase(collection, cb) {
   };
 }
 
-// События авторизации: не realtime-таблица, а onAuthStateChange
+// События авторизации: не realtime-таблица, а onAuthStateChange.
+// Колбэк ОБЯЗАН уходить из синхронного контекста события (setTimeout):
+// onAuthStateChange вызывается под внутренним локом auth, и любой
+// await-вызов (getUser и т.п.) внутри колбэка дедлочит сессию навсегда.
 export function subscribeAuth(cb) {
   if (!supabase) return () => {};
-  const { data } = supabase.auth.onAuthStateChange(() => cb());
+  const { data } = supabase.auth.onAuthStateChange(() => setTimeout(cb, 0));
   return () => data?.subscription?.unsubscribe();
 }
