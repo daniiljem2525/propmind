@@ -30,6 +30,7 @@ export const ru = {
   "common.add": "Добавить",
   "common.create": "Создать",
   "common.close": "Закрыть",
+  "common.copy": "Копировать",
   "common.confirm": "Подтвердить",
   "common.back": "Назад",
   "common.viewAll": "Все",
@@ -100,6 +101,9 @@ export const ru = {
   "req.err.generic": "Не удалось выполнить действие",
   "common.send": "Отправить",
   "tenants.inviteTitle": "Код приглашения жильца",
+  "tenants.personalCode": "Ваш код арендодателя",
+  "tenants.personalCodeHint": "Дайте арендатору код или ссылку — при регистрации он подключится к вам как жилец",
+  "tenants.linkCopied": "Ссылка скопирована",
   "tenants.inviteText": "Передай этот код жильцу — он введёт его при регистрации и попадёт в твою систему",
   "tenants.inviteNote": "Код одноразовый и привязан к объекту",
   // ——— Порталы жильца и исполнителя ———

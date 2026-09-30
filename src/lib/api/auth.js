@@ -18,5 +18,6 @@ export const changePassword = backend.changePassword;
 export const listUsers = backend.listUsers;
 export const updateUserRole = backend.updateUserRole;
 export const updateUserPlan = backend.updateUserPlan;
+export const getOrCreateInviteCode = backend.getOrCreateInviteCode;
 export const inviteUser = backend.inviteUser || backend.createInvite;
 export const ensureDemoAccount = backend.ensureDemoAccount || (() => false);

@@ -251,6 +251,22 @@ export function updateUserPlan(id, plan) {
   return publicUser(user);
 }
 
+// Персональный код подключения жильцов (локальный демо-режим)
+export function getOrCreateInviteCode() {
+  try {
+    const existing = localStorage.getItem("propmind:inviteCode");
+    if (existing) return existing;
+    const code = Math.random().toString(36).slice(2, 10).toUpperCase()
+      .replace(/[^A-Z0-9]/g, "X")
+      .padEnd(8, "X")
+      .slice(0, 8);
+    localStorage.setItem("propmind:inviteCode", code);
+    return code;
+  } catch {
+    return "";
+  }
+}
+
 export function updateUserRole(id, role) {
   const users = readUsers();
   const user = users.find((u) => u.id === id);

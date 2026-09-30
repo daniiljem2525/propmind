@@ -37,6 +37,12 @@ create table if not exists public.profiles (
 -- Назначается администратором платформы через админ-панель.
 alter table public.profiles add column if not exists plan text not null default 'free';
 
+-- Персональный код арендодателя: жилец регистрируется по нему (или по
+-- ссылке /register?ref=КОД) и попадает в воркспейс этого арендодателя.
+alter table public.profiles add column if not exists invite_code text;
+create unique index if not exists profiles_invite_code_idx
+  on public.profiles(invite_code) where invite_code is not null;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles: читаю свой" on public.profiles;
@@ -768,6 +774,7 @@ declare
   v_inv public.invites;
   v_uid uuid := auth.uid();
   v_property uuid;
+  v_owner_id uuid;
 begin
   if v_uid is null then
     return jsonb_build_object('ok', false, 'error', 'unauthorized');
@@ -775,7 +782,28 @@ begin
 
   select * into v_inv from public.invites where code = upper(trim(p_code));
   if not found then
-    return jsonb_build_object('ok', false, 'error', 'invite_not_found');
+    -- Персональный код арендодателя: подключаем жильца к его воркспейсу
+    select id into v_owner_id
+    from public.profiles
+    where invite_code = upper(trim(p_code)) and role = 'owner'
+    limit 1;
+    if v_owner_id is null then
+      return jsonb_build_object('ok', false, 'error', 'invite_not_found');
+    end if;
+
+    update public.profiles set role = 'tenant' where id = v_uid;
+    if not exists (
+      select 1 from public.invites where owner_id = v_owner_id and used_by = v_uid
+    ) then
+      insert into public.invites (code, owner_id, role, used_by)
+      values (
+        upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8)),
+        v_owner_id, 'tenant', v_uid
+      )
+      on conflict (code) do nothing;
+    end if;
+
+    return jsonb_build_object('ok', true, 'role', 'tenant', 'owner_id', v_owner_id);
   end if;
   if v_inv.used_by is not null and v_inv.used_by <> v_uid then
     return jsonb_build_object('ok', false, 'error', 'invite_used');

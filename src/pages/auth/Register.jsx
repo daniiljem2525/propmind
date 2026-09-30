@@ -15,7 +15,13 @@ export default function Register() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState("form");
-  const [form, setForm] = useState({ full_name: "", email: "", password: "", confirm: "", invite_code: "" });
+  // Индивидуальная ссылка арендодателя: /register?ref=КОД (или ?code=КОД)
+  const refCode = String(
+    new URLSearchParams(window.location.search).get("ref") ||
+      new URLSearchParams(window.location.search).get("code") ||
+      ""
+  ).toUpperCase();
+  const [form, setForm] = useState({ full_name: "", email: "", password: "", confirm: "", invite_code: refCode });
   const [otp, setOtp] = useState("");
   const [demoCode, setDemoCode] = useState("");
   const [error, setError] = useState("");

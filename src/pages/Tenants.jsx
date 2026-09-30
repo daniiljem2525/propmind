@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Mail, Pencil, Phone, Plus, Search, Trash2, Users, Building2 } from "lucide-react";
+import { CalendarPlus, Copy, Mail, Pencil, Phone, Plus, Search, Trash2, Users, Building2 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
@@ -12,6 +12,7 @@ import { useNewParam } from "@/hooks/useNewParam";
 import UpsellDialog from "@/components/UpsellDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
+import { getOrCreateInviteCode } from "@/lib/api/auth";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Tenant, Property } from "@/lib/api/entities";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -187,6 +188,19 @@ export default function Tenants() {
   const [inviteCode, setInviteCode] = useState(null);
   const [scheduleConfirm, setScheduleConfirm] = useState(null);
 
+  // Персональный код арендодателя: ссылка /register?ref=КОД подключает жильца
+  const [myCode, setMyCode] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    getOrCreateInviteCode()
+      .then((c) => alive && setMyCode(c))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+  const inviteLink = myCode ? `${window.location.origin}/register?ref=${myCode}` : null;
+
   const propertyById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
 
   const filtered = useMemo(() => {
@@ -240,6 +254,33 @@ export default function Tenants() {
           </Button>
         }
       />
+
+      {/* Подключение жильцов по личному коду/ссылке */}
+      <Card className="mb-5">
+        <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">{t("tenants.personalCode")}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{t("tenants.personalCodeHint")}</p>
+            <p className="mt-2 font-mono text-lg font-bold tracking-widest">{myCode || "…"}</p>
+            {inviteLink && <p className="mt-1 truncate text-xs text-muted-foreground">{inviteLink}</p>}
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="shrink-0"
+            disabled={!inviteLink}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(inviteLink || myCode || "");
+              } catch {}
+              toast.success(t("tenants.linkCopied"));
+            }}
+          >
+            <Copy className="h-4 w-4" />
+            {t("common.copy")}
+          </Button>
+        </CardContent>
+      </Card>
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">

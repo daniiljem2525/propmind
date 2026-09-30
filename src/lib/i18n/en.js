@@ -30,6 +30,7 @@ export const en = {
   "common.add": "Add",
   "common.create": "Create",
   "common.close": "Close",
+  "common.copy": "Copy",
   "common.confirm": "Confirm",
   "common.back": "Back",
   "common.viewAll": "View all",
@@ -100,6 +101,9 @@ export const en = {
   "req.err.generic": "Action failed",
   "common.send": "Send",
   "tenants.inviteTitle": "Tenant invite code",
+  "tenants.personalCode": "Your landlord code",
+  "tenants.personalCodeHint": "Give the tenant the code or link — at sign-up they join your portfolio as a tenant",
+  "tenants.linkCopied": "Link copied",
   "tenants.inviteText": "Give this code to the tenant — they enter it at sign-up and join your system",
   "tenants.inviteNote": "One-time code, linked to the property",
   // ——— Tenant & contractor portals ———

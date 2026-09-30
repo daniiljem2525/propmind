@@ -89,12 +89,8 @@ export const Tenant = {
   collection: "profiles",
 
   async list() {
-    const { data: profs, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, phone, created_date")
-      .eq("role", "tenant")
-      .order("full_name");
-    if (error) return [];
+    // Свои жильцы: привязанные к объектам + подключённые по приглашениям.
+    // Жильцы других арендодателей не видны.
     const { data: props } = await supabase
       .from("properties")
       .select("id, name, tenant_id")
@@ -102,6 +98,24 @@ export const Tenant = {
     const byTenant = Object.fromEntries(
       (props || []).map((p) => [p.tenant_id, { property_id: p.id, property_name: p.name }])
     );
+    const { data: invs } = await supabase
+      .from("invites")
+      .select("used_by")
+      .not("used_by", "is", null);
+    const ids = [
+      ...new Set([
+        ...(props || []).map((p) => p.tenant_id),
+        ...(invs || []).map((i) => i.used_by),
+      ].filter(Boolean)),
+    ];
+    if (ids.length === 0) return [];
+    const { data: profs, error } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, phone, created_date")
+      .eq("role", "tenant")
+      .in("id", ids)
+      .order("full_name");
+    if (error) return [];
     return (profs || []).map((p) => ({
       id: p.id,
       full_name: p.full_name,
