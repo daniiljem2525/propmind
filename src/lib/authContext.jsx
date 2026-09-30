@@ -5,11 +5,24 @@ import { subscribe } from "@/lib/api/db";
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => authApi.getCurrentUser());
+  // undefined = профиль ещё загружается, null = гость, объект = залогинен.
+  // В облаке getCurrentUser асинхронный: если положить в состояние сам
+  // Promise (truthy!), приложение считает пользователя залогиненным,
+  // а role/id у такого "пользователя" — undefined.
+  const [user, setUser] = useState(undefined);
 
   useEffect(() => {
-    const unsub = subscribe("auth", () => setUser(authApi.getCurrentUser()));
-    return unsub;
+    let alive = true;
+    const load = () =>
+      Promise.resolve(authApi.getCurrentUser())
+        .then((u) => alive && setUser(u ?? null))
+        .catch(() => alive && setUser(null));
+    load();
+    const unsub = subscribe("auth", load);
+    return () => {
+      alive = false;
+      unsub();
+    };
   }, []);
 
   const login = async (email, password) => {
@@ -20,20 +33,20 @@ export function AuthProvider({ children }) {
 
   const signup = async (data) => authApi.signup(data);
 
-  const verifyOtp = (email, otp) => {
-    const u = authApi.verifyOtp(email, otp);
-    setUser(u);
-    return u;
-  };
+  const verifyOtp = (email, otp) =>
+    Promise.resolve(authApi.verifyOtp(email, otp)).then((u) => {
+      setUser(u ?? null);
+      return u;
+    });
 
   const logout = () => {
     authApi.logout();
     setUser(null);
   };
 
-  const updateProfile = (userId, data) => {
-    const u = authApi.updateProfile(userId, data);
-    setUser((prev) => (prev && prev.id === u.id ? u : prev));
+  const updateProfile = async (userId, data) => {
+    const u = await authApi.updateProfile(userId, data);
+    setUser((prev) => (prev && prev.id === u?.id ? u : prev));
     return u;
   };
 

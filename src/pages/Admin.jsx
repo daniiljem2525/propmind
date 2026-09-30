@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Banknote,
   Building2,
@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
-import { readCollection } from "@/lib/api/db";
+import { readCollection, readCollectionAsync } from "@/lib/api/db";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { downloadFile } from "@/lib/csv";
 import { cn, formatMoney, formatNumber } from "@/lib/utils";
 
@@ -27,6 +28,40 @@ import { cn, formatMoney, formatNumber } from "@/lib/utils";
 export default function Admin() {
   const { t, lang } = useLang();
   const { user } = useAuth();
+
+  // В облаке сырые коллекции пусты — метрики считаем по таблицам Supabase
+  const [cloudStats, setCloudStats] = useState(null);
+  useEffect(() => {
+    if (!isSupabaseConfigured) return undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const [profiles, properties, payments, requests] = await Promise.all([
+          readCollectionAsync("profiles"),
+          readCollectionAsync("properties"),
+          readCollectionAsync("payments"),
+          readCollectionAsync("maintenance_requests"),
+        ]);
+        if (!alive) return;
+        setCloudStats({
+          users: profiles.length,
+          activeUsers: profiles.length,
+          properties: properties.length,
+          tenants: profiles.filter((pr) => pr.role === "tenant").length,
+          paidSum: payments
+            .filter((p) => p.status === "paid" || p.status === "partial")
+            .reduce((s, p) => s + (Number(p.amount) || 0), 0),
+          payments: payments.length,
+          openRequests: requests.filter((r) =>
+            ["new", "assigned", "in_progress"].includes(r.status)
+          ).length,
+        });
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   const stats = useMemo(() => {
     const users = readCollection("users");
@@ -55,6 +90,8 @@ export default function Admin() {
     };
   }, []);
 
+  const shown = cloudStats ?? stats;
+
   if (user?.role !== "admin" && user?.role !== "owner") {
     return (
       <div className="animate-fade-in">
@@ -78,12 +115,12 @@ export default function Admin() {
 
       {/* Метрики платформы */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={Users} tile="bg-indigo-500" label={t("admin.metricUsers")} value={stats.users} sub={`${t("admin.metricActive")}: ${stats.activeUsers}`} />
-        <StatCard icon={Building2} tile="bg-teal-500" label={t("admin.metricObjects")} value={stats.properties} />
-        <StatCard icon={Users} tile="bg-violet-500" label={t("admin.metricTenants")} value={stats.tenants} />
-        <StatCard icon={Banknote} tile="bg-emerald-500" label={t("admin.metricRevenue")} value={formatMoney(stats.paidSum, "RUB", lang)} />
-        <StatCard icon={Banknote} tile="bg-amber-500" label={t("admin.metricPayments")} value={formatNumber(stats.payments, lang)} />
-        <StatCard icon={Wrench} tile="bg-rose-500" label={t("admin.metricRequests")} value={stats.openRequests} />
+        <StatCard icon={Users} tile="bg-indigo-500" label={t("admin.metricUsers")} value={shown.users} sub={`${t("admin.metricActive")}: ${shown.activeUsers}`} />
+        <StatCard icon={Building2} tile="bg-teal-500" label={t("admin.metricObjects")} value={shown.properties} />
+        <StatCard icon={Users} tile="bg-violet-500" label={t("admin.metricTenants")} value={shown.tenants} />
+        <StatCard icon={Banknote} tile="bg-emerald-500" label={t("admin.metricRevenue")} value={formatMoney(shown.paidSum, "RUB", lang)} />
+        <StatCard icon={Banknote} tile="bg-amber-500" label={t("admin.metricPayments")} value={formatNumber(shown.payments, lang)} />
+        <StatCard icon={Wrench} tile="bg-rose-500" label={t("admin.metricRequests")} value={shown.openRequests} />
       </div>
 
       {/* Пользователи */}

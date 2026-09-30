@@ -19,8 +19,8 @@ export default function UsersPanel() {
   const [inviteForm, setInviteForm] = useState({ email: "", role: "user" });
   const [inviteSaving, setInviteSaving] = useState(false);
 
-  const reload = () => setUsers(listUsers());
-  useEffect(reload, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const reload = () => Promise.resolve(listUsers()).then((rows) => setUsers(rows ?? []));
+  useEffect(() => { reload(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const statusLabels = {
     active: lang === "ru" ? "Активен" : "Active",
@@ -28,10 +28,14 @@ export default function UsersPanel() {
     invited: lang === "ru" ? "Приглашён" : "Invited",
   };
 
-  const changeRole = (u, role) => {
-    updateUserRole(u.id, role);
-    toast.success(t("settings.roleChanged"));
-    reload();
+  const changeRole = async (u, role) => {
+    try {
+      await updateUserRole(u.id, role);
+      toast.success(t("settings.roleChanged"));
+      reload();
+    } catch {
+      toast.error(t("errors.generic"));
+    }
   };
 
   const sendInvite = async (e) => {
@@ -39,7 +43,7 @@ export default function UsersPanel() {
     if (!inviteForm.email.trim()) return;
     setInviteSaving(true);
     try {
-      inviteUser(inviteForm.email, inviteForm.role);
+      await inviteUser(inviteForm.email, inviteForm.role);
       toast.success(t("settings.inviteSent"));
       setInviteOpen(false);
       setInviteForm({ email: "", role: "user" });
