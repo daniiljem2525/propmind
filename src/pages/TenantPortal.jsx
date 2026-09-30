@@ -155,6 +155,7 @@ export default function TenantPortal() {
   // Подключение к арендодателю по его персональному коду
   const [code, setCode] = useState("");
   const [connecting, setConnecting] = useState(false);
+  const [claimed, setClaimed] = useState(false);
   const connect = async (e) => {
     e.preventDefault();
     const c = code.trim().toUpperCase();
@@ -167,6 +168,7 @@ export default function TenantPortal() {
         return;
       }
       toast.success(t("portal.connectedToast"));
+      setClaimed(true);
       setCode("");
       getLandlordContact(null, user.id)
         .then((p) => setLandlord(p))
@@ -179,7 +181,7 @@ export default function TenantPortal() {
   };
 
   if (!myProp) {
-    const connected = !!landlord;
+    const connected = !!landlord || claimed;
     return (
       <div className="animate-fade-in">
         <PageHeader title={t("portal.tenantTitle")} subtitle={t("portal.tenantSubtitle")} />
@@ -201,10 +203,12 @@ export default function TenantPortal() {
                 <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
                   {t("portal.connected")}
                 </p>
-                <p className="mt-1 text-sm">
-                  {landlord.full_name || "—"}
-                  {landlord.email && <span className="text-muted-foreground"> · {landlord.email}</span>}
-                </p>
+                {landlord ? (
+                  <p className="mt-1 text-sm">
+                    {landlord.full_name || "—"}
+                    {landlord.email && <span className="text-muted-foreground"> · {landlord.email}</span>}
+                  </p>
+                ) : null}
                 <p className="mt-2 text-xs text-muted-foreground">{t("portal.waitProperty")}</p>
               </div>
             ) : (
