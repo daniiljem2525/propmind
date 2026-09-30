@@ -82,6 +82,23 @@ export async function listProfiles(role) {
   return data || [];
 }
 
+// Контакт арендодателя для жильца: RLS отдаёт профиль только
+// хозяина той квартиры, где жилец прописан как tenant
+export async function getLandlordContact(propertyId) {
+  const { data: prop, error } = await supabase
+    .from("properties")
+    .select("owner_id")
+    .eq("id", propertyId)
+    .maybeSingle();
+  if (error || !prop?.owner_id) return null;
+  const { data: prof } = await supabase
+    .from("profiles")
+    .select("full_name, phone, email")
+    .eq("id", prop.owner_id)
+    .maybeSingle();
+  return prof || null;
+}
+
 // Жильцы в облачном режиме = профили с ролью tenant.
 // «Добавить жильца» создаёт код приглашения: владелец передаёт его жильцу,
 // при регистрации по коду профиль привяжется к объекту автоматически.

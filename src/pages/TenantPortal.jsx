@@ -1,25 +1,44 @@
-import { useState } from "react";
-import { Building2, MessageSquarePlus, Wrench, XCircle } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Banknote,
+  Building2,
+  CalendarClock,
+  Download,
+  Mail,
+  MessageSquarePlus,
+  Phone,
+  Wrench,
+  XCircle,
+} from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
 import RequestDetails from "@/components/RequestDetails";
+import EmptyState from "@/components/EmptyState";
 import ImageUpload from "@/components/ImageUpload";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
-import { Property, MaintenanceRequest, Payment } from "@/lib/api/entities";
+import { Property, MaintenanceRequest, Payment, Document, getLandlordContact } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { useToast } from "@/components/ui/toast";
 import { requestActionError } from "@/lib/services";
-import { formatMoney } from "@/lib/utils";
-import { CATEGORY_CONFIG, MAINTENANCE_STATUS_CONFIG, PAYMENT_STATUS_CONFIG, URGENCY_CONFIG } from "@/lib/config/statuses";
+import { formatDate, formatMoney, monthLong } from "@/lib/utils";
+import {
+  CATEGORY_CONFIG,
+  DOC_TYPE_CONFIG,
+  MAINTENANCE_STATUS_CONFIG,
+  PAYMENT_STATUS_CONFIG,
+  PROPERTY_STATUS_CONFIG,
+  URGENCY_CONFIG,
+} from "@/lib/config/statuses";
 
-// Портал жильца: свои заявки, проблема в один клик, свои платежи.
-// Жилец видит все заявки по своей квартире (в т.ч. созданные владельцем).
+// Портал жильца: мой дом, заявки, платежи и документы — всё о его квартире.
+// Жилец видит все заявки по своей квартире (в т.ч. созданные владельцем)
+// и контакт арендодателя.
 export default function TenantPortal() {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -27,6 +46,7 @@ export default function TenantPortal() {
   const { data: requests, refresh } = useCollection(MaintenanceRequest);
   const { data: payments } = useCollection(Payment);
   const { data: properties } = useCollection(Property);
+  const { data: documents } = useCollection(Document);
 
   const myRequests = (requests || []).filter(
     (r) => r.created_by === user.id || r.tenant_id === user.id
@@ -40,6 +60,29 @@ export default function TenantPortal() {
   const debt = myPayments
     .filter((p) => p.status === "pending" || p.status === "overdue")
     .reduce((s, p) => s + (Number(p.amount) || 0), 0);
+  const nextPayment = myPayments
+    .filter((p) => p.status === "pending")
+    .sort((a, b) => (a.due_date || "").localeCompare(b.due_date || ""))[0];
+  const myDocuments = useMemo(
+    () => (documents || []).filter((d) => !myProp || d.property_id === myProp.id),
+    [documents, myProp]
+  );
+
+  // Контакт арендодателя (профиль хозяина квартиры)
+  const [landlord, setLandlord] = useState(null);
+  useEffect(() => {
+    if (!myProp?.id) {
+      setLandlord(null);
+      return undefined;
+    }
+    let alive = true;
+    getLandlordContact(myProp.id)
+      .then((p) => alive && setLandlord(p))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [myProp?.id]);
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -104,33 +147,138 @@ export default function TenantPortal() {
     }
   };
 
+  // Просрочки сверху, затем ожидающие, затем история
+  const sortedPayments = useMemo(() => {
+    const rank = (s) => (s === "overdue" ? 0 : s === "pending" ? 1 : s === "partial" ? 2 : 3);
+    return [...myPayments].sort((a, b) => {
+      if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
+      return (b.due_date || "").localeCompare(a.due_date || "");
+    });
+  }, [myPayments]);
+
+  if (!myProp) {
+    return (
+      <div className="animate-fade-in">
+        <PageHeader title={t("portal.tenantTitle")} subtitle={t("portal.tenantSubtitle")} />
+        <EmptyState
+          icon={Building2}
+          title={t("portal.tenantTitle")}
+          description={t("portal.noProperty")}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-fade-in">
       <PageHeader
         title={t("portal.tenantTitle")}
         subtitle={t("portal.tenantSubtitle")}
         actions={
-          myProp && (
-            <Button onClick={() => setOpen(true)}>
-              <MessageSquarePlus className="h-4 w-4" />
-              {t("portal.newRequest")}
-            </Button>
-          )
+          <Button onClick={() => setOpen(true)}>
+            <MessageSquarePlus className="h-4 w-4" />
+            {t("portal.newRequest")}
+          </Button>
         }
       />
 
+      {/* Мой дом: объект, договор и контакт арендодателя */}
+      <Card className="mt-0 overflow-hidden">
+        <div className="flex flex-col sm:flex-row">
+          {myProp.photo_url && (
+            <img
+              src={myProp.photo_url}
+              alt=""
+              className="h-44 w-full object-cover sm:h-auto sm:w-60"
+              onError={(e) => e.currentTarget.remove()}
+            />
+          )}
+          <div className="min-w-0 flex-1 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="text-lg font-bold leading-tight">{myProp.name}</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">{myProp.address}</p>
+              </div>
+              <StatusBadge config={PROPERTY_STATUS_CONFIG} value={myProp.status} />
+            </div>
+
+            <div className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+              {myProp.lease_end && (
+                <p className="flex items-center gap-1.5 text-muted-foreground">
+                  <CalendarClock className="h-4 w-4 shrink-0" />
+                  {t("portal.leaseUntil")}:{" "}
+                  <span className="font-medium text-foreground">{formatDate(myProp.lease_end, lang)}</span>
+                </p>
+              )}
+              <p className="flex items-center gap-1.5 text-muted-foreground">
+                <Banknote className="h-4 w-4 shrink-0" />
+                {t("portal.rentAmount")}:{" "}
+                <span className="font-medium text-foreground">
+                  {formatMoney(myProp.rent_amount, myProp.currency || "RUB", lang)}
+                </span>
+              </p>
+            </div>
+
+            {landlord && (
+              <div className="mt-4 rounded-md bg-muted/50 p-3">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                  {t("portal.landlord")}
+                </p>
+                <p className="mt-1 text-sm font-medium">{landlord.full_name || "—"}</p>
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                  {landlord.phone && (
+                    <a
+                      href={`tel:${String(landlord.phone).replace(/[^+\d]/g, "")}`}
+                      className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <Phone className="h-3.5 w-3.5" />
+                      {landlord.phone}
+                    </a>
+                  )}
+                  {landlord.email && (
+                    <a
+                      href={`mailto:${landlord.email}`}
+                      className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                      {landlord.email}
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+
       {/* Сводка */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard icon={Building2} tile="bg-teal-500" label={t("land.mockProps")} value={myProps.length} />
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         <StatCard icon={Wrench} tile="bg-amber-500" label={t("portal.myRequests")} value={activeRequests.length} />
-        <StatCard icon={Wrench} tile="bg-rose-500" label={t("dashboard.statOverdue")} value={debt > 0 ? formatMoney(debt, "RUB", lang) : "0"} />
+        <StatCard
+          icon={Banknote}
+          tile="bg-rose-500"
+          label={t("dashboard.statOverdue")}
+          value={debt > 0 ? formatMoney(debt, "RUB", lang) : "0"}
+        />
+        <StatCard
+          icon={CalendarClock}
+          tile="bg-teal-500"
+          label={t("portal.nextPayment")}
+          value={nextPayment?.due_date ? formatDate(nextPayment.due_date, lang) : "—"}
+        />
       </div>
 
-      {/* Мои заявки */}
+      {/* Заявки */}
       <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>{t("portal.myRequestsTitle")}</CardTitle>
-          <CardDescription>{t("portal.myRequestsSub")}</CardDescription>
+        <CardHeader className="flex-row items-center justify-between space-y-0">
+          <div>
+            <CardTitle>{t("portal.myRequestsTitle")}</CardTitle>
+            <CardDescription>{t("portal.myRequestsSub")}</CardDescription>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+            <MessageSquarePlus className="h-4 w-4" />
+            {t("portal.newRequest")}
+          </Button>
         </CardHeader>
         <CardContent className="divide-y">
           {myRequests.length === 0 && (
@@ -166,31 +314,82 @@ export default function TenantPortal() {
                   <XCircle className="h-4 w-4" />
                 </Button>
               )}
-              <StatusBadge config={MAINTENANCE_STATUS_CONFIG} value={r.status} />
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <StatusBadge config={MAINTENANCE_STATUS_CONFIG} value={r.status} />
+                <StatusBadge config={URGENCY_CONFIG} value={r.urgency} />
+              </div>
             </div>
           ))}
         </CardContent>
       </Card>
 
-      {/* Мои платежи */}
+      {/* Платежи */}
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>{t("portal.myPayments")}</CardTitle>
+          <CardDescription>{t("portal.paymentsSub")}</CardDescription>
         </CardHeader>
         <CardContent className="divide-y">
-          {myPayments.length === 0 && (
+          {sortedPayments.length === 0 && (
             <p className="py-6 text-center text-sm text-muted-foreground">{t("common.noResults")}</p>
           )}
-          {myPayments.map((p) => (
+          {sortedPayments.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="text-sm font-medium">{p.due_date}</p>
-                <p className="truncate text-xs text-muted-foreground">{p.property_name}</p>
+                <p className="text-sm font-medium">
+                  {p.period_month
+                    ? `${monthLong(p.period_month - 1, lang)} ${p.period_year}`
+                    : formatDate(p.due_date, lang)}
+                </p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {t("portal.dueUntil")}: {formatDate(p.due_date, lang)}
+                </p>
               </div>
-              <span className="shrink-0 text-sm font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
+              <span className={`shrink-0 text-sm font-semibold ${p.status === "overdue" ? "text-rose-600 dark:text-rose-400" : ""}`}>
+                {formatMoney(p.amount, p.currency || "RUB", lang)}
+              </span>
               <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
             </div>
           ))}
+        </CardContent>
+      </Card>
+
+      {/* Документы */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>{t("portal.documents")}</CardTitle>
+          <CardDescription>{t("portal.documentsSub")}</CardDescription>
+        </CardHeader>
+        <CardContent className="divide-y">
+          {myDocuments.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground">{t("portal.noDocuments")}</p>
+          )}
+          {myDocuments.map((d) => {
+            const cfg = DOC_TYPE_CONFIG[d.type] || DOC_TYPE_CONFIG.other;
+            const Icon = cfg.icon;
+            return (
+              <div key={d.id} className="flex items-center gap-3 py-3">
+                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${cfg.tile || "bg-slate-500"} text-white`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{d.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {lang === "ru" ? cfg.label_ru : cfg.label_en}
+                    {d.created_date && ` · ${formatDate(d.created_date, lang)}`}
+                  </p>
+                </div>
+                {d.file_url && (
+                  <a href={d.file_url} download={d.file_name || d.name} className="shrink-0">
+                    <Button size="sm" variant="outline">
+                      <Download className="h-3.5 w-3.5" />
+                      {t("portal.download")}
+                    </Button>
+                  </a>
+                )}
+              </div>
+            );
+          })}
         </CardContent>
       </Card>
 

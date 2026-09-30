@@ -65,6 +65,17 @@ create policy "profiles: владелец управляет ролями"
   on public.profiles for update
   using (public.is_platform_owner());
 
+-- Жилец видит контакт арендодателя своей квартиры
+drop policy if exists "profiles: жилец видит арендодателя своей квартиры" on public.profiles;
+create policy "profiles: жилец видит арендодателя своей квартиры"
+  on public.profiles for select
+  using (
+    exists (
+      select 1 from public.properties p
+      where p.owner_id = id and p.tenant_id = auth.uid()
+    )
+  );
+
 -- ============================================================
 -- 2. Объекты недвижимости
 -- ============================================================

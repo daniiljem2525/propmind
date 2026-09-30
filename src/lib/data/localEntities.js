@@ -213,6 +213,12 @@ export const MaintenanceRequest = {
 export const RequestComment = makeEntity("request_comments", {});
 export const RequestEvent = makeEntity("request_events", {});
 
+// Локальный демо-режим: «арендодатель» — текущий аккаунт
+export async function getLandlordContact() {
+  const user = CURRENT_USER_FN();
+  return user ? { full_name: user.full_name, phone: null, email: user.email } : null;
+}
+
 export const Document = makeEntity("documents", {
   type: "other",
 });
