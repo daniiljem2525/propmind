@@ -281,16 +281,10 @@ create trigger on_request_insert_owner
   before insert on public.maintenance_requests
   for each row execute function public.set_request_owner();
 
--- Политика объектов, зависящая от заявок (таблица уже создана)
+-- ВАЖНО: политики на properties НЕ должны ссылаться на maintenance_requests:
+-- requests → properties → requests даёт бесконечную рекурсию RLS (42P17).
+-- Исполнителю достаточно property_name из самой заявки.
 drop policy if exists "properties: исполнитель видит объекты своих заявок" on public.properties;
-create policy "properties: исполнитель видит объекты своих заявок"
-  on public.properties for select
-  using (
-    exists (
-      select 1 from public.maintenance_requests r
-      where r.contractor_id = auth.uid() and r.property_id = id
-    )
-  );
 
 -- ============================================================
 -- 5а. Комментарии и события заявок
