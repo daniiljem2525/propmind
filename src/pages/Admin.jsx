@@ -22,7 +22,8 @@ import { downloadFile } from "@/lib/csv";
 import { cn, formatMoney, formatNumber } from "@/lib/utils";
 
 // Админ-панель: метрики платформы, управление пользователями, данные.
-// Доступ только для роли admin.
+// Доступ для роли admin (локальный режим) и owner (облачный режим —
+// в схеме Supabase роли admin не существует, владелец и есть администратор).
 export default function Admin() {
   const { t, lang } = useLang();
   const { user } = useAuth();
@@ -54,7 +55,7 @@ export default function Admin() {
     };
   }, []);
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "admin" && user?.role !== "owner") {
     return (
       <div className="animate-fade-in">
         <PageHeader title={t("admin.title")} subtitle={t("admin.subtitle")} />
