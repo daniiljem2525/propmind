@@ -44,7 +44,9 @@ export async function signup({ full_name, email, password, invite_code }) {
     options: {
       data: {
         full_name,
-        role: invite_code ? undefined : "tenant",
+        // Без приглашения человек регистрирует свой воркспейс — он владелец.
+        // Роль по приглашению назначит RPC claim_invite после регистрации.
+        role: invite_code ? undefined : "owner",
         invite_code: invite_code || undefined,
       },
     },

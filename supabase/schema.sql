@@ -861,14 +861,13 @@ security definer set search_path = public
 as $$
 declare
   v_role text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
+  v_invite text := new.raw_user_meta_data->>'invite_code';
   v_name text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
 begin
-  -- Первый пользователь становится владельцем, остальные — жильцами.
-  -- Роли tenant/contractor по приглашению назначает RPC claim_invite
-  -- (вызывается приложением сразу после регистрации).
-  if v_role = 'owner' and not exists (select 1 from public.profiles where role = 'owner') then
-    v_role := 'owner';
-  else
+  -- Регистрация без приглашения = новый владелец своего воркспейса.
+  -- По приглашению роль (tenant/contractor) назначит RPC claim_invite,
+  -- вызываемый приложением сразу после регистрации.
+  if v_invite is not null or v_role not in ('owner', 'tenant', 'contractor') then
     v_role := 'tenant';
   end if;
 
