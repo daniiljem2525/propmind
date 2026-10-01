@@ -123,7 +123,7 @@ export const en = {
   "push.dbTest": "Push via database",
   "push.dbOk": "Database channel works — push should appear",
   "push.dbPending": "Request is being delivered — push will appear in a few seconds",
-  "push.dbNoRequests": "No request within 7 seconds — pg_net is not working",
+  "push.dbNoRequests": "No request within 15 seconds — check pg_net",
   "push.dbFail": "Database channel: error",
   "push.blockedToast": "Allow notifications in the site settings",
   "portal.connectTitle": "Connect to your landlord",

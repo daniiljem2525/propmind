@@ -1051,9 +1051,9 @@ begin
   end if;
   insert into public.notifications(user_id, type, title, message, link)
   values (auth.uid(), 'general', 'Проверка канала push', 'Тест доставки через базу', '/app');
-  -- pg_net отправляет фоновым воркером, задержка до нескольких секунд —
-  -- опрашиваем ответы до 7 секунд, иначе проверка даёт ложное «не работает»
-  for i in 1..7 loop
+  -- pg_net отправляет фоновым воркером, задержка может быть 10+ секунд —
+  -- опрашиваем ответы до 15 секунд, иначе проверка даёт ложное «не работает»
+  for i in 1..15 loop
     perform pg_sleep(1);
     select coalesce(
              jsonb_agg(
