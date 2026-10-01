@@ -19,6 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
+import { getPushState, enablePush, disablePush } from "@/lib/push";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
@@ -327,7 +328,11 @@ export default function Settings() {
       )}
 
       {tab === "notifications" && (
-        <Card className="max-w-xl">
+        <PushCard />
+
+      )}
+      {tab === "notifications" && (
+        <Card className="max-w-xl mt-6">
           <CardHeader>
             <CardTitle>{t("settings.tabNotifications")}</CardTitle>
           </CardHeader>
