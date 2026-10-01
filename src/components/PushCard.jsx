@@ -31,11 +31,13 @@ export default function PushCard() {
         toast.success(t("push.enabledToast"));
       })
       .catch((e) => {
+        console.error("enablePush failed:", e);
         if (e.message === "PERMISSION_DENIED") {
           setState("blocked");
           toast.error(t("push.blockedToast"));
         } else {
-          toast.error(t("errors.generic"));
+          // подробность в тосте — чтобы видно было конкретную причину сбоя
+          toast.error(e?.message ? `${t("errors.generic")} (${e.message})` : t("errors.generic"));
         }
       })
       .finally(() => setBusy(false));
@@ -48,7 +50,10 @@ export default function PushCard() {
         setState("default");
         toast.success(t("push.disabledToast"));
       })
-      .catch(() => toast.error(t("errors.generic")))
+      .catch((e) => {
+        console.error("disablePush failed:", e);
+        toast.error(t("errors.generic"));
+      })
       .finally(() => setBusy(false));
   };
 

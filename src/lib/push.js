@@ -53,11 +53,13 @@ export async function enablePush() {
   }
   const json = sub.toJSON();
   const {
-    data: { user },
+    data: { session },
   } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+  if (!userId) throw new Error("NOT_AUTHENTICATED");
   const { error } = await supabase.from("push_subscriptions").upsert(
     {
-      user_id: user.id,
+      user_id: userId,
       endpoint: json.endpoint,
       p256dh: json.keys.p256dh,
       auth: json.keys.auth,
