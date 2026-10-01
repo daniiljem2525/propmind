@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as authApi from "@/lib/api/auth";
 import { subscribe } from "@/lib/api/db";
+import { probeSessionStores } from "@/lib/supabase/config";
 
 const AuthContext = createContext(null);
 
@@ -15,15 +16,36 @@ export function AuthProvider({ children }) {
     let alive = true;
     const load = () =>
       Promise.resolve(authApi.getCurrentUser())
-        .then((u) => alive && setUser(u ?? null))
+        .then(async (u) => {
+          if (!alive) return;
+          if (u) return setUser(u);
+          // null: сессии нет вовсе — или сеть при холодном старте не успела
+          // обновить токен. Данные сессии в хранилище есть → это второе:
+          // даём сети подняться и пробуем ещё, прежде чем показать вход.
+          let stored = 0;
+          try {
+            const probe = await probeSessionStores();
+            stored = probe.ls + probe.ck + probe.idb;
+          } catch {}
+          if (!stored) return setUser(null);
+          for (let attempt = 0; attempt < 3 && alive; attempt++) {
+            await new Promise((r) => setTimeout(r, 2500));
+            if (!alive) return;
+            try {
+              const retry = await authApi.getCurrentUser();
+              if (retry && alive) return setUser(retry);
+            } catch {}
+          }
+          if (alive) setUser(null);
+        })
         .catch(() => alive && setUser(null));
     load();
     const unsub = subscribe("auth", load);
-    // Страховка: если сессия не определилась за 8 секунд (медленная сеть,
+    // Страховка: если сессия не определилась за 12 секунд (медленная сеть,
     // подвисший SDK, битый storage) — считаем гостем, а не вечной загрузкой
     const fallback = setTimeout(() => {
       if (alive) setUser((u) => (u === undefined ? null : u));
-    }, 8000);
+    }, 12000);
     return () => {
       alive = false;
       clearTimeout(fallback);
