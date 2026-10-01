@@ -388,6 +388,26 @@ create policy "events: участник заявки"
 --     Пишет события при создании и смене статуса, рассылает
 --     уведомления адресатам (кроме автора действия).
 -- ============================================================
+-- Разослать уведомление перечисленным участникам, кроме автора действия.
+create or replace function public.notify_users(
+  p_users uuid[], p_type text, p_title text, p_message text, p_link text, p_related uuid
+)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  i int;
+begin
+  for i in 1..coalesce(array_length(p_users, 1), 0) loop
+    if p_users[i] is not null and p_users[i] <> auth.uid() then
+      insert into public.notifications(user_id, type, title, message, link, related_id)
+      values (p_users[i], p_type, p_title, p_message, p_link, p_related);
+    end if;
+  end loop;
+end;
+$$;
+
 create or replace function public.on_request_changed()
 returns trigger
 language plpgsql
@@ -400,23 +420,26 @@ declare
   v_event text;
   v_details text := '';
   v_title text;
+  v_parties uuid[];   -- все участники: владелец, жилец, автор, исполнитель
 begin
   select full_name, role into v_actor_name, v_actor_role
   from public.profiles where id = v_actor;
+
+  -- Каждое событие заявки приходит каждому участнику (без дублей),
+  -- кроме того, кто это действие совершил.
+  select coalesce(array_agg(distinct u), '{}') into v_parties
+  from unnest(ARRAY[new.owner_id, new.tenant_id, new.created_by, new.contractor_id]) as u
+  where u is not null;
 
   if tg_op = 'INSERT' then
     insert into public.request_events(request_id, actor_id, actor_name, actor_role, event, details)
     values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), 'created', '');
 
-    -- Жилец подал заявку → уведомляем владельца
-    if new.created_by is not null and new.created_by <> new.owner_id then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (
-        new.owner_id, 'maintenance_new', 'Новая заявка',
-        coalesce(nullif(new.title, ''), left(new.description, 60)) || ' — ' || coalesce(new.property_name, ''),
-        '/app/maintenance', new.id
-      );
-    end if;
+    perform public.notify_users(
+      v_parties, 'maintenance_new', 'Новая заявка',
+      coalesce(nullif(new.title, ''), left(new.description, 60)) || ' — ' || coalesce(new.property_name, ''),
+      '/app/maintenance', new.id
+    );
     return new;
   end if;
 
@@ -445,91 +468,34 @@ begin
   values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), v_event, v_details);
 
   if new.status = 'assigned' then
+    -- исполнителю — своя формулировка, остальным участникам — общая
     if new.contractor_id is not null and new.contractor_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.contractor_id, 'maintenance_assigned', 'Новая работа',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
+      perform public.notify_users(
+        ARRAY[new.contractor_id], 'maintenance_assigned', 'Новая работа',
+        v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id
+      );
     end if;
+    perform public.notify_users(
+      (select coalesce(array_agg(distinct u), '{}') from unnest(v_parties) as u
+       where u <> v_actor and (new.contractor_id is null or u <> new.contractor_id)),
+      'maintenance_updated', 'Исполнитель назначен',
+      v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id
+    );
 
-  elsif new.status = 'in_progress' then
-    if new.owner_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.owner_id, 'maintenance_updated', 'Исполнитель принял заявку',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
-    end if;
-    if new.created_by is not null and new.created_by <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.created_by, 'maintenance_updated', 'Заявка в работе',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.tenant_id is not null and new.tenant_id <> v_actor
-       and (new.created_by is null or new.tenant_id <> new.created_by) then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.tenant_id, 'maintenance_updated', 'Заявка в работе',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-
-  elsif new.status = 'done' then
-    if new.owner_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.owner_id, 'maintenance_updated', 'Работа выполнена — принять',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
-    end if;
-    if new.created_by is not null and new.created_by <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.created_by, 'maintenance_updated', 'Работа выполнена',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.tenant_id is not null and new.tenant_id <> v_actor
-       and (new.created_by is null or new.tenant_id <> new.created_by) then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.tenant_id, 'maintenance_updated', 'Работа выполнена',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-
-  elsif new.status = 'closed' then
-    if new.created_by is not null and new.created_by <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.created_by, 'maintenance_updated', 'Заявка закрыта',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.tenant_id is not null and new.tenant_id <> v_actor
-       and (new.created_by is null or new.tenant_id <> new.created_by) then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.tenant_id, 'maintenance_updated', 'Заявка закрыта',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.contractor_id is not null and new.contractor_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.contractor_id, 'maintenance_updated', 'Работа принята владельцем',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-
-  elsif new.status = 'cancelled' then
-    if new.created_by is not null and new.created_by <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.created_by, 'maintenance_updated', 'Заявка отменена',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.tenant_id is not null and new.tenant_id <> v_actor
-       and (new.created_by is null or new.tenant_id <> new.created_by) then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.tenant_id, 'maintenance_updated', 'Заявка отменена',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-    if new.contractor_id is not null and new.contractor_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.contractor_id, 'maintenance_updated', 'Заявка отменена',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id);
-    end if;
-
-  elsif new.status = 'new' and old.status = 'assigned' then
-    -- Исполнитель отклонил назначение
-    if new.owner_id <> v_actor then
-      insert into public.notifications(user_id, type, title, message, link, related_id)
-      values (new.owner_id, 'maintenance_new', 'Исполнитель отклонил заявку',
-              v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id);
-    end if;
+  else
+    perform public.notify_users(
+      (select coalesce(array_agg(distinct u), '{}') from unnest(v_parties) as u where u <> v_actor),
+      'maintenance_updated',
+      case new.status
+        when 'in_progress' then 'Заявка в работе'
+        when 'done'        then 'Работа выполнена'
+        when 'closed'      then 'Заявка закрыта'
+        when 'cancelled'   then 'Заявка отменена'
+        when 'new'         then 'Исполнитель отклонил заявку'
+        else 'Заявка обновлена'
+      end,
+      v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id
+    );
   end if;
 
   return new;
