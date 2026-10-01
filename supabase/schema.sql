@@ -964,6 +964,41 @@ create trigger push_notify_trigger
   for each row execute function public.notify_push();
 
 -- ============================================================
+-- 7в. Уведомление жильцу о новом графике платежей.
+--     Владелец по RLS может писать уведомления только себе,
+--     поэтому вставка для другого аккаунта — через security definer.
+--     INSERT в notifications запускает push-триггер (7б).
+-- ============================================================
+create or replace function public.notify_payment_schedule(
+  p_tenant uuid, p_count int, p_until date, p_property text default ''
+)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  -- себе не шлём и пустой график не шлём
+  if p_tenant is null or p_tenant = auth.uid() or coalesce(p_count, 0) = 0 then
+    return;
+  end if;
+  insert into public.notifications(user_id, type, title, message, link)
+  values (
+    p_tenant,
+    'payment_scheduled',
+    'Новый график платежей',
+    coalesce(nullif(trim(p_property), ''), 'Объект') || ': ' || p_count || ' ' ||
+      case
+        when p_count % 100 between 11 and 14
+          or p_count % 10 = 0 or p_count % 10 between 5 and 9 then 'платежей'
+        when p_count % 10 = 1 then 'платёж'
+        else 'платежа'
+      end || ' до ' || to_char(p_until, 'DD.MM.YYYY'),
+    '/app/payments'
+  );
+end;
+$$;
+
+-- ============================================================
 -- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
 --    он ссылается (profiles, properties, invites)
 -- ============================================================

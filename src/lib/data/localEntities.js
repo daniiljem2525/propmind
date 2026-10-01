@@ -232,3 +232,6 @@ export const NotificationEntity = makeEntity("notifications", {
   type: "general",
   is_read: false,
 });
+
+// В демо-режиме второй аккаунт отсутствует — уведомление жильцу не нужно.
+export async function notifyPaymentSchedule() {}

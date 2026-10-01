@@ -119,6 +119,18 @@ export async function claimInvite(code) {
   return data || { ok: false, error: "no_result" };
 }
 
+// Уведомление жильцу о созданном графике платежей (security definer —
+// напрямую владелец по RLS пишет уведомления только себе).
+export async function notifyPaymentSchedule(tenantId, count, until, property) {
+  const { error } = await supabase.rpc("notify_payment_schedule", {
+    p_tenant: tenantId,
+    p_count: count,
+    p_until: until,
+    p_property: property || "",
+  });
+  if (error) throw error;
+}
+
 // Жильцы в облачном режиме = профили с ролью tenant.
 // «Добавить жильца» создаёт код приглашения: владелец передаёт его жильцу,
 // при регистрации по коду профиль привяжется к объекту автоматически.

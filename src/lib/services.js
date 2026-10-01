@@ -1,6 +1,6 @@
 // Бизнес-логика связей между сущностями — та самая «автоматизация» PropMind.
 
-import { Property, Payment, NotificationEntity } from "@/lib/api/entities";
+import { Property, Payment, NotificationEntity, notifyPaymentSchedule } from "@/lib/api/entities";
 import { readCollection, writeCollection } from "@/lib/api/db";
 import { getCurrentUser } from "@/lib/api/auth";
 import { uid, todayISO, addMonthsISO } from "@/lib/utils";
@@ -70,7 +70,21 @@ export async function createMonthlySchedule(tenant, property, months = 12) {
     }
   }
 
-  if (items.length) await Payment.bulkCreate(items);
+  if (items.length) {
+    await Payment.bulkCreate(items);
+    // Жилец (другой аккаунт) узнаёт о графике: уведомление в базе
+    // запускает push-рассылку. Сбой уведомления не ломает график.
+    try {
+      await notifyPaymentSchedule(
+        property.tenant_id || tenant.id,
+        items.length,
+        items[items.length - 1].due_date,
+        property.name
+      );
+    } catch (e) {
+      console.error("notifyPaymentSchedule failed:", e);
+    }
+  }
   return items.length;
 }
 
