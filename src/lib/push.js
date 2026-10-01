@@ -30,8 +30,16 @@ export async function getPushState() {
   if (perm === "denied") return { state: "blocked" };
   const reg = await navigator.serviceWorker.getRegistration();
   const sub = await reg?.pushManager.getSubscription();
-  if (sub) return { state: "enabled", subscription: sub };
-  return { state: "default" };
+  if (!sub) return { state: "default" };
+  // Подписка на устройстве есть — сверяемся с базой: до фикса включение
+  // падало после подписки, не сохранив её, и пушу было некуда приходить.
+  const { data } = await supabase
+    .from("push_subscriptions")
+    .select("id")
+    .eq("endpoint", sub.endpoint)
+    .maybeSingle();
+  if (!data) return { state: "default" };
+  return { state: "enabled", subscription: sub };
 }
 
 export async function enablePush() {
