@@ -47,12 +47,16 @@
       // и прямо на экране загрузки (если приложение не смонтировалось)
       function pmShowFatal(kind, text) {
         document.title = kind + ": " + text;
-        var splash = document.getElementById("boot-splash");
-        if (splash && !document.getElementById("root")?.firstChild) {
-          splash.innerHTML =
-            '<div style="padding:24px;max-width:480px;font:13px/1.5 monospace;color:#B91C1C;word-break:break-all">' +
-            "<b>" + kind + "</b><br>" + text + "</div>";
-        }
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
       }
       window.addEventListener("error", (e) => {
         pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
