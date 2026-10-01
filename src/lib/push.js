@@ -1,6 +1,6 @@
 // Web Push: подписка устройства и хранение её в Supabase.
 // Отправку делает Edge Function send-push (см. supabase/functions/).
-import { supabase, isSupabaseConfigured } from "@/lib/supabase/config";
+import { supabase, isSupabaseConfigured, SUPABASE_URL } from "@/lib/supabase/config";
 
 // Публичный VAPID-ключ (публичный по дизайну; приватный — в секретах функции)
 const VAPID_PUBLIC_KEY =
@@ -86,4 +86,22 @@ export async function disablePush() {
   const endpoint = sub.endpoint;
   await sub.unsubscribe();
   await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint);
+}
+
+// Тестовая отправка: Edge Function со своим JWT шлёт пуш на мои подписки
+// и возвращает отчёт { ok, sent, subs, errors } — видно, где обрыв.
+export async function testPush() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("NOT_AUTHENTICATED");
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/bright-processor`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ title: "PropMind", message: "Тестовый push", link: "/app" }),
+  });
+  return res.json();
 }

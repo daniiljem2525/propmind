@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPushState, enablePush, disablePush } from "@/lib/push";
+import { getPushState, enablePush, disablePush, testPush } from "@/lib/push";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 
@@ -13,6 +13,7 @@ export default function PushCard() {
   const toast = useToast();
   const [state, setState] = useState("loading");
   const [busy, setBusy] = useState(false);
+  const [testing, setTesting] = useState(false);
 
   const refresh = () =>
     getPushState()
@@ -57,6 +58,29 @@ export default function PushCard() {
       .finally(() => setBusy(false));
   };
 
+  // Диагностика: шлём тестовый пуш на свои подписки и показываем,
+  // где оборвалась цепочка (нет подписки / ошибка отправки / доставлено)
+  const sendTest = () => {
+    setTesting(true);
+    testPush()
+      .then((r) => {
+        if (!r || r.ok === false) {
+          toast.error(`${t("push.testFail")}: ${r?.error || t("errors.generic")}`);
+        } else if (r.sent > 0) {
+          toast.success(t("push.testSent"));
+        } else if (!r.subs) {
+          toast.error(t("push.testNoSubs"));
+        } else {
+          const detail = (r.errors || [])
+            .map((e) => `${e.status ?? ""} ${e.message}`.trim())
+            .join("; ");
+          toast.error(`${t("push.testFail")}: ${detail || t("errors.generic")}`);
+        }
+      })
+      .catch(() => toast.error(t("errors.generic")))
+      .finally(() => setTesting(false));
+  };
+
   const labels = {
     loading: "…",
     unsupported: t("push.unsupported"),
@@ -86,9 +110,14 @@ export default function PushCard() {
           {labels[state] || labels.default}
         </p>
         {state === "enabled" ? (
-          <Button size="sm" variant="outline" onClick={off} loading={busy}>
-            {t("push.disable")}
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={sendTest} loading={testing}>
+              {t("push.test")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={off} loading={busy}>
+              {t("push.disable")}
+            </Button>
+          </div>
         ) : (
           <Button size="sm" onClick={on} loading={busy} disabled={state === "unsupported" || state === "blocked"}>
             {t("push.enable")}
