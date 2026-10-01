@@ -119,8 +119,10 @@ export default function TenantPortal() {
       setCategory("other");
       setUrgency("medium");
       refresh();
-    } catch {
-      toast.error(t("errors.generic"));
+    } catch (e) {
+      console.error("create request failed:", e);
+      // подробность в тосте — чтобы видно было конкретную причину сбоя
+      toast.error(e?.message ? `${t("errors.generic")} (${e.message})` : t("errors.generic"));
     } finally {
       setSaving(false);
     }

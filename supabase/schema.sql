@@ -931,29 +931,37 @@ create policy "notifications: только свои"
 
 -- ============================================================
 -- 7б. Push-доставка: при вставке уведомления триггер через pg_net
---     вызывает Edge Function send-push (расширение pg_net обязательно)
+--     вызывает Edge Function send-push. Расширение создаётся здесь:
+--     без него любая вставка в notifications падает целиком.
 -- ============================================================
+create extension if not exists pg_net;
+
 create or replace function public.notify_push()
 returns trigger
 language plpgsql
 security definer set search_path = public, extensions
 as $$
 begin
-  perform extensions.net.http_post(
-    url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-push-secret', 'pm-webhook-9f2XkLq7Vt'
-    ),
-    body := jsonb_build_object(
-      'notification', jsonb_build_object(
-        'user_id', new.user_id,
-        'title', new.title,
-        'message', new.message,
-        'link', new.link
+  begin
+    perform extensions.net.http_post(
+      url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-push-secret', 'pm-webhook-9f2XkLq7Vt'
+      ),
+      body := jsonb_build_object(
+        'notification', jsonb_build_object(
+          'user_id', new.user_id,
+          'title', new.title,
+          'message', new.message,
+          'link', new.link
+        )
       )
-    )
-  );
+    );
+  exception when others then
+    -- сбой доставки push не должен откатывать действие пользователя
+    raise warning 'push dispatch failed: %', sqlerrm;
+  end;
   return new;
 end;
 $$;
