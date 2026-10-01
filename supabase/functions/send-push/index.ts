@@ -30,7 +30,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { notification } = await req.json();
+    // Вебхук может прислать два формата: { notification: {...} }
+    // или стандартный pg-payload с полями в record — принимаем оба
+    const body = await req.json();
+    const notification = body.notification || body.record;
     if (!notification?.user_id) {
       return new Response(JSON.stringify({ ok: false, error: "no_user" }), {
         status: 400,
