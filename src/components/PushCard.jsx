@@ -95,6 +95,9 @@ export default function PushCard() {
           toast.error(t("push.dbNoRequests"));
         } else if (last.status === 200) {
           toast.success(t("push.dbOk"));
+        } else if (last.status == null) {
+          // запрос принят pg_net, но ещё не завершён — доставка на подходе
+          toast.success(t("push.dbPending"));
         } else {
           toast.error(`${t("push.dbFail")}: HTTP ${last.status ?? "…"}`);
         }

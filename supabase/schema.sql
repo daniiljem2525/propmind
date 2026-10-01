@@ -1044,24 +1044,29 @@ as $$
 declare
   v_before timestamptz := now();
   v_res jsonb;
+  i int;
 begin
   if auth.uid() is null then
     raise exception 'unauthorized';
   end if;
   insert into public.notifications(user_id, type, title, message, link)
   values (auth.uid(), 'general', 'Проверка канала push', 'Тест доставки через базу', '/app');
-  -- pg_net отправляет фоновым воркером — даём ему догнать
-  perform pg_sleep(2);
-  select coalesce(
-           jsonb_agg(
-             jsonb_build_object('status', r.status_code, 'when', r.created)
-             order by r.created desc
-           ),
-           '[]'::jsonb
-         )
-    into v_res
-    from net._http_response r
-   where r.created >= v_before;
+  -- pg_net отправляет фоновым воркером, задержка до нескольких секунд —
+  -- опрашиваем ответы до 7 секунд, иначе проверка даёт ложное «не работает»
+  for i in 1..7 loop
+    perform pg_sleep(1);
+    select coalesce(
+             jsonb_agg(
+               jsonb_build_object('status', r.status_code, 'when', r.created)
+               order by r.created desc
+             ),
+             '[]'::jsonb
+           )
+      into v_res
+      from net._http_response r
+     where r.created >= v_before;
+    exit when jsonb_array_length(v_res) > 0;
+  end loop;
   return jsonb_build_object('ok', true, 'deliveries', v_res);
 end;
 $$;
