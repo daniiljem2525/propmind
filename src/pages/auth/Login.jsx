@@ -18,9 +18,11 @@ function StorageProbe() {
   const [info, setInfo] = useState(null);
   useEffect(() => {
     let alive = true;
+    const d = new Date(document.lastModified);
+    const build = `${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
     probeSessionStores().then((p) => {
       if (alive)
-        setInfo(`LS ${p.ls}Б · cookie ${p.ck}Б · IDB ${p.idb}Б · SW ${p.sw ? "+" : "−"}`);
+        setInfo(`LS ${p.ls}Б · cookie ${p.ck}Б · IDB ${p.idb}Б · SW ${p.sw ? "+" : "−"} · билд ${build}`);
     });
     return () => {
       alive = false;
