@@ -5,7 +5,33 @@ import { Property, Tenant, Payment, MaintenanceRequest, RequestComment, RequestE
 import { getCurrentUser } from "@/lib/api/auth";
 import { todayISO, addDaysISO, addMonthsISO } from "@/lib/utils";
 
-const photo = (seed) => `https://picsum.photos/seed/${seed}/640/420`;
+// Фото-заглушки: локальные SVG-градиенты (без внешних запросов —
+// работает из РФ без VPN)
+const PHOTO_PALETTES = [
+  ["#0F766E", "#2DD4BF"],
+  ["#4338CA", "#818CF8"],
+  ["#B45309", "#FBBF24"],
+  ["#BE123C", "#FB7185"],
+  ["#1D4ED8", "#60A5FA"],
+  ["#047857", "#34D399"],
+  ["#7C3AED", "#C084FC"],
+  ["#0E7490", "#22D3EE"],
+];
+
+const photo = (seed) => {
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  const [a, b] = PHOTO_PALETTES[h % PHOTO_PALETTES.length];
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="420">` +
+    `<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">` +
+    `<stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/>` +
+    `</linearGradient></defs>` +
+    `<rect width="640" height="420" fill="url(#g)"/>` +
+    `<path d="M262 252v-62l58-44 58 44v62h-38v-40h-40v40z" fill="rgba(255,255,255,.9)"/>` +
+    `</svg>`;
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+};
 
 function monthISO(offsetMonths, day) {
   const base = addMonthsISO(todayISO(), offsetMonths);
