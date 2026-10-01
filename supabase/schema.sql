@@ -931,7 +931,8 @@ create policy "notifications: только свои"
 
 -- ============================================================
 -- 7б. Push-доставка: при вставке уведомления триггер через pg_net
---     вызывает Edge Function send-push. Расширение создаётся здесь:
+--     вызывает Edge Function send-push (расширение ставится в схему net).
+--     Расширение создаётся здесь:
 --     без него любая вставка в notifications падает целиком.
 -- ============================================================
 create extension if not exists pg_net;
@@ -943,7 +944,7 @@ security definer set search_path = public, extensions
 as $$
 begin
   begin
-    perform extensions.net.http_post(
+    perform net.http_post(
       url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
