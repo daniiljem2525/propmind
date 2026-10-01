@@ -65,16 +65,14 @@ export async function enablePush() {
   } = await supabase.auth.getSession();
   const userId = session?.user?.id;
   if (!userId) throw new Error("NOT_AUTHENTICATED");
-  const { error } = await supabase.from("push_subscriptions").upsert(
-    {
-      user_id: userId,
-      endpoint: json.endpoint,
-      p256dh: json.keys.p256dh,
-      auth: json.keys.auth,
-      user_agent: navigator.userAgent,
-    },
-    { onConflict: "endpoint" }
-  );
+  // Сохраняем через RPC: устройство могло быть записано в базе под другим
+  // аккаунтом, и по RLS прямой upsert с другого аккаунта отклоняется.
+  const { error } = await supabase.rpc("save_push_subscription", {
+    p_endpoint: json.endpoint,
+    p_p256dh: json.keys.p256dh,
+    p_auth: json.keys.auth,
+    p_user_agent: navigator.userAgent,
+  });
   if (error) throw error;
   return sub;
 }
