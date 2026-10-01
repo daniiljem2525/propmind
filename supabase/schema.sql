@@ -930,6 +930,40 @@ create policy "notifications: только свои"
   with check (user_id = auth.uid());
 
 -- ============================================================
+-- 7б. Push-доставка: при вставке уведомления триггер через pg_net
+--     вызывает Edge Function send-push (расширение pg_net обязательно)
+-- ============================================================
+create or replace function public.notify_push()
+returns trigger
+language plpgsql
+security definer set search_path = public, extensions
+as $$
+begin
+  perform extensions.net.http_post(
+    url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-push-secret', 'pm-webhook-9f2XkLq7Vt'
+    ),
+    body := jsonb_build_object(
+      'notification', jsonb_build_object(
+        'user_id', new.user_id,
+        'title', new.title,
+        'message', new.message,
+        'link', new.link
+      )
+    )
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists push_notify_trigger on public.notifications;
+create trigger push_notify_trigger
+  after insert on public.notifications
+  for each row execute function public.notify_push();
+
+-- ============================================================
 -- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
 --    он ссылается (profiles, properties, invites)
 -- ============================================================
