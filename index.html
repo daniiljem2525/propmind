@@ -38,12 +38,22 @@
       <style>#boot-splash{opacity:1;transition:opacity .2s}@keyframes pm-spin{to{transform:rotate(360deg)}}</style>
     </div>
     <script>
-      // Мини-мониторинг: последняя фатальная ошибка видна в заголовке вкладки
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var splash = document.getElementById("boot-splash");
+        if (splash && !document.getElementById("root")?.firstChild) {
+          splash.innerHTML =
+            '<div style="padding:24px;max-width:480px;font:13px/1.5 monospace;color:#B91C1C;word-break:break-all">' +
+            "<b>" + kind + "</b><br>" + text + "</div>";
+        }
+      }
       window.addEventListener("error", (e) => {
-        document.title = "ERR: " + e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno;
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
       });
       window.addEventListener("unhandledrejection", (e) => {
-        document.title = "REJ: " + (e.reason?.message || e.reason);
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
       });
     </script>
     <script type="module" src="/src/main.jsx"></script>
