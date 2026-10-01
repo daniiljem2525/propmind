@@ -10,11 +10,17 @@ async function currentUserWithProfile() {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user;
   if (!user) return null;
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
+  // Холодный старт PWA часто обгоняет сеть: упавший запрос профиля
+  // не должен выглядеть как «не залогинен» и выкидывать на логин.
+  let profile = null;
+  try {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
+    if (!error) profile = data;
+  } catch {}
   return {
     id: user.id,
     email: user.email,

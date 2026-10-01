@@ -7,8 +7,29 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { ensureDemoAccount } from "@/lib/api/auth";
+import { probeSessionStores } from "@/lib/supabase/config";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
+
+// Диагностика хранилища сессии: видно на экране логина, что осталось
+// после выгрузки приложения (свайпа). Нули во всех трёх — iOS чистит
+// хранилище целиком; данные есть, а логин требуется — проблема восстановления.
+function StorageProbe() {
+  const [info, setInfo] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    probeSessionStores().then((p) => {
+      if (alive)
+        setInfo(`LS ${p.ls}Б · cookie ${p.ck}Б · IDB ${p.idb}Б · SW ${p.sw ? "+" : "−"}`);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return info ? (
+    <p className="mt-4 text-center text-[11px] text-muted-foreground">diag: {info}</p>
+  ) : null;
+}
 
 export default function Login() {
   const { t } = useLang();
@@ -136,6 +157,7 @@ export default function Login() {
           {t("auth.signIn")}
         </Button>
       </form>
+      <StorageProbe />
     </AuthLayout>
   );
 }

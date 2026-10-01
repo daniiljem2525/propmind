@@ -107,3 +107,31 @@ export const supabase = isSupabaseConfigured
       auth: { storage: robustStorage, persistSession: true, autoRefreshToken: true },
     })
   : null;
+
+// Диагностика: сколько байт сессии лежит в каждом из хранилищ и жив ли
+// сервис-воркер. Показывается на экране логина — так видно, чистит ли
+// iOS хранилище PWA при выгрузке приложения (свайп из недавних).
+export async function probeSessionStores() {
+  const key = "sb-bhxwpkplqjzhfqwckine-auth-token";
+  let ls = 0;
+  try {
+    ls = (localStorage.getItem(key) || "").length;
+  } catch {}
+  let ck = 0;
+  try {
+    ck = (cookieGet(key) || "").length;
+  } catch {}
+  let idb = 0;
+  try {
+    const v = await withIdb("readonly", (s) => s.get(key));
+    idb = (v || "").length;
+  } catch {}
+  let sw = false;
+  try {
+    sw = !!(
+      navigator.serviceWorker &&
+      (await navigator.serviceWorker.getRegistration())
+    );
+  } catch {}
+  return { ls, ck, idb, sw };
+}
