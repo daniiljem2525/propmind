@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPushState, enablePush, disablePush, testPush } from "@/lib/push";
+import { getPushState, enablePush, disablePush, testPush, dbTestPush } from "@/lib/push";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 
@@ -14,6 +14,7 @@ export default function PushCard() {
   const [state, setState] = useState("loading");
   const [busy, setBusy] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [dbTesting, setDbTesting] = useState(false);
 
   const refresh = () =>
     getPushState()
@@ -81,6 +82,30 @@ export default function PushCard() {
       .finally(() => setTesting(false));
   };
 
+  // Проверка настоящего канала (база → триггер → pg_net → функция):
+  // если тестовый пуш приходит, а этот нет — обрыв в триггере базы
+  const sendDbTest = () => {
+    setDbTesting(true);
+    dbTestPush()
+      .then((r) => {
+        const last = (r?.deliveries || [])[0];
+        if (!r || r.ok === false) {
+          toast.error(`${t("push.dbFail")}: ${r?.error || t("errors.generic")}`);
+        } else if (!last) {
+          toast.error(t("push.dbNoRequests"));
+        } else if (last.status === 200) {
+          toast.success(t("push.dbOk"));
+        } else {
+          toast.error(`${t("push.dbFail")}: HTTP ${last.status ?? "…"}`);
+        }
+      })
+      .catch((e) => {
+        console.error("dbTestPush failed:", e);
+        toast.error(`${t("push.dbFail")}: ${e?.message || t("errors.generic")}`);
+      })
+      .finally(() => setDbTesting(false));
+  };
+
   const labels = {
     loading: "…",
     unsupported: t("push.unsupported"),
@@ -110,9 +135,12 @@ export default function PushCard() {
           {labels[state] || labels.default}
         </p>
         {state === "enabled" ? (
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={sendTest} loading={testing}>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={sendTest} loading={testing}>
               {t("push.test")}
+            </Button>
+            <Button size="sm" variant="outline" onClick={sendDbTest} loading={dbTesting}>
+              {t("push.dbTest")}
             </Button>
             <Button size="sm" variant="outline" onClick={off} loading={busy}>
               {t("push.disable")}

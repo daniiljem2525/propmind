@@ -1032,6 +1032,39 @@ begin
 end;
 $$;
 
+-- Проверка настоящего push-канала: INSERT в notifications запускает
+-- push-триггер (7б), pg_net отправляет запрос и складывает ответы в
+-- net._http_response — их возвращаем, чтобы увидеть, где обрыв.
+create or replace function public.push_selfcheck()
+returns jsonb
+language plpgsql
+security definer set search_path = public, extensions
+as $$
+declare
+  v_before timestamptz := now();
+  v_res jsonb;
+begin
+  if auth.uid() is null then
+    raise exception 'unauthorized';
+  end if;
+  insert into public.notifications(user_id, type, title, message, link)
+  values (auth.uid(), 'general', 'Проверка канала push', 'Тест доставки через базу', '/app');
+  -- pg_net отправляет фоновым воркером — даём ему догнать
+  perform pg_sleep(2);
+  select coalesce(
+           jsonb_agg(
+             jsonb_build_object('status', r.status_code, 'when', r.created)
+             order by r.created desc
+           ),
+           '[]'::jsonb
+         )
+    into v_res
+    from net._http_response r
+   where r.created >= v_before;
+  return jsonb_build_object('ok', true, 'deliveries', v_res);
+end;
+$$;
+
 -- ============================================================
 -- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
 --    он ссылается (profiles, properties, invites)

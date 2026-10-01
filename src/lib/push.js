@@ -103,3 +103,11 @@ export async function testPush() {
   });
   return res.json();
 }
+
+// Проверка настоящего канала: запись в notifications запускает push-триггер
+// в базе, отчёт — ответы pg_net (200 = доставка ушла, пусто = триггер молчит).
+export async function dbTestPush() {
+  const { data, error } = await supabase.rpc("push_selfcheck");
+  if (error) throw error;
+  return data;
+}
