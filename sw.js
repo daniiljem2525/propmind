@@ -1,6 +1,17 @@
 // PropMind service worker: приём и показ web-push уведомлений
 self.addEventListener("install", () => self.skipWaiting());
-self.addEventListener("activate", (e) => e.waitUntil(self.clients.claim()));
+self.addEventListener("activate", (e) =>
+  e.waitUntil(
+    self.clients
+      .claim()
+      .then(() =>
+        caches.keys().then((keys) =>
+          Promise.all(keys.filter((k) => k !== CACHE && k.startsWith("propmind-")).map((k) => caches.delete(k)))
+        )
+      )
+  )
+);
+const CACHE = "propmind-runtime-v1";
 
 self.addEventListener("push", (event) => {
   let data = { title: "PropMind", body: "Новое уведомление", url: "/app" };
@@ -13,6 +24,43 @@ self.addEventListener("push", (event) => {
       tag: data.tag || "propmind",
       data: { url: data.url },
     })
+  );
+});
+
+// Кэш: хэшированные ассеты — cache-first, html — network-first
+const CACHE = "propmind-runtime-v1";
+
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  if (req.method !== "GET" || !req.url.startsWith(self.location.origin)) return;
+  if (req.url.includes("/rest/v1") || req.url.includes("/auth/v1") || req.url.includes("/functions/v1")) return;
+
+  const isAsset = req.url.includes("/assets/") || req.url.includes("/video/");
+
+  if (isAsset) {
+    event.respondWith(
+      caches.match(req).then(
+        (hit) =>
+          hit ||
+          fetch(req).then((res) => {
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+            return res;
+          })
+      )
+    );
+    return;
+  }
+
+  // html: сначала сеть, при офлайне — кэш
+  event.respondWith(
+    fetch(req)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, copy));
+        return res;
+      })
+      .catch(() => caches.match(req).then((hit) => hit || caches.match("/index.html")))
   );
 });
 
