@@ -105,9 +105,22 @@ export async function testPush() {
 }
 
 // Проверка настоящего канала: запись в notifications запускает push-триггер
-// в базе, отчёт — ответы pg_net (200 = доставка ушла, пусто = триггер молчит).
+// в базе. Ответы pg_net добираем с клиента отдельными быстрыми вызовами —
+// долгий опрос внутри RPC упирается в statement timeout.
 export async function dbTestPush() {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const { data, error } = await supabase.rpc("push_selfcheck");
   if (error) throw error;
-  return data;
+  const since = data?.since;
+  if (!since) return data;
+  // до ~30 секунд: pg_net — фоновый воркер, задержка бывает больше 10 секунд
+  for (let i = 0; i < 10; i++) {
+    await sleep(3000);
+    const { data: st, error: e2 } = await supabase.rpc("push_selfcheck_status", {
+      p_since: since,
+    });
+    if (e2) throw e2;
+    if ((st || []).length) return { ok: true, deliveries: st };
+  }
+  return { ok: true, deliveries: [] };
 }

@@ -1034,8 +1034,10 @@ end;
 $$;
 
 -- Проверка настоящего push-канала: INSERT в notifications запускает
--- push-триггер (7б), pg_net отправляет запрос и складывает ответы в
--- net._http_response — их возвращаем, чтобы увидеть, где обрыв.
+-- push-триггер (7б), pg_net отправляет запрос. Ответы pg_net откладывает
+-- в net._http_response — их добирает push_selfcheck_status (отдельными
+-- быстрыми вызовами с клиента: долгий опрос внутри RPC упирается в
+-- statement timeout и откатывал саму вставку).
 create or replace function public.push_selfcheck()
 returns jsonb
 language plpgsql
@@ -1043,32 +1045,31 @@ security definer set search_path = public, extensions
 as $$
 declare
   v_before timestamptz := now();
-  v_res jsonb;
-  i int;
 begin
   if auth.uid() is null then
     raise exception 'unauthorized';
   end if;
   insert into public.notifications(user_id, type, title, message, link)
   values (auth.uid(), 'general', 'Проверка канала push', 'Тест доставки через базу', '/app');
-  -- pg_net отправляет фоновым воркером, задержка может быть 10+ секунд —
-  -- опрашиваем ответы до 15 секунд, иначе проверка даёт ложное «не работает»
-  for i in 1..15 loop
-    perform pg_sleep(1);
-    select coalesce(
-             jsonb_agg(
-               jsonb_build_object('status', r.status_code, 'when', r.created)
-               order by r.created desc
-             ),
-             '[]'::jsonb
-           )
-      into v_res
-      from net._http_response r
-     where r.created >= v_before;
-    exit when jsonb_array_length(v_res) > 0;
-  end loop;
-  return jsonb_build_object('ok', true, 'deliveries', v_res);
+  perform pg_sleep(1);
+  return jsonb_build_object('ok', true, 'since', v_before);
 end;
+$$;
+
+create or replace function public.push_selfcheck_status(p_since timestamptz)
+returns jsonb
+language sql
+security definer set search_path = public, extensions
+as $$
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object('status', r.status_code, 'when', r.created)
+      order by r.created desc
+    ),
+    '[]'::jsonb
+  )
+  from net._http_response r
+  where r.created >= p_since;
 $$;
 
 -- ============================================================
