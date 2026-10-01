@@ -2,11 +2,24 @@
 // копия index.html → 404.html (SPA-маршруты), пуш в ветку gh-pages.
 // Запуск: npm run deploy:ghp
 import { execSync } from "node:child_process";
-import { copyFileSync, existsSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 
 const run = (cmd, opts = {}) => execSync(cmd, { stdio: "inherit", ...opts });
 
 run("npx vite build", { env: { ...process.env, VITE_BASE: "/propmind/" } });
+
+// Инлайн JS и CSS в index.html: одна самодостаточная страница —
+// невозможен рассинхрон кэша между index и ассетами на GitHub Pages
+let html = readFileSync("dist/index.html", "utf8");
+html = html.replace(
+  /<script type="module"[^>]*src="([^"]+)"[^>]*><\/script>/,
+  (_, p) => `<script type="module">${readFileSync("dist" + p.replace(/^\/propmind\//, "/"), "utf8")}</script>`
+);
+html = html.replace(
+  /<link rel="stylesheet"[^>]*href="([^"]+)"[^>]*>/,
+  (_, p) => `<style>${readFileSync("dist" + p.replace(/^\/propmind\//, "/"), "utf8")}</style>`
+);
+writeFileSync("dist/index.html", html);
 copyFileSync("dist/index.html", "dist/404.html");
 
 if (!existsSync("dist/.git")) {
