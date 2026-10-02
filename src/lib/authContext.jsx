@@ -5,12 +5,32 @@ import { probeSessionStores } from "@/lib/supabase/config";
 
 const AuthContext = createContext(null);
 
+// Профиль кэшируется локально: холодный старт рендерит приложение сразу,
+// а свежие данные (роль, имя, тариф) сверяются с сервером в фоне.
+const USER_CACHE_KEY = "arendora:user";
+
 export function AuthProvider({ children }) {
   // undefined = профиль ещё загружается, null = гость, объект = залогинен.
-  // В облаке getCurrentUser асинхронный: если положить в состояние сам
-  // Promise (truthy!), приложение считает пользователя залогиненным,
-  // а role/id у такого "пользователя" — undefined.
-  const [user, setUser] = useState(undefined);
+  // Стартуем с кэшированного профиля, если он есть — иначе был бы
+  // принудительный загрузчик на каждый запуск.
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem(USER_CACHE_KEY);
+      return raw ? JSON.parse(raw) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (user && typeof user === "object") {
+        localStorage.setItem(USER_CACHE_KEY, JSON.stringify(user));
+      } else if (user === null) {
+        localStorage.removeItem(USER_CACHE_KEY);
+      }
+    } catch {}
+  }, [user]);
 
   useEffect(() => {
     let alive = true;
