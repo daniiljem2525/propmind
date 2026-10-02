@@ -9,6 +9,11 @@
 create extension if not exists pgcrypto;
 
 -- Проверка владельца без рекурсии RLS (security definer)
+-- Платформенный админ — отдельный флаг: роль 'owner' есть у КАЖДОГО
+-- нового воркспейса, считать её админской нельзя (утечка всех email и
+-- возможность смены ролей). Флаг выдаётся вручную (update ниже).
+alter table public.profiles add column if not exists is_platform_admin boolean not null default false;
+
 create or replace function public.is_platform_owner()
 returns boolean
 language sql
@@ -16,9 +21,13 @@ security definer set search_path = public
 stable as $$
   select exists (
     select 1 from public.profiles
-    where id = auth.uid() and role = 'owner'
+    where id = auth.uid() and (role = 'admin' or is_platform_admin)
   );
 $$;
+
+-- Выдать права платформенного админа (email владельца продукта)
+update public.profiles set is_platform_admin = true
+where email = 'daniilemelyanov2010@gmail.com' and not is_platform_admin;
 
 
 -- ============================================================

@@ -29,7 +29,7 @@ export const PLANS = [
 
 // Лимиты тарифов (null — без ограничения)
 export const PLAN_LIMITS = {
-  free: { properties: 1, tenants: 1 },
+  free: { properties: 3, tenants: 3 }, // единый оффер: «до 3 объектов»
   start: { properties: 4, tenants: null }, // 1 бесплатно + 3 доп.
   pro: { properties: 8, tenants: null },
   business: { properties: 14, tenants: null },

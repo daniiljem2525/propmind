@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /app
+
+Sitemap: https://daniiljem2525.github.io/propmind/sitemap.xml

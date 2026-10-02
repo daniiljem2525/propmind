@@ -241,7 +241,7 @@ export default function Settings() {
       ? tabParam
       : "profile";
   });
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.is_platform_admin === true;
 
   // Профиль
   const [name, setName] = useState(user?.full_name || "");
@@ -433,7 +433,7 @@ export default function Settings() {
 
       {tab === "plan" && <PricingPlans />}
       {tab === "users" && isAdmin && <UsersPanel />}
-      <SwDiag />
+      {searchParams.get("debug") && <SwDiag />}
     </div>
   );
 }

@@ -21,3 +21,4 @@ export const updateUserPlan = backend.updateUserPlan;
 export const getOrCreateInviteCode = backend.getOrCreateInviteCode;
 export const inviteUser = backend.inviteUser || backend.createInvite;
 export const ensureDemoAccount = backend.ensureDemoAccount || (() => false);
+export const loginDemo = backend.loginDemo;

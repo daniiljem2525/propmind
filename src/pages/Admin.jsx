@@ -92,7 +92,7 @@ export default function Admin() {
 
   const shown = cloudStats ?? stats;
 
-  if (user?.role !== "admin" && user?.role !== "owner") {
+  if (!user?.is_platform_admin) {
     return (
       <div className="animate-fade-in">
         <PageHeader title={t("admin.title")} subtitle={t("admin.subtitle")} />

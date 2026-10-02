@@ -239,6 +239,8 @@ export const en = {
   "auth.errors.emailInvalid": "That email looks like a typo",
   "auth.demoBox": "Demo build: sign in to the ready-made admin account",
   "auth.demoFill": "Fill demo credentials",
+  "auth.demoEnter": "Enter demo",
+  "auth.demoUnavailable": "Demo unavailable — try again later",
   "auth.demoRegister": "Or register — the confirmation code appears right on screen",
   "auth.demoFilled": "Demo credentials filled — press \"Sign in\"",
 
@@ -651,7 +653,7 @@ export const en = {
   "land.q2.q": "How is this different from enterprise systems?",
   "land.q2.a": "Competitors configure the system around your processes for weeks. Arendora is the opposite: the processes are built in (auto-linking, payment schedules) — you just use it.",
   "land.q3.q": "Do I need a card to start?",
-  "land.q3.a": "No. The Free plan is free forever: up to 3 properties and 1 tenant. A card is only needed when upgrading to a paid plan.",
+  "land.q3.a": "No. The Free plan is free forever: up to 3 properties and 3 tenants.",
   "land.q4.q": "Is my data safe?",
   "land.q4.a": "Every user sees only their own records. In the cloud version data is isolated per owner, and passwords are stored hashed.",
   "land.finalTitle": "Bring order to your portfolio today",

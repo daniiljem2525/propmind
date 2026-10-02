@@ -26,6 +26,7 @@ async function currentUserWithProfile() {
     email: user.email,
     full_name: profile?.full_name || user.user_metadata?.full_name || "",
     role: profile?.role || user.user_metadata?.role || "tenant",
+    is_platform_admin: profile?.is_platform_admin === true,
     plan: profile?.plan || "free",
     invite_code: profile?.invite_code || null,
     status: "active",
@@ -165,6 +166,24 @@ export async function updateUserRole(id, role) {
   const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
   if (error) throw error;
   return true;
+}
+
+// Демо-вход: готовый аккаунт в Supabase. При первом входе аккаунт
+// создаётся (если регистрация открыта), данные наполняет Login через seedDemoData.
+export const DEMO_CREDENTIALS = { email: "demo@arendora.app", password: "arendora-demo" };
+
+export async function loginDemo() {
+  const { error } = await supabase.auth.signInWithPassword(DEMO_CREDENTIALS);
+  if (error) {
+    const { data, error: signUpError } = await supabase.auth.signUp({
+      email: DEMO_CREDENTIALS.email,
+      password: DEMO_CREDENTIALS.password,
+      options: { data: { full_name: "Демо-аккаунт", role: "owner" } },
+    });
+    if (signUpError) throw new Error("DEMO_SIGNUP_FAILED");
+    if (!data.session) throw new Error("DEMO_NEEDS_CONFIRMATION");
+  }
+  return currentUserWithProfile();
 }
 
 // Совместимость со старым интерфейсом (в облачном режиме не используется)

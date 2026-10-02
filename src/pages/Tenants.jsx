@@ -220,7 +220,7 @@ export default function Tenants() {
       alive = false;
     };
   }, []);
-  const inviteLink = myCode ? `${window.location.origin}/register?ref=${myCode}` : null;
+  const inviteLink = myCode ? `${window.location.origin}${import.meta.env.BASE_URL}register?ref=${myCode}` : null;
 
   const propertyById = useMemo(() => Object.fromEntries(properties.map((p) => [p.id, p])), [properties]);
 

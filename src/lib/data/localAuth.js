@@ -125,6 +125,11 @@ export function verifyOtp(email, otp) {
 
 // Гарантирует наличие готового демо-аккаунта администратора.
 // Нужно для «Заполнить демо-аккаунт» на свежем браузере, где хранилище пустое.
+export async function loginDemo() {
+  ensureDemoAccount();
+  return getCurrentUser();
+}
+
 export function ensureDemoAccount() {
   const email = "owner@arendora.test";
   const users = readUsers();
