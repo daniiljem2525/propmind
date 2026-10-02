@@ -1,8 +1,8 @@
-// PropMind service worker.
+// Arendora service worker.
 // Назначение: web-push уведомления + кэш тяжёлых ассетов.
 // Навигации НЕ перехватываем: на iOS fetch(navigate) внутри SW
 // ненадёжен и давал белый экран при переходах по меню.
-const CACHE = "propmind-assets-v1";
+const CACHE = "arendora-assets-v1";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -13,7 +13,7 @@ self.addEventListener("activate", (e) =>
       .then(() =>
         caches.keys().then((keys) =>
           Promise.all(
-            keys.filter((k) => k.startsWith("propmind-") && k !== CACHE).map((k) => caches.delete(k))
+            keys.filter((k) => (k.startsWith("arendora-") || k.startsWith("propmind-")) && k !== CACHE).map((k) => caches.delete(k))
           )
         )
       )
@@ -39,14 +39,14 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let data = { title: "PropMind", body: "Новое уведомление", url: "/app" };
+  let data = { title: "Arendora", body: "Новое уведомление", url: "/app" };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {}
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      tag: data.tag || "propmind",
+      tag: data.tag || "arendora",
       data: { url: data.url },
     })
   );
