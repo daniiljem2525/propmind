@@ -1,8 +1,10 @@
 // Arendora service worker.
-// Назначение: web-push уведомления + кэш тяжёлых ассетов.
-// Навигации НЕ перехватываем: на iOS fetch(navigate) внутри SW
-// ненадёжен и давал белый экран при переходах по меню.
-const CACHE = "arendora-assets-v1";
+// Назначение: мгновенный холодный старт PWA + web-push + кэш ассетов.
+// Оболочка (index.html) отдаётся из кэша сразу, свежая версия подкачивается
+// в фоне и применяется со следующего запуска (stale-while-revalidate).
+// Навигации ВСЕГДА получают валидный ответ: кэш → сеть → сообщение,
+// белого экрана быть не может (урок фиксa «без перехвата навигаций»).
+const CACHE = "arendora-shell-v2";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -23,7 +25,36 @@ self.addEventListener("activate", (e) =>
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET" || !req.url.startsWith(self.location.origin)) return;
-  // кэшируем только тяжёлые ассеты; html и API — напрямую
+
+  // Оболочка приложения: любой навигационный запрос отвечаем сохранённым
+  // index.html (SPA сам разрулит маршрут), параллельно обновляя кэш.
+  if (req.mode === "navigate") {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE);
+        const shell =
+          (await cache.match("./index.html")) || (await cache.match("./"));
+        const fresh = fetch(req)
+          .then((res) => {
+            if (res && res.ok) {
+              cache.put("./index.html", res.clone());
+              cache.put(req, res.clone());
+            }
+            return res;
+          })
+          .catch(() => null);
+        if (shell) {
+          event.waitUntil(fresh);
+          return shell;
+        }
+        const res = await fresh;
+        return res || new Response("Arendora: нет сети и кэша", { status: 503 });
+      })()
+    );
+    return;
+  }
+
+  // Кэшируем только тяжёлые ассеты; html и API — напрямую
   if (!req.url.includes("/assets/") && !req.url.includes("/video/")) return;
   event.respondWith(
     caches.match(req).then(
