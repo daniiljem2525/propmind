@@ -19,12 +19,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 900,
     rollupOptions: {
       output: {
-        // Стабильные вендорские чанки: кэш браузера не сбрасывается
-        // при каждой правке страниц приложения
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          supabase: ["@supabase/supabase-js"],
-        },
+        // Библиотеки (react, supabase) остаются в основном чанке: на них
+        // завязана первая отрисовка, и лишние сетевые запросы до монтирования
+        // React удлиняют сплеш-экран на мобильных. Страницы — ленивые.
       },
     },
   },
