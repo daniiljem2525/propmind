@@ -1,0 +1,1 @@
+import{u as o,j as r}from"./index-Do3N8JUL.js";import{B as s}from"./badge-oKbCvU5q.js";function d({config:a,value:t}){const{lang:n}=o(),e=a[t];return e?r.jsx(s,{className:e.badge,children:n==="ru"?e.label_ru:e.label_en}):r.jsx(s,{className:"bg-muted text-muted-foreground",children:t})}export{d as S};

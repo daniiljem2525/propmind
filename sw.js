@@ -6,7 +6,16 @@
 // белого экрана быть не может (урок фиксa «без перехвата навигаций»).
 const CACHE = "arendora-shell-v2";
 
-self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("install", (e) => {
+  // Прогреваем оболочку сразу при установке воркера — тогда
+  // уже следующий запуск приложения открывается мгновенно
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) => c.add("./index.html").catch(() => {}))
+  );
+  self.skipWaiting();
+});
 
 self.addEventListener("activate", (e) =>
   e.waitUntil(
