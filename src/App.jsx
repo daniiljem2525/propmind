@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider, useAuth as useAuthSafe } from "@/lib/authContext";
 
 import ProtectedRoute from "@/components/ProtectedRoute";
+import GuestRoute from "@/components/GuestRoute";
 import AppLayout from "@/components/layout/AppLayout";
 
 import Landing from "@/pages/Landing";
@@ -45,13 +46,17 @@ export default function App() {
           <ThemeProvider>
             <AuthProvider>
               <Routes>
-                {/* Публичный сайт */}
-                <Route path="/" element={<Landing />} />
+                {/* Публичный сайт — только для гостей: залогиненных
+                    сразу в приложение (иначе после свайпа PWA каждый
+                    раз выглядит разлогиненным) */}
+                <Route element={<GuestRoute />}>
+                  <Route path="/" element={<Landing />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                </Route>
 
-                <Route path="/login" element={<Login />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
-                <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -72,7 +77,9 @@ export default function App() {
                   </Route>
                 </Route>
 
-                <Route path="*" element={<Landing />} />
+                <Route element={<GuestRoute />}>
+                  <Route path="*" element={<Landing />} />
+                </Route>
               </Routes>
             </AuthProvider>
           </ThemeProvider>
