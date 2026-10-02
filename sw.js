@@ -7,12 +7,19 @@
 const CACHE = "arendora-shell-v2";
 
 self.addEventListener("install", (e) => {
-  // Прогреваем оболочку сразу при установке воркера — тогда
-  // уже следующий запуск приложения открывается мгновенно
+  // Прогреваем оболочку сразу при установке воркера. cache:"reload" —
+  // обязательно: без него fetch может отдать устаревшую копию из HTTP-кэша
+  // (GitHub Pages держит её до 10 минут после деплоя).
   e.waitUntil(
-    caches
-      .open(CACHE)
-      .then((c) => c.add("./index.html").catch(() => {}))
+    (async () => {
+      const cache = await caches.open(CACHE);
+      try {
+        cache.put(
+          "./index.html",
+          await fetch("./index.html", { cache: "reload" })
+        );
+      } catch {}
+    })()
   );
   self.skipWaiting();
 });
@@ -43,7 +50,7 @@ self.addEventListener("fetch", (event) => {
         const cache = await caches.open(CACHE);
         const shell =
           (await cache.match("./index.html")) || (await cache.match("./"));
-        const fresh = fetch(req)
+        const fresh = fetch(req, { cache: "reload" })
           .then((res) => {
             if (res && res.ok) {
               cache.put("./index.html", res.clone());
