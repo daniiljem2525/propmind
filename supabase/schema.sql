@@ -1109,6 +1109,8 @@ begin
         url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/send-email',
         headers := jsonb_build_object(
           'Content-Type', 'application/json',
+          -- платформа Edge Functions требует JWT (publishable-ключ)
+          'Authorization', 'Bearer sb_publishable_H3Vk7JOk4DJWMBod6CvV6Q_IRDhrqww',
           'x-email-secret', 'pm-email-7Kd9xQ2VtR'
         ),
         body := jsonb_build_object('kind', 'digest')
