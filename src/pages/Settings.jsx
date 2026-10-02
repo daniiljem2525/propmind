@@ -28,8 +28,8 @@ import { useToast } from "@/components/ui/toast";
 import { PLANS } from "@/lib/config/misc";
 import { cn, formatDate, formatMoney, initials } from "@/lib/utils";
 
-const PREFS_KEY = "propmind:prefs";
-const PLAN_KEY = "propmind:plan";
+const PREFS_KEY = "arendora:prefs";
+const PLAN_KEY = "arendora:plan";
 
 // ——— Сегментированный переключатель ———
 function Segmented({ options, value, onChange }) {
@@ -147,7 +147,7 @@ function PricingPlans() {
 
       <p className="mt-8 text-center text-sm text-muted-foreground">
         <a
-          href={`mailto:sales@propmind.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
+          href={`mailto:sales@arendora.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
           className="font-medium text-primary hover:underline"
         >
           {t("plans.contactUs")}

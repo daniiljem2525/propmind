@@ -38,7 +38,7 @@ export function Blog() {
       <div className="mx-auto max-w-5xl px-4 py-14 lg:px-8">
         <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" />
-          PropMind
+          Arendora
         </Link>
         <PageHeader title={t("blog.title")} subtitle={t("blog.subtitle")} />
 
@@ -93,7 +93,7 @@ export function BlogPost() {
         </Link>
         <h1 className="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
         <p className="mt-3 text-sm text-muted-foreground">
-          {post.words} {t("blog.words")} · PropMind
+          {post.words} {t("blog.words")} · Arendora
         </p>
         <div className="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&_a]:text-primary [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_li]:ml-5 [&_li]:list-disc [&_strong]:font-bold">
           <ReactMarkdown>{post.body}</ReactMarkdown>

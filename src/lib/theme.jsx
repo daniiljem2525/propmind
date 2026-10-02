@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 
 const ThemeContext = createContext(null);
-const KEY = "propmind:theme";
+const KEY = "arendora:theme";
 
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {

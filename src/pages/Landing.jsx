@@ -65,7 +65,7 @@ export default function Landing() {
             <span className="brand-gradient flex h-9 w-9 items-center justify-center rounded-lg">
               <House className="h-5 w-5 text-white" />
             </span>
-            <span className="text-lg font-extrabold tracking-tight">PropMind</span>
+            <span className="text-lg font-extrabold tracking-tight">Arendora</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
@@ -217,7 +217,7 @@ export default function Landing() {
               <div className="px-4 py-3">{t("land.compare")}</div>
               <div className="px-4 py-3 text-center">{t("land.compareSpreadsheets")}</div>
               <div className="px-4 py-3 text-center">{t("land.compareEnterprise")}</div>
-              <div className="bg-primary/5 px-4 py-3 text-center text-primary">{t("land.comparePropmind")}</div>
+              <div className="bg-primary/5 px-4 py-3 text-center text-primary">{t("land.compareArendora")}</div>
             </div>
             {["rowLaunch", "rowLinks", "rowSchedule", "rowCost", "rowSupport"].map((row, i) => (
               <div key={row} className={cn("grid grid-cols-4 text-sm", i !== 4 && "border-b")}>
@@ -319,7 +319,7 @@ export default function Landing() {
                 </ul>
                 {p.monthly == null ? (
                   <a
-                    href={`mailto:sales@propmind.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
+                    href={`mailto:sales@arendora.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
                     className="mt-5 inline-flex items-center justify-center rounded-md border bg-card px-4 py-2.5 text-sm font-semibold transition-opacity hover:bg-muted"
                   >
                     {t("plans.contactUs")}
@@ -343,7 +343,7 @@ export default function Landing() {
           </div>
           <p className="mt-8 text-center text-sm text-muted-foreground">
             {t("land.pricingNote")}{" "}
-            <a href={`mailto:sales@propmind.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`} className="font-medium text-primary hover:underline">
+            <a href={`mailto:sales@arendora.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`} className="font-medium text-primary hover:underline">
               {t("plans.contactUs")}
             </a>
           </p>
@@ -401,7 +401,7 @@ export default function Landing() {
             <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
               <House className="h-4 w-4 text-white" />
             </span>
-            <span className="font-extrabold tracking-tight">PropMind</span>
+            <span className="font-extrabold tracking-tight">Arendora</span>
             <span className="text-sm text-muted-foreground">© 2026</span>
           </div>
           <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
@@ -445,8 +445,8 @@ function HeroVideo() {
           loop
           playsInline
           preload="auto"
-          poster={`${import.meta.env.BASE_URL}video/propmind-demo-poster.jpg`}
-          src={`${import.meta.env.BASE_URL}video/propmind-demo.mp4`}
+          poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg`}
+          src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4`}
         />
       </div>
 

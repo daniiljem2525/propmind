@@ -99,7 +99,7 @@ export async function testPush() {
       "Content-Type": "application/json",
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ title: "PropMind", message: "Тестовый push", link: "/app" }),
+    body: JSON.stringify({ title: "Arendora", message: "Тестовый push", link: "/app" }),
   });
   return res.json();
 }

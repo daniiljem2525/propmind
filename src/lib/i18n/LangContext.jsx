@@ -3,7 +3,7 @@ import { ru } from "./ru";
 import { en } from "./en";
 
 const LangContext = createContext(null);
-const KEY = "propmind:lang";
+const KEY = "arendora:lang";
 
 export function LangProvider({ children }) {
   const [lang, setLangState] = useState(() => {

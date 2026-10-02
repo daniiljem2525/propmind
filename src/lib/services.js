@@ -1,4 +1,4 @@
-// Бизнес-логика связей между сущностями — та самая «автоматизация» PropMind.
+// Бизнес-логика связей между сущностями — та самая «автоматизация» Arendora.
 
 import { Property, Payment, NotificationEntity, notifyPaymentSchedule } from "@/lib/api/entities";
 import { readCollection, writeCollection } from "@/lib/api/db";
@@ -112,7 +112,7 @@ export function syncOverduePayments() {
   const today = todayISO();
   const lang = (() => {
     try {
-      return localStorage.getItem("propmind:lang") || "ru";
+      return localStorage.getItem("arendora:lang") || "ru";
     } catch {
       return "ru";
     }

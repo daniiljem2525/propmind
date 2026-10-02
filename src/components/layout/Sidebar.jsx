@@ -62,13 +62,13 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       >
         {/* Логотип */}
         <div className={cn("flex h-16 shrink-0 items-center border-b px-4", collapsed && "lg:justify-center lg:px-0")}>
-          <button className="flex items-center gap-2.5" onClick={() => navigate("/app")} title="PropMind">
+          <button className="flex items-center gap-2.5" onClick={() => navigate("/app")} title="Arendora">
             <span className="brand-gradient flex h-9 w-9 shrink-0 items-center justify-center rounded-lg shadow-sm">
               <House className="h-5 w-5 text-white" />
             </span>
             {!collapsed && (
               <span className="flex flex-col leading-none">
-                <span className="text-[15px] font-extrabold tracking-tight">PropMind</span>
+                <span className="text-[15px] font-extrabold tracking-tight">Arendora</span>
                 <span className="mt-0.5 text-[10px] font-medium text-muted-foreground">{t("app.tagline")}</span>
               </span>
             )}

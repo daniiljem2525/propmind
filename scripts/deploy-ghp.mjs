@@ -25,7 +25,7 @@ copyFileSync("dist/index.html", "dist/404.html");
 if (!existsSync("dist/.git")) {
   run("git init -b gh-pages", { cwd: "dist" });
   run('git remote add origin https://github.com/daniiljem2525/propmind.git', { cwd: "dist" });
-  run('git config user.name "PropMind Deploy"', { cwd: "dist" });
+  run('git config user.name "Arendora Deploy"', { cwd: "dist" });
   run('git config user.email "deploy@propmind.local"', { cwd: "dist" });
 }
 run("git add -A", { cwd: "dist" });

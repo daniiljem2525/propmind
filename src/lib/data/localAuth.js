@@ -3,13 +3,13 @@ import { registerCurrentUserFn } from "./localEntities";
 import { uid } from "@/lib/utils";
 
 const NAME = "users";
-const SESSION_KEY = "propmind:session";
+const SESSION_KEY = "arendora:session";
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000; // сессия живёт 7 дней
-const DEMO_HASH = "6aafa1776f70b876fd83b155ec8c4466553e963af3500de7f3613db45d44e37e"; // sha256("propmind:secret123")
+const DEMO_HASH = "6aafa1776f70b876fd83b155ec8c4466553e963af3500de7f3613db45d44e37e"; // sha256("arendora:secret123")
 
 // Настоящий SHA-256 (Web Crypto). Формат хранения: "sha256:<hex>".
 async function hash(password) {
-  const data = new TextEncoder().encode(`propmind:${password}`);
+  const data = new TextEncoder().encode(`arendora:${password}`);
   const digest = await crypto.subtle.digest("SHA-256", data);
   return "sha256:" + Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
 }
@@ -126,7 +126,7 @@ export function verifyOtp(email, otp) {
 // Гарантирует наличие готового демо-аккаунта администратора.
 // Нужно для «Заполнить демо-аккаунт» на свежем браузере, где хранилище пустое.
 export function ensureDemoAccount() {
-  const email = "owner@propmind.test";
+  const email = "owner@arendora.test";
   const users = readUsers();
   if (users.some((u) => u.email === email)) return false;
   users.push({
@@ -144,7 +144,7 @@ export function ensureDemoAccount() {
 }
 
 // Защита от перебора паролей: 5 неудач подряд → минута блокировки
-const LOCK_KEY = "propmind:lockout";
+const LOCK_KEY = "arendora:lockout";
 
 function checkLockout() {
   try {
@@ -254,13 +254,13 @@ export function updateUserPlan(id, plan) {
 // Персональный код подключения жильцов (локальный демо-режим)
 export function getOrCreateInviteCode() {
   try {
-    const existing = localStorage.getItem("propmind:inviteCode");
+    const existing = localStorage.getItem("arendora:inviteCode");
     if (existing) return existing;
     const code = Math.random().toString(36).slice(2, 10).toUpperCase()
       .replace(/[^A-Z0-9]/g, "X")
       .padEnd(8, "X")
       .slice(0, 8);
-    localStorage.setItem("propmind:inviteCode", code);
+    localStorage.setItem("arendora:inviteCode", code);
     return code;
   } catch {
     return "";

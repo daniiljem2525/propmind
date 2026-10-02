@@ -93,7 +93,7 @@ export default function Login() {
             variant="outline"
             className="shrink-0"
             onClick={() => {
-              setEmail("owner@propmind.test");
+              setEmail("owner@arendora.test");
               setPassword("secret123");
               toast.success(t("auth.demoFilled"));
             }}

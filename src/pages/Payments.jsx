@@ -317,7 +317,7 @@ export default function Payments() {
         { key: "period", label: lang === "ru" ? "Период" : "Period" },
       ]
     );
-    downloadFile(csv, `propmind-payments-${todayISO()}.csv`);
+    downloadFile(csv, `arendora-payments-${todayISO()}.csv`);
   };
 
   const confirmAction = async () => {
@@ -357,8 +357,8 @@ export default function Payments() {
     const subject = lang === "ru" ? "Напоминание об оплате" : "Payment reminder";
     const body =
       (lang === "ru"
-        ? `Здравствуйте!\n\nНапоминаем, что платёж ${formatMoney(p.amount, p.currency, lang)} за объект «${p.property_name}» был ожидан ${p.due_date}.\nПросим произвести оплату.\n\nС уважением,\nPropMind`
-        : `Hello!\n\nThis is a reminder that the payment of ${formatMoney(p.amount, p.currency, lang)} for "${p.property_name}" was due on ${p.due_date}.\nPlease complete the payment.\n\nBest regards,\nPropMind`);
+        ? `Здравствуйте!\n\nНапоминаем, что платёж ${formatMoney(p.amount, p.currency, lang)} за объект «${p.property_name}» был ожидан ${p.due_date}.\nПросим произвести оплату.\n\nС уважением,\nArendora`
+        : `Hello!\n\nThis is a reminder that the payment of ${formatMoney(p.amount, p.currency, lang)} for "${p.property_name}" was due on ${p.due_date}.\nPlease complete the payment.\n\nBest regards,\nArendora`);
     window.location.href = `mailto:${tenant?.email || ""}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     toast.info(t("payments.remindSent"));
   };
@@ -661,12 +661,12 @@ function RemindersDialog({ open, onClose, upcoming, tenants }) {
   };
 
   const downloadTxt = () => {
-    downloadFile(allText, `propmind-reminders-${todayISO()}.txt`);
+    downloadFile(allText, `arendora-reminders-${todayISO()}.txt`);
   };
 
   const draftAll = () => {
     const recipients = withEmail.map((p) => tenants.find((x) => x.id === p.tenant_id)?.email).join(",");
-    const subject = lang === "ru" ? "Напоминание об оплате — PropMind" : "Payment reminder — PropMind";
+    const subject = lang === "ru" ? "Напоминание об оплате — Arendora" : "Payment reminder — Arendora";
     window.location.href = `mailto:${recipients}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(allText)}`;
     toast.success(t("payments.remindersSent").replace("{n}", upcoming.length));
   };

@@ -6,7 +6,7 @@ import Header from "./Header";
 import { cn } from "@/lib/utils";
 import { syncOverduePayments } from "@/lib/services";
 
-const KEY = "propmind:sidebar";
+const KEY = "arendora:sidebar";
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(() => {

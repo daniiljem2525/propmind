@@ -40,7 +40,7 @@ export function getPlanLimits(plan) {
   let key = plan;
   if (!key) {
     try {
-      key = localStorage.getItem("propmind:plan");
+      key = localStorage.getItem("arendora:plan");
     } catch {}
   }
   return PLAN_LIMITS[key] || PLAN_LIMITS.free;

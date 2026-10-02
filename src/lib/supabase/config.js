@@ -47,7 +47,7 @@ function cookieDel(name) {
 function withIdb(mode, fn) {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === "undefined") return resolve(null);
-    const open = indexedDB.open("propmind-auth", 1);
+    const open = indexedDB.open("arendora-auth", 1);
     open.onupgradeneeded = () => open.result.createObjectStore("kv");
     open.onerror = () => reject(open.error);
     open.onsuccess = () => {

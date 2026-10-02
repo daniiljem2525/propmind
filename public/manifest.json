@@ -1,6 +1,6 @@
 {
-  "name": "PropMind",
-  "short_name": "PropMind",
+  "name": "Arendora",
+  "short_name": "Arendora",
   "description": "Управление недвижимостью: объекты, арендаторы, платежи, заявки",
   "start_url": ".",
   "scope": ".",

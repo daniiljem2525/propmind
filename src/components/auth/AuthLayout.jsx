@@ -30,7 +30,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <House className="h-6 w-6" />
           </span>
-          <span className="text-xl font-extrabold tracking-tight">PropMind</span>
+          <span className="text-xl font-extrabold tracking-tight">Arendora</span>
         </Link>
 
         <div className="relative space-y-7">
@@ -62,7 +62,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             <span className="brand-gradient flex h-10 w-10 items-center justify-center rounded-xl">
               <House className="h-5 w-5 text-white" />
             </span>
-            <span className="text-lg font-extrabold">PropMind</span>
+            <span className="text-lg font-extrabold">Arendora</span>
           </div>
           <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
           {subtitle && <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>}

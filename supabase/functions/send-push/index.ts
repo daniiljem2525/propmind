@@ -71,7 +71,7 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("user_id", userId);
 
-    webpush.setVapidDetails("mailto:sales@propmind.app", vapidPublic, vapidPrivate);
+    webpush.setVapidDetails("mailto:sales@arendora.app", vapidPublic, vapidPrivate);
 
     let sent = 0;
     const errors: { status: number | null; message: string }[] = [];
@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
         await webpush.sendNotification(
           { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
           JSON.stringify({
-            title: title || "PropMind",
+            title: title || "Arendora",
             body: message || "",
             url: link || "/app",
           })

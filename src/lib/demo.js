@@ -50,7 +50,7 @@ const DEMO_PROPERTIES = [
     rooms: 2,
     floor: 7,
     area_sqm: 54,
-    photo_url: photo("propmind-north"),
+    photo_url: photo("arendora-north"),
     description: "Светлая квартира с ремонтом, оборудованная кухня, парковочное место в подземном паркинге.",
     lease_end_days: 45,
   },
@@ -63,7 +63,7 @@ const DEMO_PROPERTIES = [
     rooms: 3,
     floor: 12,
     area_sqm: 96,
-    photo_url: photo("propmind-sails"),
+    photo_url: photo("arendora-sails"),
     description: "Видовая квартира на Москву-реке, дизайнерский ремонт, консьерж.",
     lease_end_days: 300,
   },
@@ -75,7 +75,7 @@ const DEMO_PROPERTIES = [
     status: "rented",
     rooms: 6,
     area_sqm: 320,
-    photo_url: photo("propmind-house"),
+    photo_url: photo("arendora-house"),
     description: "Двухэтажный дом, участок 12 соток, баня, охраняемый посёлок.",
     lease_end_days: 25,
   },
@@ -173,7 +173,7 @@ export async function seedDemoData({ reset = false } = {}) {
 
   // Демо-режим: открываем полный тариф Pro, чтобы ничто не блокировалось лимитами
   try {
-    localStorage.setItem("propmind:plan", "pro");
+    localStorage.setItem("arendora:plan", "pro");
   } catch {}
 
   // ——— Объекты ———

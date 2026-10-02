@@ -75,7 +75,7 @@ export default function Admin() {
       .reduce((s, p) => s + (Number(p.amount) || 0), 0);
 
     const storageBytes = Object.keys(localStorage)
-      .filter((k) => k.startsWith("propmind:"))
+      .filter((k) => k.startsWith("arendora:"))
       .reduce((s, k) => s + (localStorage.getItem(k)?.length || 0), 0);
 
     return {
@@ -106,7 +106,7 @@ export default function Admin() {
     ["users", "properties", "tenants", "payments", "maintenance_requests", "documents", "notifications"].forEach((name) => {
       data[name] = readCollection(name);
     });
-    downloadFile(JSON.stringify(data, null, 2), `propmind-backup-${new Date().toISOString().slice(0, 10)}.json`, "application/json");
+    downloadFile(JSON.stringify(data, null, 2), `arendora-backup-${new Date().toISOString().slice(0, 10)}.json`, "application/json");
   };
 
   return (

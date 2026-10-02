@@ -1,9 +1,9 @@
 // Локальное хранилище с pub/sub и realtime-синхронизацией между вкладками.
 // Все мутации проходят через writeCollection — подписчики обновляются мгновенно.
 
-const PREFIX = "propmind:";
+const PREFIX = "arendora:";
 
-const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("propmind-sync") : null;
+const channel = typeof BroadcastChannel !== "undefined" ? new BroadcastChannel("arendora-sync") : null;
 const listeners = new Map();
 
 function notify(name) {
