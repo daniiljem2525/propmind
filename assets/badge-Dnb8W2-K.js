@@ -1,0 +1,1 @@
+import{j as s,a as t}from"./index-wa1mluon.js";function p({className:e,...n}){return s.jsx("span",{className:t("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",e),...n})}export{p as B};

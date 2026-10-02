@@ -1,1 +1,0 @@
-import{j as n,a as s}from"./index-DwKDPnEP.js";import"./vendor-DTjVdFBV.js";function r({className:e,...t}){return n.jsx("span",{className:s("inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium",e),...t})}export{r as B};
