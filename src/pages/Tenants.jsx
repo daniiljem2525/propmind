@@ -13,6 +13,7 @@ import UpsellDialog from "@/components/UpsellDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
 import { getOrCreateInviteCode } from "@/lib/api/auth";
+import { sendInviteEmail } from "@/lib/email";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { Tenant, Property } from "@/lib/api/entities";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -188,6 +189,26 @@ export default function Tenants() {
   const [inviteCode, setInviteCode] = useState(null);
   const [scheduleConfirm, setScheduleConfirm] = useState(null);
 
+  // Отправка приглашения письмом (через Edge Function send-email)
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const submitInviteEmail = async (e) => {
+    e.preventDefault();
+    const email = inviteEmail.trim();
+    if (!email || !inviteLink) return;
+    setSendingEmail(true);
+    try {
+      await sendInviteEmail({ to: email, inviteLink, ownerName: user?.full_name || "" });
+      toast.success(`${t("tenants.emailSent")}: ${email}`);
+      setInviteEmail("");
+    } catch (err) {
+      console.error("invite email failed:", err);
+      toast.error(`${t("tenants.emailFail")}: ${err?.message || t("errors.generic")}`);
+    } finally {
+      setSendingEmail(false);
+    }
+  };
+
   // Персональный код арендодателя: ссылка /register?ref=КОД подключает жильца
   const [myCode, setMyCode] = useState(null);
   useEffect(() => {
@@ -265,21 +286,40 @@ export default function Tenants() {
             <p className="mt-2 font-mono text-lg font-bold tracking-widest">{myCode || "…"}</p>
             {inviteLink && <p className="mt-1 truncate text-xs text-muted-foreground">{inviteLink}</p>}
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            className="shrink-0"
-            disabled={!inviteLink}
-            onClick={async () => {
-              try {
-                await navigator.clipboard.writeText(inviteLink || myCode || "");
-              } catch {}
-              toast.success(t("tenants.linkCopied"));
-            }}
-          >
-            <Copy className="h-4 w-4" />
-            {t("common.copy")}
-          </Button>
+          <div className="flex shrink-0 flex-col items-stretch gap-2 sm:items-end">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!inviteLink}
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(inviteLink || myCode || "");
+                } catch {}
+                toast.success(t("tenants.linkCopied"));
+              }}
+            >
+              <Copy className="h-4 w-4" />
+              {t("common.copy")}
+            </Button>
+            <form className="flex gap-2" onSubmit={submitInviteEmail}>
+              <Input
+                type="email"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder={t("tenants.emailPlaceholder")}
+                className="h-9 w-52 sm:w-60"
+              />
+              <Button
+                size="sm"
+                type="submit"
+                disabled={!inviteLink || !inviteEmail.trim()}
+                loading={sendingEmail}
+              >
+                <Mail className="h-4 w-4" />
+                {t("tenants.sendEmail")}
+              </Button>
+            </form>
+          </div>
         </CardContent>
       </Card>
       )}

@@ -144,6 +144,10 @@ export const ru = {
   "tenants.personalCode": "Ваш код арендодателя",
   "tenants.personalCodeHint": "Дайте арендатору код или ссылку — при регистрации он подключится к вам как жилец",
   "tenants.linkCopied": "Ссылка скопирована",
+  "tenants.emailPlaceholder": "email жильца",
+  "tenants.sendEmail": "Отправить",
+  "tenants.emailSent": "Приглашение отправлено на",
+  "tenants.emailFail": "Письмо не отправилось",
   "tenants.inviteText": "Передай этот код жильцу — он введёт его при регистрации и попадёт в твою систему",
   "tenants.inviteNote": "Код одноразовый и привязан к объекту",
   // ——— Порталы жильца и исполнителя ———

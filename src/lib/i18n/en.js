@@ -144,6 +144,10 @@ export const en = {
   "tenants.personalCode": "Your landlord code",
   "tenants.personalCodeHint": "Give the tenant the code or link — at sign-up they join your portfolio as a tenant",
   "tenants.linkCopied": "Link copied",
+  "tenants.emailPlaceholder": "tenant email",
+  "tenants.sendEmail": "Send",
+  "tenants.emailSent": "Invitation sent to",
+  "tenants.emailFail": "Email failed",
   "tenants.inviteText": "Give this code to the tenant — they enter it at sign-up and join your system",
   "tenants.inviteNote": "One-time code, linked to the property",
   // ——— Tenant & contractor portals ———

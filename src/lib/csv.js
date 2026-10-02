@@ -14,8 +14,10 @@ export function parseCSV(text) {
       .map((cell) => cell.replace(/^["']|["']$/g, "").trim());
 
   const header = splitLine(lines[0]).map((h) => h.toLowerCase());
+  // Шапки бывают английские и русские (Excel RU)
   const knownKeys = ["name", "address", "rent_amount", "rent", "type", "rooms", "area_sqm"];
-  const hasHeader = header.some((h) => knownKeys.includes(h));
+  const knownRu = ["название", "адрес", "аренда"];
+  const hasHeader = header.some((h) => knownKeys.includes(h) || knownRu.includes(h));
 
   const rows = lines.slice(hasHeader ? 1 : 0).map((line) => {
     const cells = splitLine(line);

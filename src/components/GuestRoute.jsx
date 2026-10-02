@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/lib/authContext";
+import ScreenLoader from "@/components/ScreenLoader";
 
 // Публичные страницы (лендинг, вход, регистрация) — только для гостей.
 // Залогиненного сразу отправляем в приложение: PWA после свайпа открывает
@@ -9,13 +10,7 @@ export default function GuestRoute() {
   const { user } = useAuth();
   // undefined = профиль ещё загружается: показываем индикатор,
   // чтобы не мигать лендингом перед переходом в приложение
-  if (user === undefined) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  if (user === undefined) return <ScreenLoader />;
   if (user) return <Navigate to="/app" replace />;
   return <Outlet />;
 }

@@ -1039,6 +1039,87 @@ as $$
 $$;
 
 -- ============================================================
+-- 7г. Напоминания: просрочки платежей и истечение договоров.
+--     Ежедневно pg_cron запускает scan_reminders(): она пишет
+--     уведомления владельцам (INSERT в notifications → push-триггер 7б).
+--     Повторы гасятся: платёж — одно уведомление за всё время,
+--     договор — не чаще раза в 20 дней, пока окно не закрыто.
+-- ============================================================
+create extension if not exists pg_cron;
+
+create or replace function public.scan_reminders()
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  -- Просроченные платежи: pending с прошедшей датой
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.owner_id, 'payment_overdue', 'Платёж просрочен',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  where p.status = 'pending' and p.due_date < current_date
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_overdue' and n.related_id = p.id
+    );
+
+  -- Договоры, истекающие в ближайшие 30 дней
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select pr.owner_id, 'lease_expiring', 'Договор истекает',
+         coalesce(pr.name, 'Объект') || ' — до ' || to_char(pr.lease_end, 'DD.MM.YYYY'),
+         '/app/properties', pr.id
+  from public.properties pr
+  where pr.lease_end is not null
+    and pr.lease_end >= current_date
+    and pr.lease_end <= current_date + 30
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'lease_expiring' and n.related_id = pr.id
+        and n.created_date > now() - interval '20 days'
+    );
+end;
+$$;
+
+-- Ежедневный скан в 09:00 UTC
+do $$
+begin
+  if not exists (select 1 from cron.job where jobname = 'arendora-reminders') then
+    perform cron.schedule('arendora-reminders', '0 9 * * *', 'select public.scan_reminders();');
+  end if;
+end;
+$$;
+
+-- ============================================================
+-- 7д. Email-дайджест владельцам: раз в неделю (пн 09:00 UTC) pg_cron
+--     вызывает Edge Function send-email (Resend). Функция требует
+--     секрет EMAIL_WEBHOOK_SECRET и рассылает письма по своим данным.
+-- ============================================================
+do $$
+begin
+  if not exists (select 1 from cron.job where jobname = 'arendora-digest') then
+    perform cron.schedule(
+      'arendora-digest',
+      '0 9 * * 1',
+      $cmd$
+      select net.http_post(
+        url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/send-email',
+        headers := jsonb_build_object(
+          'Content-Type', 'application/json',
+          'x-email-secret', 'pm-email-7Kd9xQ2VtR'
+        ),
+        body := jsonb_build_object('kind', 'digest')
+      );
+      $cmd$
+    );
+  end if;
+end;
+$$;
+
+-- ============================================================
 -- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
 --    он ссылается (profiles, properties, invites)
 -- ============================================================
