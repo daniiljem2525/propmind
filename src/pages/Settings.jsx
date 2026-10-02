@@ -22,6 +22,7 @@ import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { getPushState, enablePush, disablePush } from "@/lib/push";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { probeSessionStores } from "@/lib/supabase/config";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/components/ui/toast";
@@ -30,6 +31,60 @@ import { cn, formatDate, formatMoney, initials } from "@/lib/utils";
 
 const PREFS_KEY = "arendora:prefs";
 const PLAN_KEY = "arendora:plan";
+
+// ——— Диагностика запуска ———
+// Показывает состояние сервис-воркера, кэшей и скорость загрузки
+// документа — по строке видно, где именно приложение тормозит.
+function SwDiag() {
+  const [info, setInfo] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const parts = [];
+        const reg = await navigator.serviceWorker?.getRegistration();
+        const sw = reg?.active || reg?.waiting || reg?.installing;
+        parts.push(
+          sw
+            ? `SW ${navigator.serviceWorker.controller ? "управляет" : "не управляет"} (${sw.state})`
+            : "SW нет"
+        );
+        const names = (await caches.keys()).filter(
+          (c) => c.startsWith("arendora") || c.startsWith("propmind")
+        );
+        const details = [];
+        let shell = "−";
+        for (const name of names) {
+          const cache = await caches.open(name);
+          const keys = await cache.keys();
+          details.push(`${name.replace("arendora-", "")}:${keys.length}`);
+          if (name.startsWith("arendora-shell")) {
+            const hit = await cache.match("./index.html");
+            shell = hit ? "+" : "−";
+          }
+        }
+        parts.push(`оболочка ${shell} · кэш ${details.join(", ") || "пусто"}`);
+        const nav = performance.getEntriesByType("navigation")[0];
+        if (nav) {
+          parts.push(
+            `документ: сеть ${((nav.responseStart - nav.requestStart) / 1000).toFixed(2)}с, готово ${((nav.domContentLoadedEventEnd || nav.responseEnd) / 1000).toFixed(2)}с`
+          );
+        }
+        const d = new Date(document.lastModified);
+        parts.push(
+          `билд ${String(d.getDate()).padStart(2, "0")}.${String(d.getMonth() + 1).padStart(2, "0")} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+        );
+        if (alive) setInfo(parts.join(" · "));
+      } catch {}
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return info ? (
+    <p className="mt-8 text-center text-[11px] text-muted-foreground">diag: {info}</p>
+  ) : null;
+}
 
 // ——— Сегментированный переключатель ———
 function Segmented({ options, value, onChange }) {
@@ -378,6 +433,7 @@ export default function Settings() {
 
       {tab === "plan" && <PricingPlans />}
       {tab === "users" && isAdmin && <UsersPanel />}
+      <SwDiag />
     </div>
   );
 }
