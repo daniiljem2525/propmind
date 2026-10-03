@@ -61,7 +61,11 @@ self.addEventListener("fetch", (event) => {
           .catch(() => null);
         if (shell) {
           event.waitUntil(fresh);
-          return shell;
+          // Свежая версия приоритетна (фиксы видны сразу), но на медленном
+          // канале не ждём дольше 1,5 с — отдаём кэш, докачка идёт в фоне
+          const timeout = new Promise((r) => setTimeout(() => r(null), 1500));
+          const res = await Promise.race([fresh, timeout]);
+          return res || shell;
         }
         const res = await fresh;
         return res || new Response("Arendora: нет сети и кэша", { status: 503 });
