@@ -10,6 +10,8 @@ import GuestRoute from "@/components/GuestRoute";
 import AppLayout from "@/components/layout/AppLayout";
 
 import Landing from "@/pages/Landing";
+import Terms from "@/pages/Terms";
+import Privacy from "@/pages/Privacy";
 import { Blog, BlogPost } from "@/pages/Blog";
 import Dashboard from "@/pages/Dashboard";
 import TenantPortal from "@/pages/TenantPortal";
@@ -59,6 +61,8 @@ export default function App() {
                 </Route>
 
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/privacy" element={<Privacy />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />

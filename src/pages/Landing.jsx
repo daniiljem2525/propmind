@@ -408,6 +408,8 @@ export default function Landing() {
             <a href="#features" className="hover:text-foreground">{t("land.navFeatures")}</a>
             <a href="#pricing" className="hover:text-foreground">{t("land.navPricing")}</a>
             <a href="#faq" className="hover:text-foreground">{t("land.navFaq")}</a>
+            <Link to="/terms" className="hover:text-foreground">Оферта</Link>
+            <Link to="/privacy" className="hover:text-foreground">Политика</Link>
             <Link to="/login" className="hover:text-foreground">{t("auth.signIn")}</Link>
             <Link to="/register" className="font-medium text-primary hover:underline">{t("land.cta")}</Link>
           </nav>

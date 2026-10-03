@@ -124,6 +124,12 @@ export default function Register() {
           <Button type="submit" variant="gradient" className="w-full" size="lg" loading={loading}>
             {t("auth.signUp")}
           </Button>
+          <p className="text-center text-xs text-muted-foreground">
+            {"Регистрируясь, вы принимаете "}
+            <Link to="/terms" className="text-primary hover:underline">оферту</Link>
+            {" и "}
+            <Link to="/privacy" className="text-primary hover:underline">политику конфиденциальности</Link>
+          </p>
         </form>
       ) : (
         <form onSubmit={submitOtp} className="space-y-4">
