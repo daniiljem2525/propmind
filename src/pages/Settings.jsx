@@ -229,6 +229,7 @@ function PricingPlans() {
 
 // ——— Страница настроек ———
 export default function Settings() {
+  const [searchParams] = useSearchParams();
   const { t, lang, setLang } = useLang();
   const { theme, setTheme } = useTheme();
   const { user, updateProfile, changePassword } = useAuth();
