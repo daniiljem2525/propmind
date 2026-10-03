@@ -140,7 +140,7 @@ export async function listUsers() {
 
 // Выдача тарифа пользователю (только владелец платформы — RLS)
 export async function updateUserPlan(id, plan) {
-  const { error } = await supabase.from("profiles").update({ plan }).eq("id", id);
+  const { error } = await supabase.rpc("set_user_plan", { p_user: id, p_plan: plan });
   if (error) throw error;
   return true;
 }
@@ -163,7 +163,8 @@ export async function getOrCreateInviteCode() {
 }
 
 export async function updateUserRole(id, role) {
-  const { error } = await supabase.from("profiles").update({ role }).eq("id", id);
+  // через RPC: прямой UPDATE профилей закрыт колоночными правами (эскалация)
+  const { error } = await supabase.rpc("set_user_role", { p_user: id, p_role: role });
   if (error) throw error;
   return true;
 }

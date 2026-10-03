@@ -1,3 +1,6 @@
+-- ВНИМАНИЕ: секреты вебхуков в этом файле — плейсхолдеры (PASTE_*).
+-- Живые значения задаются только в секретах Edge Functions и в
+-- cron-заданиях базы. В публичный репозиторий их не выкладывать.
 -- ============================================================
 -- Arendora: схема Supabase (версия 4)
 -- Порядок важен: сначала все таблицы, потом функции,
@@ -94,6 +97,48 @@ drop policy if exists "invites: участник видит своё пригл�
 create policy "invites: участник видит своё приглашение"
   on public.invites for select
   using (used_by = auth.uid());
+
+-- ============================================================
+-- 1а. Безопасность профилей: пользователь обновляет только имя/телефон.
+--     Роль, тариф и флаг админа через прямой UPDATE менять нельзя
+--     (PATCH своего профиля = эскалация привилегий). Админ меняет их
+--     через RPC set_user_role / set_user_plan с проверкой is_platform_owner().
+-- ============================================================
+revoke update on public.profiles from authenticated;
+revoke update on public.profiles from anon;
+grant update (full_name, phone) on public.profiles to authenticated;
+
+create or replace function public.set_user_role(p_user uuid, p_role text)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if not public.is_platform_owner() then
+    raise exception 'forbidden';
+  end if;
+  if p_role not in ('owner', 'tenant', 'contractor', 'admin') then
+    raise exception 'bad_role';
+  end if;
+  update public.profiles set role = p_role where id = p_user;
+end;
+$$;
+
+create or replace function public.set_user_plan(p_user uuid, p_plan text)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if not public.is_platform_owner() then
+    raise exception 'forbidden';
+  end if;
+  if p_plan not in ('free', 'start', 'pro', 'business', 'individual') then
+    raise exception 'bad_plan';
+  end if;
+  update public.profiles set plan = p_plan where id = p_user;
+end;
+$$;
 
 -- ============================================================
 -- 2. Объекты недвижимости
@@ -923,7 +968,7 @@ begin
       url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'x-push-secret', 'pm-webhook-9f2XkLq7Vt'
+        'x-push-secret', 'PASTE_PUSH_WEBHOOK_SECRET'
       ),
       body := jsonb_build_object(
         'notification', jsonb_build_object(
@@ -990,6 +1035,20 @@ begin
   -- себе не шлём и пустой график не шлём
   if p_tenant is null or p_tenant = auth.uid() or coalesce(p_count, 0) = 0 then
     return;
+  end if;
+  -- Целевой пользователь должен быть жильцом объекта или приглашённым
+  -- жильцом вызывающего: иначе любой аккаунт смог бы слать пуши любому
+  if not exists (
+    select 1 from public.properties pr
+    where pr.owner_id = auth.uid() and pr.tenant_id = p_tenant
+  ) and not exists (
+    select 1 from public.invites i
+    where i.owner_id = auth.uid() and i.used_by = p_tenant
+  ) then
+    raise exception 'forbidden';
+  end if;
+  if p_count > 60 then
+    raise exception 'bad_count';
   end if;
   insert into public.notifications(user_id, type, title, message, link)
   values (
@@ -1120,7 +1179,7 @@ begin
           'Content-Type', 'application/json',
           -- платформа Edge Functions требует JWT (publishable-ключ)
           'Authorization', 'Bearer sb_publishable_H3Vk7JOk4DJWMBod6CvV6Q_IRDhrqww',
-          'x-email-secret', 'pm-email-7Kd9xQ2VtR'
+          'x-email-secret', 'PASTE_EMAIL_WEBHOOK_SECRET'
         ),
         body := jsonb_build_object('kind', 'digest')
       );
