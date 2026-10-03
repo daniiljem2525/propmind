@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { cn } from "@/lib/utils";
 import { syncOverduePayments } from "@/lib/services";
+import PushOnboarding from "@/components/PushOnboarding";
 
 const KEY = "arendora:sidebar";
 
@@ -36,6 +37,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen">
+      <PushOnboarding />
       <Sidebar
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((v) => !v)}
