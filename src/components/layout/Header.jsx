@@ -58,13 +58,18 @@ export default function Header({ onOpenMobile }) {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  const QUICK_CREATE = [
-    { to: "/app/properties?new=1", icon: Building2, label: t("properties.addProperty") },
-    { to: "/app/tenants?new=1", icon: UserRound, label: t("tenants.addTenant") },
-    { to: "/app/payments?new=1", icon: CreditCard, label: t("payments.addPayment") },
-    { to: "/app/maintenance?new=1", icon: Wrench, label: t("maintenance.addRequest") },
-    { to: "/app/documents?new=1", icon: FileText, label: t("documents.upload") },
-  ];
+  // Быстрое создание — инструмент владельца: жилец и исполнитель создают
+  // своё из своих порталов, поэтому кнопка «+» им не показывается
+  const isWorkspaceOwner = ["owner", "admin"].includes(user?.role);
+  const QUICK_CREATE = isWorkspaceOwner
+    ? [
+        { to: "/app/properties?new=1", icon: Building2, label: t("properties.addProperty") },
+        { to: "/app/tenants?new=1", icon: UserRound, label: t("tenants.addTenant") },
+        { to: "/app/payments?new=1", icon: CreditCard, label: t("payments.addPayment") },
+        { to: "/app/maintenance?new=1", icon: Wrench, label: t("maintenance.addRequest") },
+        { to: "/app/documents?new=1", icon: FileText, label: t("documents.upload") },
+      ]
+    : [];
 
   const q = query.trim().toLowerCase();
   const results =
@@ -130,6 +135,7 @@ export default function Header({ onOpenMobile }) {
 
       <div className="ml-auto flex items-center gap-1.5">
         {/* Быстрое создание */}
+        {QUICK_CREATE.length > 0 && (
         <div ref={quickRef} className="relative">
           <button
             onClick={() => setQuickOpen((v) => !v)}
@@ -156,6 +162,7 @@ export default function Header({ onOpenMobile }) {
             </div>
           )}
         </div>
+        )}
 
         <button
           onClick={toggleTheme}

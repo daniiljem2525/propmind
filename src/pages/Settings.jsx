@@ -235,14 +235,17 @@ export default function Settings() {
   const { user, updateProfile, changePassword } = useAuth();
   const toast = useToast();
 
+  // Тариф — тема владельца воркспейса: жилец и исполнитель его не видят
+  const isWorkspaceOwner =
+    ["owner", "admin"].includes(user?.role) || user?.is_platform_admin === true;
   const [tab, setTab] = useState(() => {
     // Поддержка прямых ссылок вида /app/settings?tab=plan (из upsell-диалога)
     const tabParam = new URLSearchParams(window.location.search).get("tab");
-    return ["profile", "appearance", "notifications", "security", "plan", "users"].includes(tabParam)
-      ? tabParam
-      : "profile";
+    const known = ["profile", "appearance", "notifications", "security", "plan", "users"];
+    return known.includes(tabParam) ? tabParam : "profile";
   });
   const isAdmin = user?.is_platform_admin === true;
+  const activeTab = tab === "plan" && !isWorkspaceOwner ? "profile" : tab;
 
   // Профиль
   const [name, setName] = useState(user?.full_name || "");
@@ -297,7 +300,9 @@ export default function Settings() {
     { id: "appearance", icon: Palette, label: t("settings.tabAppearance") },
     { id: "notifications", icon: Bell, label: t("settings.tabNotifications") },
     { id: "security", icon: ShieldCheck, label: t("settings.tabSecurity") },
-    { id: "plan", icon: CreditCard, label: t("settings.tabPlan") },
+    ...(isWorkspaceOwner
+      ? [{ id: "plan", icon: CreditCard, label: t("settings.tabPlan") }]
+      : []),
     ...(isAdmin ? [{ id: "users", icon: Users, label: t("settings.tabUsers") }] : []),
   ];
 
@@ -324,7 +329,7 @@ export default function Settings() {
         ))}
       </div>
 
-      {tab === "profile" && (
+      {activeTab === "profile" && (
         <Card className="max-w-xl">
           <CardHeader>
             <CardTitle>{t("settings.tabProfile")}</CardTitle>
@@ -346,7 +351,7 @@ export default function Settings() {
         </Card>
       )}
 
-      {tab === "appearance" && (
+      {activeTab === "appearance" && (
         <Card className="max-w-xl">
           <CardHeader>
             <CardTitle>{t("settings.tabAppearance")}</CardTitle>
@@ -384,11 +389,11 @@ export default function Settings() {
         </Card>
       )}
 
-      {tab === "notifications" && (
+      {activeTab === "notifications" && (
         <PushCard />
 
       )}
-      {tab === "notifications" && (
+      {activeTab === "notifications" && (
         <Card className="max-w-xl mt-6">
           <CardHeader>
             <CardTitle>{t("settings.tabNotifications")}</CardTitle>
@@ -408,7 +413,7 @@ export default function Settings() {
         </Card>
       )}
 
-      {tab === "security" && (
+      {activeTab === "security" && (
         <Card className="max-w-xl">
           <CardHeader>
             <CardTitle>{t("settings.tabSecurity")}</CardTitle>
@@ -432,8 +437,8 @@ export default function Settings() {
         </Card>
       )}
 
-      {tab === "plan" && <PricingPlans />}
-      {tab === "users" && isAdmin && <UsersPanel />}
+      {activeTab === "plan" && <PricingPlans />}
+      {activeTab === "users" && isAdmin && <UsersPanel />}
       {searchParams.get("debug") && <SwDiag />}
     </div>
   );
