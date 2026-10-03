@@ -3,4 +3,6 @@
   <url><loc>https://daniiljem2525.github.io/propmind/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
   <url><loc>https://daniiljem2525.github.io/propmind/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://daniiljem2525.github.io/propmind/register</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://daniiljem2525.github.io/propmind/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://daniiljem2525.github.io/propmind/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
