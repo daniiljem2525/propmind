@@ -233,5 +233,17 @@ export const NotificationEntity = makeEntity("notifications", {
   is_read: false,
 });
 
+// Демо-режим: жилец «оплачивает» платёж локально
+export async function payPayment(paymentId) {
+  const all = await Payment.list();
+  const p = all.find((x) => x.id === paymentId);
+  if (!p) throw new Error("NOT_FOUND");
+  await Payment.update(paymentId, {
+    status: "paid",
+    paid_date: new Date().toISOString().slice(0, 10),
+    payment_method: "online",
+  });
+}
+
 // В демо-режиме второй аккаунт отсутствует — уведомление жильцу не нужно.
 export async function notifyPaymentSchedule() {}

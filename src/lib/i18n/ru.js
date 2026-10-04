@@ -141,6 +141,8 @@ export const ru = {
   "portal.connectLocal": "Подключение по коду работает в облачной версии",
   "portal.ownerClaim": "Вы арендодатель — подключаться по коду не нужно",
   "portal.paymentsSub": "Просрочки — сверху, история — ниже",
+  "portal.pay": "Оплатить",
+  "portal.payDone": "Оплата получена — владелец уведомлён",
   "portal.documents": "Документы",
   "portal.documentsSub": "Договор, акты и квитанции по вашей квартире",
   "portal.noDocuments": "Документов пока нет",

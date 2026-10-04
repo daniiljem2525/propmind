@@ -230,21 +230,17 @@ export default function Payments() {
   const periodLabel = (p) =>
     p.period_month ? `${monthShort(p.period_month - 1, lang)} ${p.period_year}` : "—";
 
-  const markPaid = async (p, { online = false } = {}) => {
+  // Владелец только фиксирует получение: онлайн-оплата — действие арендатора
+  const markPaid = async (p) => {
     await Payment.update(p.id, {
       status: "paid",
       paid_date: todayISO(),
-      payment_method: online ? "stripe" : p.payment_method || "bank",
-      stripe_payment_id: online ? `pi_demo_${uid().slice(0, 8)}` : p.stripe_payment_id || null,
+      payment_method: p.payment_method || "bank",
     });
-    if (online) {
-      toast.info(t("payments.onlineMock"));
-    } else {
-      toast.success(t("payments.paid"));
-    }
+    toast.success(t("payments.paid"));
     pushNotification({
       type: "payment_received",
-      title: online ? "Онлайн-оплата получена" : "Платёж получен",
+      title: "Платёж получен",
       message: `${p.tenant_name || p.property_name} — ${formatMoney(p.amount, p.currency, lang)}`,
       link: "/app/payments",
       related_id: p.id,
@@ -325,7 +321,6 @@ export default function Payments() {
     const { type, payment } = confirming;
     setConfirming(null);
     if (type === "paid") return markPaid(payment);
-    if (type === "online") return markPaid(payment, { online: true });
     if (type === "bulk") return markSelectedPaid();
   };
 
@@ -333,12 +328,6 @@ export default function Payments() {
   const confirmContent = () => {
     if (!confirming) return {};
     const sum = confirming.payment ? formatMoney(confirming.payment.amount, confirming.payment.currency, lang) : "";
-    if (confirming.type === "online")
-      return {
-        title: t("payments.confirmOnlineTitle"),
-        description: `${confirming.payment.tenant_name || confirming.payment.property_name} — ${sum}. ${t("payments.confirmOnlineDesc")}`,
-        label: t("payments.payOnline"),
-      };
     if (confirming.type === "bulk")
       return {
         title: t("payments.confirmBulkTitle"),
@@ -371,14 +360,9 @@ export default function Payments() {
         </Button>
       )}
       {canPay(p) && (
-        <>
-          <Button size="icon" variant="ghost" title={t("payments.markPaid")} onClick={() => setConfirming({ type: "paid", payment: p })} className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
-            <Check className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="ghost" title={t("payments.payOnline")} onClick={() => setConfirming({ type: "online", payment: p })} className="text-primary hover:bg-muted">
-            <CreditCard className="h-4 w-4" />
-          </Button>
-        </>
+        <Button size="icon" variant="ghost" title={t("payments.markPaid")} onClick={() => setConfirming({ type: "paid", payment: p })} className="text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10">
+          <Check className="h-4 w-4" />
+        </Button>
       )}
       <Button
         size="icon"

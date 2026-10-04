@@ -21,7 +21,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
-import { Property, MaintenanceRequest, Payment, Document, getLandlordContact, claimInvite } from "@/lib/api/entities";
+import { Property, MaintenanceRequest, Payment, Document, getLandlordContact, claimInvite, payPayment } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { useToast } from "@/components/ui/toast";
@@ -146,6 +146,23 @@ export default function TenantPortal() {
   };
 
   // Просрочки сверху, затем ожидающие, затем история
+  const [payingId, setPayingId] = useState(null);
+
+  // Онлайн-оплата жильцом: RPC проверяет платёж, ставит «оплачен»
+  // и отправляет владельцу уведомление (push через триггер)
+  const pay = async (p) => {
+    setPayingId(p.id);
+    try {
+      await payPayment(p.id);
+      toast.success(t("portal.payDone"));
+    } catch (e) {
+      console.error("pay failed:", e);
+      toast.error(e?.message ? `${t("errors.generic")} (${e.message})` : t("errors.generic"));
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   const sortedPayments = useMemo(() => {
     const rank = (s) => (s === "overdue" ? 0 : s === "pending" ? 1 : s === "partial" ? 2 : 3);
     return [...myPayments].sort((a, b) => {
@@ -417,6 +434,11 @@ export default function TenantPortal() {
               <span className={`shrink-0 text-sm font-semibold ${p.status === "overdue" ? "text-rose-600 dark:text-rose-400" : ""}`}>
                 {formatMoney(p.amount, p.currency || "RUB", lang)}
               </span>
+              {isSupabaseConfigured && (p.status === "pending" || p.status === "overdue") && (
+                <Button size="sm" onClick={() => pay(p)} loading={payingId === p.id}>
+                  {t("portal.pay")}
+                </Button>
+              )}
               <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
             </div>
           ))}

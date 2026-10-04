@@ -112,6 +112,13 @@ export async function getLandlordContact(propertyId, userId) {
   return prof || null;
 }
 
+// Онлайн-оплата жильцом: RPC проверяет, что платёж его и неоплаченный,
+// ставит «оплачен» и уведомляет владельца (push через триггер 7б).
+export async function payPayment(paymentId) {
+  const { error } = await supabase.rpc("pay_payment", { p_payment_id: paymentId });
+  if (error) throw error;
+}
+
 // Подключение жильца к арендодателю по его персональному коду
 export async function claimInvite(code) {
   const { data, error } = await supabase.rpc("claim_invite", { p_code: code });

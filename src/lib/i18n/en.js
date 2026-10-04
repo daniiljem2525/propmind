@@ -141,6 +141,8 @@ export const en = {
   "portal.ownerClaim": "You're a landlord — no need to connect by code",
   "portal.dueUntil": "Due",
   "portal.paymentsSub": "Overdue first, history below",
+  "portal.pay": "Pay",
+  "portal.payDone": "Payment received — the owner has been notified",
   "portal.documents": "Documents",
   "portal.documentsSub": "Lease, acts and receipts for your apartment",
   "portal.noDocuments": "No documents yet",

@@ -1189,6 +1189,36 @@ begin
 end;
 $$;
 
+-- Онлайн-оплата жильцом: платёж должен быть его и неоплаченным.
+-- После оплаты владельцу уходит уведомление (INSERT → push-триггер 7б).
+create or replace function public.pay_payment(p_payment_id uuid)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_owner uuid;
+  v_tenant_name text;
+begin
+  select owner_id, tenant_name into v_owner, v_tenant_name
+  from public.payments
+  where id = p_payment_id and tenant_id = auth.uid()
+    and status in ('pending', 'overdue');
+  if v_owner is null then
+    raise exception 'forbidden';
+  end if;
+  update public.payments
+    set status = 'paid', paid_date = now()::date, payment_method = 'online'
+  where id = p_payment_id;
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  values (
+    v_owner, 'payment_received', 'Жилец оплатил платёж',
+    coalesce(v_tenant_name, 'Жилец') || ' — онлайн-оплата',
+    '/app/payments', p_payment_id
+  );
+end;
+$$;
+
 -- ============================================================
 -- 8. Триггер профиля — ПОСЛЕ создания всех таблиц, на которые
 --    он ссылается (profiles, properties, invites)

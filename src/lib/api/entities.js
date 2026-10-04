@@ -15,6 +15,7 @@ export const RequestEvent = backend.RequestEvent;
 export const getLandlordContact = backend.getLandlordContact;
 export const claimInvite = backend.claimInvite;
 export const notifyPaymentSchedule = backend.notifyPaymentSchedule;
+export const payPayment = backend.payPayment;
 export const Document = backend.Document;
 export const NotificationEntity = backend.NotificationEntity;
 export const registerCurrentUserFn = local.registerCurrentUserFn;
