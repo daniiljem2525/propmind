@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { useCollection } from "@/hooks/useCollection";
 import { NotificationEntity } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
+import { useToast } from "@/components/ui/toast";
 import { NOTIFICATION_TYPE_CONFIG } from "@/lib/config/statuses";
 import { cn, formatDate } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -17,6 +18,8 @@ export default function Notifications() {
   const { t, lang } = useLang();
   const [confirmAll, setConfirmAll] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
+  const [markingAll, setMarkingAll] = useState(false);
   const { data: notifications } = useCollection(NotificationEntity);
   const unread = notifications.filter((n) => !n.is_read).length;
 
@@ -25,9 +28,22 @@ export default function Notifications() {
     if (n.link) navigate(n.link);
   };
 
+  // Параллельно и отказоустойчиво: сбой одного уведомления не останавливает
+  // остальные, ошибки показываются, у кнопки есть индикатор загрузки
   const markAll = async () => {
-    for (const n of notifications.filter((x) => !x.is_read)) {
-      await NotificationEntity.update(n.id, { is_read: true });
+    setMarkingAll(true);
+    try {
+      const unreadItems = notifications.filter((x) => !x.is_read);
+      const results = await Promise.allSettled(
+        unreadItems.map((n) => NotificationEntity.update(n.id, { is_read: true }))
+      );
+      const failed = results.filter((r) => r.status === "rejected").length;
+      if (failed) {
+        console.error("markAll failed for", failed, "items");
+        toast.error(t("errors.generic") + " (" + failed + ")");
+      }
+    } finally {
+      setMarkingAll(false);
     }
   };
 
@@ -38,7 +54,7 @@ export default function Notifications() {
         subtitle={unread > 0 ? t("notifications.unread").replace("{n}", unread) : t("notifications.subtitle")}
         actions={
           unread > 0 && (
-            <Button variant="outline" onClick={() => setConfirmAll(true)}>
+            <Button variant="outline" onClick={() => setConfirmAll(true)} loading={markingAll}>
               <CheckCheck className="h-4 w-4" />
               {t("notifications.markAllRead")}
             </Button>

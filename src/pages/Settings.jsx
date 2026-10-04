@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import {
   Bell,
   Check,
+  Eye,
+  EyeOff,
   CreditCard,
   Mail,
   Palette,
@@ -249,6 +251,7 @@ export default function Settings() {
 
   // Профиль
   const [name, setName] = useState(user?.full_name || "");
+  const [showPw, setShowPw] = useState(false);
   useEffect(() => setName(user?.full_name || ""), [user?.full_name]);
 
   // Уведомления
@@ -421,13 +424,40 @@ export default function Settings() {
           <CardContent>
             <form onSubmit={submitPassword} className="space-y-4">
               <Field label={t("settings.currentPassword")} required>
-                <Input type="password" value={pw.current} onChange={(e) => setPw((f) => ({ ...f, current: e.target.value }))} />
+                <div className="relative">
+                  <Input type={showPw ? "text" : "password"} value={pw.current} onChange={(e) => setPw((f) => ({ ...f, current: e.target.value }))} className="pr-10" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </Field>
               <Field label={t("auth.newPassword")} required>
-                <Input type="password" value={pw.next} onChange={(e) => setPw((f) => ({ ...f, next: e.target.value }))} />
+                <div className="relative">
+                  <Input type={showPw ? "text" : "password"} value={pw.next} onChange={(e) => setPw((f) => ({ ...f, next: e.target.value }))} className="pr-10" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </Field>
               <Field label={t("auth.newPasswordRepeat")} required>
-                <Input type="password" value={pw.repeat} onChange={(e) => setPw((f) => ({ ...f, repeat: e.target.value }))} />
+                <div className="relative">
+                  <Input type={showPw ? "text" : "password"} value={pw.repeat} onChange={(e) => setPw((f) => ({ ...f, repeat: e.target.value }))} className="pr-10" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPw((v) => !v)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </Field>
               <Button type="submit" loading={pwSaving}>
                 {t("auth.setPassword")}
