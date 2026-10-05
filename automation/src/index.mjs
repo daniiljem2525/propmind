@@ -102,10 +102,23 @@ async function processQueue() {
   const order = await db.nextPendingOrder();
   if (!order) return false;
 
+  // пользователь мог отменить заказ, пока он ждал в очереди
+  const fresh = await db.getOrder(order.id);
+  if (!fresh || fresh.status !== "pending") {
+    console.log(`[${stamp()}] заказ ${order.id} отменён — пропускаю`);
+    return false;
+  }
+
   console.log(`[${stamp()}] обрабатываю заказ ${order.id} («${order.service_query}»)`);
-    await db.updateOrder(order.id, { status: "running" });
-    try {
-      order.address = await resolveAddress(order);
+  await db.updateOrder(order.id, { status: "running" });
+  try {
+    // повторная проверка после пометки running: отмена могла прийти в этот момент
+    const recheck = await db.getOrder(order.id);
+    if (recheck?.status === "cancelled") {
+      console.log(`[${stamp()}] заказ ${order.id} отменён — не создаю`);
+      return true;
+    }
+    order.address = await resolveAddress(order);
       const result = await createProfiOrder(order);
       if (!result.published) {
         await db.updateOrder(order.id, {
@@ -210,6 +223,8 @@ async function sendIntro(order, offer) {
 // Один и тот же чат Профи может числиться за несколькими заказами очереди —
 // уведомляем о новом сообщении только один раз.
 const notifiedKeys = new Set();
+// заказы, проверенные недавно: старые заказы не дёргаем каждые 20 секунд
+const lastMonitored = new Map();
 
 async function monitorOffers() {
   let sent;
@@ -218,7 +233,10 @@ async function monitorOffers() {
   } catch {
     return;
   }
+  const now = Date.now();
   for (const order of sent) {
+    if (now - (lastMonitored.get(order.id) || 0) < config.monitorIntervalSec * 1000) continue;
+    lastMonitored.set(order.id, now);
     const profiOrderId = profiOrderIdFromUrl(order.result_url);
     if (!profiOrderId) continue;
     let chats;

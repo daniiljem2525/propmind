@@ -41,6 +41,13 @@ export const db = {
     return rows && rows[0] ? rows[0] : null;
   },
 
+  async getOrder(id) {
+    const rows = await request("GET", "/automation_orders", {
+      query: { select: "id,status", id: `eq.${id}`, limit: "1" },
+    });
+    return rows && rows[0] ? rows[0] : null;
+  },
+
   updateOrder(id, patch) {
     return request("PATCH", "/automation_orders", {
       query: { id: `eq.${id}` },

@@ -8,6 +8,8 @@ export const config = {
   supabaseUrl: (process.env.SUPABASE_URL || "").replace(/\/+$/, ""),
   supabaseKey: process.env.SUPABASE_SERVICE_KEY || "",
   pollIntervalSec: num(process.env.POLL_INTERVAL_SEC, 20),
+  // как часто проверять чаты уже отправленных заказов (сек)
+  monitorIntervalSec: num(process.env.MONITOR_INTERVAL_SEC, 120),
   headless: bool(process.env.HEADLESS ?? "1"),
   defaultAddress: process.env.DEFAULT_ADDRESS || "",
   autoEnqueue: bool(process.env.AUTO_ENQUEUE_NEW_REQUESTS ?? "0"),

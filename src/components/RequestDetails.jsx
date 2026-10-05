@@ -59,6 +59,15 @@ const profiServiceQuery = (r) => {
 };
 const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };
 
+// Статусы заказов в очереди Профи (automation_orders)
+const ORDER_STATUS_LABEL = {
+  pending: { ru: "В очереди", en: "Queued" },
+  running: { ru: "Создаётся", en: "In progress" },
+  sent: { ru: "Отправлен", en: "Sent" },
+  failed: { ru: "Ошибка", en: "Failed" },
+  cancelled: { ru: "Отменён", en: "Cancelled" },
+};
+
 // Суть заявки одним предложением: без дублей заголовка и описания
 const requestDetailsText = (r) => {
   const t = (r.title || "").trim().replace(/[.]+\s*$/, "");
@@ -171,17 +180,19 @@ export default function RequestDetails({ request, open, onClose }) {
   const [sending, setSending] = useState(false);
   const [sendingProfi, setSendingProfi] = useState(false);
   const [offers, setOffers] = useState([]);
+  const [orders, setOrders] = useState([]);
 
   useEffect(() => {
     if (!open || !request) return undefined;
     let alive = true;
-    Promise.all([RequestEvent.list(), RequestComment.list(), ProfiOffer.list()])
-      .then(([evs, cmts, offs]) => {
+    Promise.all([RequestEvent.list(), RequestComment.list(), ProfiOffer.list(), AutomationOrder.list()])
+      .then(([evs, cmts, offs, ords]) => {
         if (!alive) return;
         const mine = (rows) => rows.filter((x) => x.request_id === request.id);
         setEvents(mine(evs).sort(byDate));
         setComments(mine(cmts).sort(byDate));
         setOffers(mine(offs).sort(byDate));
+        setOrders(mine(ords).sort(byDate));
       })
       .catch(() => {});
     return () => {
@@ -236,13 +247,20 @@ export default function RequestDetails({ request, open, onClose }) {
   const sendToProfi = async () => {
     setSendingProfi(true);
     try {
+      // предыдущие незавершённые заказы этой заявки отменяем — чтобы воркер
+      // не создавал дубли на Профи
+      for (const o of orders) {
+        if (["pending", "running"].includes(o.status)) {
+          await AutomationOrder.update(o.id, { status: "cancelled" }).catch(() => {});
+        }
+      }
       // адрес объекта сразу в очередь — воркер подставит его на шаге «Улица и номер дома»
       let address = null;
       if (request.property_id) {
         const prop = await Property.getById(request.property_id).catch(() => null);
         address = prop?.address || null;
       }
-      await AutomationOrder.create({
+      const created = await AutomationOrder.create({
         request_id: request.id,
         platform: "profi",
         service_query: profiServiceQuery(request),
@@ -251,6 +269,10 @@ export default function RequestDetails({ request, open, onClose }) {
         budget: request.estimate_cost ?? null,
         deadline: URGENCY_DEADLINE[request.urgency] || "week",
       });
+      setOrders((prev) => [
+        { ...created, status: created?.status || "pending" },
+        ...prev.map((o) => (["pending", "running"].includes(o.status) ? { ...o, status: "cancelled" } : o)),
+      ]);
       toast.success(
         lang === "ru"
           ? "Заявка в очереди: воркер создаст заказ на Профи.ру"
@@ -331,6 +353,62 @@ export default function RequestDetails({ request, open, onClose }) {
           <div className="rounded-md bg-muted/60 px-3 py-2 text-sm">
             <p className="text-xs text-muted-foreground">{t("jobs.workNotes")}</p>
             <p>{request.work_notes}</p>
+          </div>
+        )}
+
+        {/* Заказы на Профи.ру: статусы и отмена */}
+        {orders.length > 0 && (
+          <div>
+            <h4 className="mb-3 text-sm font-semibold">
+              {lang === "ru" ? "Заказы на Профи.ру" : "Profi.ru orders"}
+            </h4>
+            <div className="space-y-2">
+              {orders.map((o) => {
+                const cfg = ORDER_STATUS_LABEL[o.status] || ORDER_STATUS_LABEL.pending;
+                const cancellable = ["pending", "running"].includes(o.status);
+                return (
+                  <div key={o.id} className="flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm">
+                    <span className="font-medium">{o.service_query}</span>
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      {lang === "ru" ? cfg.ru : cfg.en}
+                    </span>
+                    {o.status === "sent" && o.result_url && (
+                      <a
+                        href={o.result_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs text-sky-600 hover:underline dark:text-sky-400"
+                      >
+                        {lang === "ru" ? "открыть на Профи" : "open on Profi"}
+                      </a>
+                    )}
+                    {o.status === "failed" && o.error && (
+                      <span className="min-w-0 flex-1 truncate text-xs text-rose-500" title={o.error}>
+                        {o.error}
+                      </span>
+                    )}
+                    {cancellable && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="ml-auto text-rose-600"
+                        onClick={async () => {
+                          try {
+                            await AutomationOrder.update(o.id, { status: "cancelled" });
+                            setOrders((prev) => prev.map((x) => (x.id === o.id ? { ...x, status: "cancelled" } : x)));
+                          } catch {
+                            toast.error(t("errors.generic"));
+                          }
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                        {lang === "ru" ? "Отменить" : "Cancel"}
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

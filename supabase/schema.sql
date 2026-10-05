@@ -1389,3 +1389,9 @@ create policy "profi_offers: владелец — полные права"
   on public.profi_offers for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
+
+-- 11б. Статус cancelled: пользователь отменил заказ из приложения,
+--      воркер его не трогает
+alter table public.automation_orders drop constraint if exists automation_orders_status_check;
+alter table public.automation_orders add constraint automation_orders_status_check
+  check (status in ('pending', 'running', 'sent', 'failed', 'cancelled'));
