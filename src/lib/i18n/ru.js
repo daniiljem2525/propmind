@@ -7,6 +7,7 @@ export const ru = {
   "nav.properties": "Объекты",
   "nav.tenants": "Арендаторы",
   "nav.payments": "Платежи",
+  "nav.services": "Службы",
   "nav.maintenance": "Заявки",
   "nav.documents": "Документы",
   "nav.analytics": "Аналитика",

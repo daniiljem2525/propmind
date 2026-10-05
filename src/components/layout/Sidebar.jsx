@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Settings,
   ShieldCheck,
+  Sparkles,
   Users,
   Wrench,
 } from "lucide-react";
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { to: "/app/tenants", icon: Users, key: "nav.tenants", roles: ["owner", "admin"] },
   { to: "/app", icon: House, key: "portal.myHome", end: true, roles: ["tenant"] },
   { to: "/app/payments", icon: CreditCard, key: "nav.payments", roles: ["owner", "admin", "tenant"] },
+  { to: "/app/services", icon: Sparkles, key: "nav.services", roles: ["owner", "admin", "tenant"] },
   { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance", roles: ["owner", "admin", "contractor"] },
   { to: "/app/documents", icon: FileText, key: "nav.documents", roles: ["owner", "admin", "tenant"] },
   { to: "/app/analytics", icon: BarChart3, key: "nav.analytics", roles: ["owner", "admin"] },
