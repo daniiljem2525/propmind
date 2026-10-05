@@ -117,7 +117,9 @@ const isPhoneStep = (st) =>
 async function handleStep(page, order, log) {
   const st = await stepState(page);
   const headings = st.headings.join(" | ");
-  log.push(`шаг: ${headings || "(нет заголовков)"}`);
+  log.push(
+    `шаг: ${headings || "(нет заголовков)"} | кнопки: ${st.buttons.filter(Boolean).slice(0, 8).join(",") || "-"} | вариантов: ${st.options.length} | textarea: ${st.textboxes.length}`,
+  );
 
   if (isPhoneStep(st)) {
     throw new NeedsLoginError(
@@ -220,14 +222,106 @@ async function handleStep(page, order, log) {
     return "continue";
   }
 
+  // Сводка «Ваша задача» — проверяем ДО правила textarea: в скрытом контейнере
+  // сводки лежит inline-редактор с полями, которые не должны ловиться общими
+  // правилами. Без привязанной услуги «Найти профи» не работает — сначала
+  // «Добавить услугу» и проходим его вопросы, потом публикуем.
+  if (st.buttons.includes("Найти профи")) {
+    const editing = st.buttons.includes("Добавить услугу");
+    if (editing && !page.__svcEdit) {
+      page.__svcEdit = true;
+      await clickButton(page, "Добавить услугу");
+      return "continue";
+    }
+    if (editing) {
+      // открыт вопрос inline-редактора — проходим его
+      if (st.options.length > 0) {
+        await clickOption(page, st.options[0]);
+        await page.waitForTimeout(400);
+        if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Продолжить");
+        return "continue";
+      }
+      const addrInput =
+        (await textboxByRole(page, /Улица и номер дома/)) || page.getByPlaceholder(/Улица и номер дома/).locator("visible=true").first();
+      if ((await addrInput.count()) > 0) {
+        const address = order.address || config.defaultAddress;
+        if (!address) throw new Error("Не заполнен адрес — шаг адреса в редакторе услуги");
+        await addrInput.first().fill(address);
+        await page.waitForTimeout(3500);
+        await page.evaluate(() => {
+          const s = [...document.querySelectorAll('li[class*="Autosuggest_suggestion"]')];
+          if (s.length) s[0].click();
+        });
+        await page.waitForTimeout(1200);
+        if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Продолжить");
+        return "continue";
+      }
+      if (st.spin) {
+        const sp = page.locator('input[type="number"], input[inputmode="numeric"]').first();
+        if (Number(order.budget) > 0) {
+          await sp.fill(String(Math.round(Number(order.budget))));
+          await page.waitForTimeout(400);
+        }
+        if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Продолжить");
+        return "continue";
+      }
+      // редактор без распознанного вопроса: НЕ трогаем поля (это строки
+      // деталей задачи) — последнее средство: пробуем «Найти профи» как есть
+      page.__svcEdit = false;
+      await clickButton(page, "Найти профи");
+      return "done";
+    }
+    if (config.dryRun) {
+      log.push("DRY_RUN: финальная кнопка «Найти профи» не нажата");
+      return "dry-run-stop";
+    }
+    await clickButton(page, "Найти профи");
+    return "done";
+  }
+
   // 6. Любое большое текстовое поле — описание задачи
   //    («Важные детали…», «Опишите детали задачи» — у поля бывает разное имя)
   const taLoc = page.locator("textarea").locator("visible=true");
-  if ((await taLoc.count()) > 0) {
-    await taLoc.first().fill(order.details || order.service_query || "");
-    await page.waitForTimeout(600);
-    if (!(await clickButton(page, "Продолжить"))) await clickButton(page, "Пропустить");
+  const taCount = await taLoc.count();
+  if (taCount > 0) {
+    // из нескольких полей берём то, что похоже на описание задачи
+    let target = taLoc.first();
+    for (let i = 0; i < taCount; i++) {
+      const mark =
+        ((await taLoc.nth(i).getAttribute("placeholder")) || "") +
+        " " +
+        ((await taLoc.nth(i).getAttribute("aria-label")) || "");
+      if (/важные|детали|опишите|пожелан/i.test(mark)) {
+        target = taLoc.nth(i);
+        break;
+      }
+    }
+    await target.fill(order.details || order.service_query || "");
+    await page.waitForTimeout(1200);
+    // на шаге «Остались пожелания?» кнопка отправки появляется после ввода
+    const after = await stepState(page);
+    if (after.buttons.includes("Подобрать специалистов")) {
+      if (config.dryRun) {
+        log.push("DRY_RUN: «Подобрать специалистов» не нажата");
+        return "dry-run-stop";
+      }
+      await clickButton(page, "Подобрать специалистов");
+      return "done";
+    }
+    if (!(await clickButton(page, "Продолжить"))) {
+      if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Пропустить");
+    }
     return "continue";
+  }
+
+  // 6б. Кнопка финальной отправки в любом другом месте мастера
+  if (st.buttons.includes("Подобрать специалистов")) {
+    if (config.dryRun) {
+      log.push("DRY_RUN: «Подобрать специалистов» не нажата");
+      return "dry-run-stop";
+    }
+    await clickButton(page, "Подобрать специалистов");
+    return "done";
   }
 
   // 7. Готовность выбрать специалиста → финальная отправка
@@ -243,6 +337,13 @@ async function handleStep(page, order, log) {
   }
 
   // 7б. Сводка «Ваша задача» — кнопка «Найти профи»
+  // 7б. Сводка «Ваша задача». Без привязанной услуги «Найти профи» не работает —
+  // сначала «Добавить услугу» (мастер переспросит шаги и привяжет услугу).
+  if (st.buttons.includes("Добавить услугу")) {
+    await clickButton(page, "Добавить услугу");
+    return "continue";
+  }
+
   if (st.buttons.includes("Найти профи")) {
     if (config.dryRun) {
       log.push("DRY_RUN: финальная кнопка «Найти профи» не нажата");
@@ -275,7 +376,9 @@ async function handleStep(page, order, log) {
       await clickOption(page, st.options[0]);
     }
     await page.waitForTimeout(500);
-    if (!(await clickButton(page, "Продолжить"))) await clickButton(page, "Пропустить");
+    if (!(await clickButton(page, "Продолжить"))) {
+      if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Пропустить");
+    }
     return "continue";
   }
 
@@ -287,6 +390,33 @@ async function handleStep(page, order, log) {
   if (st.buttons.includes("Продолжить")) {
     await clickButton(page, "Продолжить");
     return "continue";
+  }
+  if (st.buttons.includes("Дальше")) {
+    await clickButton(page, "Дальше");
+    return "continue";
+  }
+
+  // страница могла ещё не дорисоваться — ждём до ~15 секунд, при зависании
+  // перезагружаем (после редиректа на страницу услуги так бывает)
+  if (
+    st.buttons.filter(Boolean).length <= 1 &&
+    st.options.length === 0 &&
+    st.textboxes.length === 0
+  ) {
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(3000);
+      const retry = await stepState(page);
+      if (
+        retry.buttons.filter(Boolean).length > 1 ||
+        retry.options.length > 0 ||
+        retry.textboxes.length > 0
+      ) {
+        return handleStep(page, order, log);
+      }
+    }
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(5000);
+    return handleStep(page, order, log);
   }
 
   await page.screenshot({ path: "debug-stuck.png", fullPage: true }).catch(() => {});
