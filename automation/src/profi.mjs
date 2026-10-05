@@ -348,3 +348,94 @@ export async function interactiveLogin() {
   await ctx.close();
   console.log("Готово: профиль сохранён в", config.profileDir);
 }
+
+// ============ Переговоры: отклики мастеров и чаты ============
+
+const orderPageUrl = (profiOrderId, chatId) =>
+  `https://profi.ru/cabinet/order/${profiOrderId}/${chatId ? `?tabName=CHAT&chatId=${chatId}` : ""}`;
+
+async function withPage(fn) {
+  const ctx = await chromium.launchPersistentContext(config.profileDir, {
+    headless: config.headless,
+    viewport: { width: 1280, height: 900 },
+    locale: "ru-RU",
+    args: ["--disable-blink-features=AutomationControlled"],
+  });
+  const page = ctx.pages()[0] || (await ctx.newPage());
+  try {
+    return await fn(page);
+  } finally {
+    await ctx.close();
+  }
+}
+
+/**
+ * Список чатов по опубликованному заказу.
+ * Возвращает [{ chatId, name, preview }].
+ */
+export async function listChats(profiOrderId) {
+  return withPage(async (page) => {
+    await page.goto(orderPageUrl(profiOrderId), { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(5000);
+    return page.evaluate(() =>
+      [...document.querySelectorAll('a[class*="ReplyContent_replyItem"]')]
+        .map((a) => {
+          const chatId = new URLSearchParams(a.getAttribute("href") || "").get("chatId");
+          const name = a.querySelector('p[class*="ReplyName_name"]')?.textContent.trim() || "";
+          const preview = a.querySelector('[class*="ReplyContent_message"]')?.textContent.trim() || "";
+          return { chatId, name, preview };
+        })
+        .filter((c) => c.chatId && c.name),
+    );
+  });
+}
+
+/**
+ * Прочитать переписку чата. Сторона сообщения определяется по позиции
+ * пузыря (свои — справа). Возвращает [{ mine, text, time }].
+ */
+export async function readChatMessages(profiOrderId, chatId) {
+  return withPage(async (page) => {
+    await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(5000);
+    return page.evaluate(() => {
+      const panel = document.querySelector('[data-testid="order_chat_widget"]');
+      if (!panel) return [];
+      const panelBox = panel.getBoundingClientRect();
+      const bubbles = [...panel.querySelectorAll("[data-message-group-id] div[id]")];
+      return bubbles.map((b) => {
+        const box = b.getBoundingClientRect();
+        const lines = (b.innerText || "").split("\n").filter(Boolean);
+        const time = /^\d{1,2}:\d{2}$/.test(lines[lines.length - 1] || "")
+          ? lines.pop()
+          : "";
+        return {
+          mine: box.left > (panelBox.left + panelBox.right) / 2,
+          text: lines.join("\n").trim(),
+          time,
+        };
+      });
+    });
+  });
+}
+
+/** Отправить сообщение мастеру в чат. */
+export async function sendChatMessage(profiOrderId, chatId, text) {
+  return withPage(async (page) => {
+    await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(5000);
+    const input = page.locator('textarea[placeholder="Сообщение"]');
+    if ((await input.count()) === 0) throw new Error("Не найдено поле «Сообщение» в чате Профи");
+    await input.fill(text);
+    await page.waitForTimeout(400);
+    await input.press("Enter");
+    await page.waitForTimeout(3000);
+    // проверяем, что сообщение появилось среди пузырей
+    const sent = await page.evaluate((t) => {
+      const panel = document.querySelector('[data-testid="order_chat_widget"]');
+      return !!panel && panel.innerText.includes(t.slice(0, 40));
+    }, text);
+    if (!sent) throw new Error("Сообщение не подтвердилось в чате Профи");
+    return true;
+  });
+}

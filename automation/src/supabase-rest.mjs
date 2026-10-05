@@ -87,4 +87,65 @@ export const db = {
       })) || [];
     return rows[0] || null;
   },
+
+  // ---- отклики мастеров ----
+
+  sentOrders() {
+    return request("GET", "/automation_orders", {
+      query: {
+        select: "*",
+        platform: "eq.profi",
+        status: "eq.sent",
+        result_url: "not.is.null",
+      },
+    });
+  },
+
+  offersForOrder(orderId) {
+    return request("GET", "/profi_offers", {
+      query: { select: "*", order_id: `eq.${orderId}` },
+    });
+  },
+
+  offersToReact() {
+    return request("GET", "/profi_offers", {
+      query: {
+        select: "*",
+        status: "in.(approved,countered,declined)",
+        replied_at: "is.null",
+      },
+    });
+  },
+
+  async findOffer(orderId, chatId) {
+    const rows =
+      (await request("GET", "/profi_offers", {
+        query: { select: "*", order_id: `eq.${orderId}`, chat_id: `eq.${chatId}`, limit: "1" },
+      })) || [];
+    return rows[0] || null;
+  },
+
+  createOffer(row) {
+    return request("POST", "/profi_offers", { body: row });
+  },
+
+  updateOffer(id, patch) {
+    return request("PATCH", "/profi_offers", {
+      query: { id: `eq.${id}` },
+      body: { ...patch, updated_at: new Date().toISOString() },
+    });
+  },
+
+  notify(userId, { title, message, relatedId = null }) {
+    return request("POST", "/notifications", {
+      body: {
+        user_id: userId,
+        type: "profi_offer",
+        title,
+        message,
+        link: "/app/maintenance",
+        related_id: relatedId,
+      },
+    });
+  },
 };

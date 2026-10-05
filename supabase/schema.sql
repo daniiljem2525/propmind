@@ -1349,3 +1349,41 @@ create policy "automation_orders: владелец — полные права"
   on public.automation_orders for all
   using (owner_id = auth.uid())
   with check (owner_id = auth.uid());
+
+-- ============================================================
+-- 12. Отклики мастеров с Профи.ру и согласование встречи
+--     Воркер создаёт строку на каждый чат по заказу, владелец
+--     принимает/отклоняет/предлагает другое время — воркер
+--     отвечает мастеру в чате Профи.
+-- ============================================================
+create table if not exists public.profi_offers (
+  id            uuid primary key default gen_random_uuid(),
+  owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  order_id      uuid references public.automation_orders(id) on delete cascade,
+  request_id    uuid references public.maintenance_requests(id) on delete cascade,
+  profi_order_id text,
+  chat_id       text,
+  master_name   text not null default '',
+  master_rating text,
+  price_text    text,
+  last_message  text not null default '',
+  proposed_time text,
+  status        text not null default 'new'
+                check (status in ('new', 'approved', 'declined', 'countered', 'hired')),
+  reply_text    text,
+  scheduled_at  text,
+  replied_at    timestamptz,
+  created_date  timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists profi_offers_request_idx on public.profi_offers(request_id);
+create index if not exists profi_offers_status_idx on public.profi_offers(status);
+
+alter table public.profi_offers enable row level security;
+
+drop policy if exists "profi_offers: владелец — полные права" on public.profi_offers;
+create policy "profi_offers: владелец — полные права"
+  on public.profi_offers for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());

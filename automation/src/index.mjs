@@ -2,7 +2,7 @@
 // status=pending), создаёт их на Профи.ру и пишет результат обратно.
 import { config, assertConfig, CATEGORY_TO_SERVICE, URGENCY_TO_DEADLINE } from "./config.mjs";
 import { db } from "./supabase-rest.mjs";
-import { createProfiOrder } from "./profi.mjs";
+import { createProfiOrder, listChats, readChatMessages, sendChatMessage } from "./profi.mjs";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const stamp = () => new Date().toLocaleTimeString("ru-RU");
@@ -93,10 +93,124 @@ async function main() {
     try {
       if (config.autoEnqueue) await autoEnqueue();
       await processQueue();
+      await monitorOffers();
+      await reactOffers();
     } catch (err) {
       console.error(`[${stamp()}] цикл прерван: ${err.message}`);
     }
     await sleep(config.pollIntervalSec * 1000);
+  }
+}
+
+// ============ Мониторинг откликов и согласование встречи ============
+
+// примерное время из текста мастера: «завтра после 15:00», «в 14:00»
+function extractProposedTime(text) {
+  if (!text) return null;
+  const m = text.match(
+    /(?:сегодня|завтра|послезавтра)?[^.!?\n]{0,40}\d{1,2}[:.]\d{2}[^.!?\n]{0,20}/i,
+  );
+  return m ? m[0].replace(/\s+/g, " ").trim().slice(0, 80) : null;
+}
+
+const profiOrderIdFromUrl = (url) => (url.match(/order\/(\d+)/) || [])[1] || null;
+
+// Новые отклики/сообщения мастеров → profi_offers + уведомление владельцу.
+async function monitorOffers() {
+  let sent;
+  try {
+    sent = (await db.sentOrders()) || [];
+  } catch {
+    return;
+  }
+  for (const order of sent) {
+    const profiOrderId = profiOrderIdFromUrl(order.result_url);
+    if (!profiOrderId) continue;
+    let chats;
+    try {
+      chats = await listChats(profiOrderId);
+    } catch (err) {
+      console.error(`[${stamp()}] мониторинг ${profiOrderId}: ${err.message}`);
+      continue;
+    }
+    const existing = (await db.offersForOrder(order.id)) || [];
+    for (const chat of chats) {
+      const prev = existing.find((x) => x.chat_id === chat.chatId);
+      // последнее входящее от мастера (не наше собственное сообщение)
+      let lastIncoming = null;
+      let readOk = false;
+      try {
+        const msgs = await readChatMessages(profiOrderId, chat.chatId);
+        readOk = true;
+        const incoming = msgs.filter((m) => !m.mine && m.text);
+        if (incoming.length) lastIncoming = incoming[incoming.length - 1];
+      } catch (err) {
+        console.error(`[${stamp()}] чтение чата ${chat.chatId}: ${err.message}`);
+      }
+      if (readOk && !lastIncoming) continue; // в чате только наши сообщения
+      const incomingText = (lastIncoming ? lastIncoming.text : chat.preview).slice(0, 900);
+      if (prev && prev.last_message === incomingText) continue; // нового от мастера нет
+      const incomingRaw = lastIncoming ? lastIncoming.text : chat.preview;
+      const proposed = extractProposedTime(incomingRaw);
+      if (!prev) {
+        await db.createOffer({
+          owner_id: order.owner_id,
+          order_id: order.id,
+          request_id: order.request_id,
+          profi_order_id: profiOrderId,
+          chat_id: chat.chatId,
+          master_name: chat.name,
+          price_text: null,
+          last_message: incomingText,
+          proposed_time: proposed,
+          status: "new",
+        });
+        await db.notify(order.owner_id, {
+          title: `Профи: отклик — ${chat.name}`,
+          message: proposed
+            ? `«${incomingRaw.slice(0, 160)}» · предложил время: ${proposed}`
+            : `«${incomingRaw.slice(0, 160)}»`,
+          relatedId: order.request_id,
+        });
+        console.log(`[${stamp()}] новый отклик: ${chat.name} по заказу ${profiOrderId}`);
+      } else {
+        await db.updateOffer(prev.id, {
+          last_message: incomingText,
+          proposed_time: proposed ?? prev.proposed_time,
+        });
+        await db.notify(order.owner_id, {
+          title: `Профи: новое сообщение — ${chat.name}`,
+          message: incomingRaw.slice(0, 200),
+          relatedId: order.request_id,
+        });
+        console.log(`[${stamp()}] обновление чата: ${chat.name} по заказу ${profiOrderId}`);
+      }
+    }
+  }
+}
+
+// Владелец решил (approved/countered/declined) → пишем мастеру в чат Профи.
+async function reactOffers() {
+  const offers = (await db.offersToReact()) || [];
+  for (const offer of offers) {
+    if (!offer.profi_order_id || !offer.chat_id) continue;
+    const text =
+      offer.status === "approved"
+        ? `Здравствуйте! Договорились, ждём вас ${offer.scheduled_at || "в согласованное время"}. Адрес пришлём сообщением.`
+        : offer.status === "countered"
+          ? `Здравствуйте! Такое время, к сожалению, не подходит. Удобнее: ${offer.scheduled_at || "другое время"}. Подойдёт?`
+          : "Здравствуйте! Спасибо за отклик, мы уже нашли специалиста.";
+    try {
+      await sendChatMessage(offer.profi_order_id, offer.chat_id, text);
+      await db.updateOffer(offer.id, {
+        replied_at: new Date().toISOString(),
+        reply_text: text,
+        ...(offer.status === "approved" ? { status: "hired" } : {}),
+      });
+      console.log(`[${stamp()}] ответ отправлен мастеру ${offer.master_name}: ${offer.status}`);
+    } catch (err) {
+      console.error(`[${stamp()}] ответ мастеру ${offer.master_name}: ${err.message}`);
+    }
   }
 }
 

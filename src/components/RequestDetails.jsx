@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Building2, CalendarClock, Globe, Send, User, Wrench } from "lucide-react";
+import { Building2, CalendarClock, Check, Globe, Send, User, Wrench, X } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { Field, Textarea } from "@/components/ui/input";
-import { AutomationOrder, Property, RequestComment, RequestEvent } from "@/lib/api/entities";
+import { Field, Input, Textarea } from "@/components/ui/input";
+import { AutomationOrder, ProfiOffer, Property, RequestComment, RequestEvent } from "@/lib/api/entities";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -28,6 +28,84 @@ const PROFI_SERVICE = {
   other: "",
 };
 const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };
+
+// Строка отклика мастера с Профи.ру: принять / отклонить / другое время.
+const OFFER_STATUS_LABEL = {
+  new: { ru: "Новый отклик", en: "New" },
+  approved: { ru: "Принят — бот договорится", en: "Approved" },
+  declined: { ru: "Отклонён", en: "Declined" },
+  countered: { ru: "Предложено другое время", en: "Counter-offered" },
+  hired: { ru: "Договорились", en: "Booked" },
+};
+
+function ProfiOfferRow({ offer, lang, onUpdate }) {
+  const [time, setTime] = useState(offer.proposed_time || "");
+  const [busy, setBusy] = useState(false);
+  const cfg = OFFER_STATUS_LABEL[offer.status] || OFFER_STATUS_LABEL.new;
+  const decided = offer.status !== "new";
+
+  const act = async (status) => {
+    setBusy(true);
+    try {
+      await onUpdate(offer, status, time.trim());
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="rounded-md border p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <p className="text-sm font-medium">{offer.master_name || "Мастер"}</p>
+        {offer.master_rating && (
+          <span className="text-xs text-muted-foreground">★ {offer.master_rating}</span>
+        )}
+        <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+          {lang === "ru" ? cfg.ru : cfg.en}
+        </span>
+        {offer.replied_at && (
+          <span className="text-xs text-muted-foreground">✓ бот ответил в чате</span>
+        )}
+      </div>
+      {offer.price_text && <p className="mt-1 text-sm">{offer.price_text}</p>}
+      {offer.last_message && (
+        <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{offer.last_message}</p>
+      )}
+
+      {!decided && (
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <Field
+            label={lang === "ru" ? "Время встречи" : "Meeting time"}
+            className="min-w-52 flex-1"
+          >
+            <Input
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              placeholder={offer.proposed_time || (lang === "ru" ? "завтра в 14:00" : "tomorrow 14:00")}
+            />
+          </Field>
+          <Button size="sm" onClick={() => act("approved")} loading={busy} disabled={!time.trim()}>
+            <Check className="h-4 w-4" />
+            {lang === "ru" ? "Принять" : "Accept"}
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => act("countered")} loading={busy} disabled={!time.trim()}>
+            {lang === "ru" ? "Предложить другое" : "Counter"}
+          </Button>
+          <Button size="sm" variant="ghost" className="text-rose-600" onClick={() => act("declined")} loading={busy}>
+            <X className="h-4 w-4" />
+            {lang === "ru" ? "Отклонить" : "Decline"}
+          </Button>
+        </div>
+      )}
+      {decided && offer.scheduled_at && (
+        <p className="mt-2 text-sm">
+          {lang === "ru" ? "Время: " : "Time: "}
+          <span className="font-medium">{offer.scheduled_at}</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 function InfoRow({ icon: Icon, label, value }) {
   if (!value) return null;
@@ -53,22 +131,37 @@ export default function RequestDetails({ request, open, onClose }) {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [sendingProfi, setSendingProfi] = useState(false);
+  const [offers, setOffers] = useState([]);
 
   useEffect(() => {
     if (!open || !request) return undefined;
     let alive = true;
-    Promise.all([RequestEvent.list(), RequestComment.list()])
-      .then(([evs, cmts]) => {
+    Promise.all([RequestEvent.list(), RequestComment.list(), ProfiOffer.list()])
+      .then(([evs, cmts, offs]) => {
         if (!alive) return;
         const mine = (rows) => rows.filter((x) => x.request_id === request.id);
         setEvents(mine(evs).sort(byDate));
         setComments(mine(cmts).sort(byDate));
+        setOffers(mine(offs).sort(byDate));
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
   }, [open, request]);
+
+  const updateOffer = async (offer, status, scheduledAt) => {
+    try {
+      const updated = await ProfiOffer.update(offer.id, {
+        status,
+        scheduled_at: scheduledAt || null,
+      });
+      setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated || { ...o, status, scheduled_at: scheduledAt } : o)));
+      toast.success(lang === "ru" ? "Отправим мастеру в чат Профи" : "The worker will reply in the Profi chat");
+    } catch {
+      toast.error(t("errors.generic"));
+    }
+  };
 
   if (!request) return null;
 
@@ -199,6 +292,20 @@ export default function RequestDetails({ request, open, onClose }) {
           <div className="rounded-md bg-muted/60 px-3 py-2 text-sm">
             <p className="text-xs text-muted-foreground">{t("jobs.workNotes")}</p>
             <p>{request.work_notes}</p>
+          </div>
+        )}
+
+        {/* Отклики мастеров с Профи.ру */}
+        {offers.length > 0 && (
+          <div>
+            <h4 className="mb-3 text-sm font-semibold">
+              {lang === "ru" ? "Отклики с Профи.ру" : "Profi.ru offers"}
+            </h4>
+            <div className="space-y-3">
+              {offers.map((o) => (
+                <ProfiOfferRow key={o.id} offer={o} lang={lang} onUpdate={updateOffer} />
+              ))}
+            </div>
           </div>
         )}
         {request.cancel_reason && (

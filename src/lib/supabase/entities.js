@@ -29,6 +29,10 @@ export const AutomationOrder = makeEntity("automation_orders", {
   deadline: "week",
 });
 
+// Отклики мастеров с Профи.ру: владелец принимает/отклоняет/меняет время,
+// воркер отвечает мастеру в чате.
+export const ProfiOffer = makeEntity("profi_offers", { status: "new" });
+
 export const MaintenanceRequest = {
   ...makeEntity("maintenance_requests", {
     urgency: "medium",
