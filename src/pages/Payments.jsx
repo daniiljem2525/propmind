@@ -24,7 +24,8 @@ import { useCollection } from "@/hooks/useCollection";
 import { useAuth } from "@/lib/authContext";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
-import { Payment, Tenant, Property } from "@/lib/api/entities";
+import { Payment, Tenant, Property, payPayment } from "@/lib/api/entities";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { pushNotification } from "@/lib/services";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -230,6 +231,21 @@ export default function Payments() {
   const periodLabel = (p) =>
     p.period_month ? `${monthShort(p.period_month - 1, lang)} ${p.period_year}` : "—";
 
+  // Оплата арендатором (в жилой ветке списка ниже)
+  const [payingId, setPayingId] = useState(null);
+  const pay = async (p) => {
+    setPayingId(p.id);
+    try {
+      await payPayment(p.id);
+      toast.success(t("portal.payDone"));
+    } catch (e) {
+      console.error("pay failed:", e);
+      toast.error(e?.message ? `${t("errors.generic")} (${e.message})` : t("errors.generic"));
+    } finally {
+      setPayingId(null);
+    }
+  };
+
   // Владелец только фиксирует получение: онлайн-оплата — действие арендатора
   const markPaid = async (p) => {
     await Payment.update(p.id, {
@@ -415,6 +431,11 @@ export default function Payments() {
                 >
                   {formatMoney(p.amount, p.currency || "RUB", lang)}
                 </span>
+                {isSupabaseConfigured && (p.status === "pending" || p.status === "overdue") && (
+                  <Button size="sm" onClick={() => pay(p)} loading={payingId === p.id}>
+                    {t("portal.pay")}
+                  </Button>
+                )}
                 <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
               </div>
             ))}
