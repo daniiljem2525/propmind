@@ -125,6 +125,21 @@ export const db = {
     return rows[0] || null;
   },
 
+  async lastHiredOffer(ownerId) {
+    const rows =
+      (await request("GET", "/profi_offers", {
+        query: {
+          select: "*, automation_orders(service_query)",
+          owner_id: `eq.${ownerId}`,
+          status: "eq.hired",
+          profile_id: "not.is.null",
+          order: "updated_at.desc",
+          limit: "1",
+        },
+      })) || [];
+    return rows[0] || null;
+  },
+
   createOffer(row) {
     // return=representation — чтобы получить созданную строку с id
     return request("POST", "/profi_offers", {

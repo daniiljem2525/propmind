@@ -383,7 +383,7 @@ export async function listChats(profiOrderId) {
           const chatId = new URLSearchParams(a.getAttribute("href") || "").get("chatId");
           const name = a.querySelector('p[class*="ReplyName_name"]')?.textContent.trim() || "";
           const preview = a.querySelector('[class*="ReplyContent_message"]')?.textContent.trim() || "";
-          return { chatId, name, preview };
+          return { chatId, name, preview, profileId: a.dataset.profileId || null };
         })
         .filter((c) => c.chatId && c.name),
     );
@@ -473,5 +473,32 @@ export async function hireSpecialist(profiOrderId, chatId) {
     });
     await page.waitForTimeout(2500);
     return { hired: true, dialog: confirmed };
+  });
+}
+
+/**
+ * Написать конкретному специалисту на новом заказе (повторный найм):
+ * находим его в «Подходящих специалистах» по profile id и открываем чат.
+ */
+export async function contactSpecialist(profiOrderId, profileId, text) {
+  return withPage(async (page) => {
+    await page.goto(orderPageUrl(profiOrderId), { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(5000);
+    const card = page.locator(`[data-testid="order_prigs_card_${profileId}"]`);
+    if ((await card.count()) === 0) {
+      return { contacted: false, reason: "мастера нет в списке подходящих на этот заказ" };
+    }
+    await card.first().click();
+    await page.waitForTimeout(4000);
+    const chatId = new URLSearchParams(page.url().split("?")[1] || "").get("chatId");
+    if (!chatId) return { contacted: false, reason: "чат с мастером не открылся" };
+    const input = page.locator('textarea[placeholder="Сообщение"]');
+    if ((await input.count()) === 0) return { contacted: false, reason: "не найдено поле «Сообщение»" };
+    await input.click();
+    await input.type(text, { delay: 10 });
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Enter");
+    await page.waitForTimeout(3000);
+    return { contacted: true, chatId };
   });
 }

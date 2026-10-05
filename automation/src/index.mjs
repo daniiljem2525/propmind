@@ -2,7 +2,7 @@
 // status=pending), создаёт их на Профи.ру и пишет результат обратно.
 import { config, assertConfig, CATEGORY_TO_SERVICE, URGENCY_TO_DEADLINE } from "./config.mjs";
 import { db } from "./supabase-rest.mjs";
-import { createProfiOrder, listChats, readChatMessages, sendChatMessage, hireSpecialist } from "./profi.mjs";
+import { createProfiOrder, listChats, readChatMessages, sendChatMessage, hireSpecialist, contactSpecialist } from "./profi.mjs";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const stamp = () => new Date().toLocaleTimeString("ru-RU");
@@ -22,12 +22,31 @@ const APPLIANCE_HINTS = [
   [/кондиционер/i, "ремонт кондиционеров"],
 ];
 
+// Неремонтные услуги — убираются в любой категории
+const OTHER_HINTS = [
+  [/уборк|клининг|мыть[яе] окн|горнич/i, "клининг"],
+  [/перевез|грузчик|вывоз мебель|такелаж/i, "грузоперевозки"],
+  [/собрать|сборка мебель|разобрать шкаф/i, "сборка мебели"],
+  [/повесить полк|картин|светильник|муж на час/i, "муж на час"],
+  [/ремонт квартир|отделочн|поклейка обо/i, "ремонт квартир"],
+];
+
 function serviceFromRequest(req) {
-  if (req.category === "appliances" && req.title) {
-    const hit = APPLIANCE_HINTS.find(([re]) => re.test(req.title));
+  const title = req.title || "";
+  if (req.category === "appliances") {
+    const hit = APPLIANCE_HINTS.find(([re]) => re.test(title));
     if (hit) return hit[1];
   }
-  return CATEGORY_TO_SERVICE[req.category] || req.title || "мастер на час";
+  const other = OTHER_HINTS.find(([re]) => re.test(title));
+  if (other) return other[1];
+  return CATEGORY_TO_SERVICE[req.category] || title || "мастер на час";
+}
+
+// Семейство услуг — чтобы повторный найм уходил мастеру той же специализации
+function serviceFamily(serviceQuery) {
+  const s = (serviceQuery || "").toLowerCase();
+  if (/клининг|уборк/.test(s)) return "cleaning";
+  return s.split(/\s+/)[0] || "";
 }
 
 function orderFromRequest(req) {
@@ -198,6 +217,15 @@ async function monitorOffers() {
       continue;
     }
     const existing = (await db.offersForOrder(order.id)) || [];
+    // Повторный найм: если на новом заказе ещё никого нет, а у владельца
+    // уже есть проверенный мастер этой же специализации — пишем ему первому.
+    if (chats.length === 0) {
+      const repeat = await tryRepeatHire(order, profiOrderId);
+      if (repeat?.chatId) {
+        repeatIntroChatIds.add(repeat.chatId);
+        chats = await listChats(profiOrderId);
+      }
+    }
     for (const chat of chats) {
       const prev = existing.find((x) => x.chat_id === chat.chatId);
       // последнее входящее от мастера (не наше собственное сообщение)
@@ -219,17 +247,20 @@ async function monitorOffers() {
       const incomingRaw = lastIncoming ? lastIncoming.text : chat.preview;
       const proposed = extractProposedTime(incomingRaw);
       if (!prev) {
+        const isRepeat = repeatIntroChatIds.has(chat.chatId);
         const createdOffer = await db.createOffer({
           owner_id: order.owner_id,
           order_id: order.id,
           request_id: order.request_id,
           profi_order_id: profiOrderId,
           chat_id: chat.chatId,
+          profile_id: chat.profileId || null,
           master_name: chat.name,
           price_text: null,
           last_message: incomingText,
           proposed_time: proposed,
           status: "new",
+          ...(isRepeat ? { intro_sent_at: new Date().toISOString() } : {}),
         });
         await db.notify(order.owner_id, {
           title: `Профи: отклик — ${chat.name}`,
@@ -240,7 +271,7 @@ async function monitorOffers() {
         });
         console.log(`[${stamp()}] новый отклик: ${chat.name} по заказу ${profiOrderId}`);
         const created = Array.isArray(createdOffer) ? createdOffer[0] : createdOffer;
-        await sendIntro(order, created);
+        if (!isRepeat) await sendIntro(order, created);
       } else {
         await db.updateOffer(prev.id, {
           last_message: incomingText,
@@ -257,6 +288,44 @@ async function monitorOffers() {
         }
       }
     }
+  }
+}
+
+// Владелец уже нанимал мастера этой специализации → новый заказ идёт ему,
+// а не в общий поиск. Однократно на заказ (в рамках жизни процесса).
+const repeatTried = new Set();
+const repeatIntroChatIds = new Set();
+
+async function tryRepeatHire(order, profiOrderId) {
+  if (repeatTried.has(order.id)) return null;
+  repeatTried.add(order.id);
+  try {
+    const hired = await db.lastHiredOffer(order.owner_id);
+    if (!hired?.profile_id || !hired.master_name) return null;
+    if (serviceFamily(hired.automation_orders?.service_query) !== serviceFamily(order.service_query)) {
+      console.log(`[${stamp()}] проверенный мастер (${hired.master_name}) — другая специализация, ищем заново`);
+      return null;
+    }
+    const details = composeDetails(order.title, order.details).slice(0, 400);
+    if (!details) return null;
+    const text = `Здравствуйте! Обращаемся повторно — в прошлый раз вы отлично помогли. Новая задача: ${details}. Подскажите, пожалуйста, сколько будет стоить и когда сможете подойти?`;
+    const res = await contactSpecialist(profiOrderId, hired.profile_id, text);
+    await db.notify(order.owner_id, {
+      title: `Профи: написали проверенному мастеру — ${hired.master_name}`,
+      message: res.contacted
+        ? "Ждём ответ в чате; дальше — как обычно: время согласуем с вами"
+        : res.reason || "не удалось написать",
+      relatedId: order.request_id,
+    });
+    console.log(
+      res.contacted
+        ? `[${stamp()}] повторный найм: написали ${hired.master_name} по заказу ${profiOrderId}`
+        : `[${stamp()}] повторный найм не удался: ${res.reason}`,
+    );
+    return res;
+  } catch (err) {
+    console.error(`[${stamp()}] повторный найм: ${err.message}`);
+    return null;
   }
 }
 

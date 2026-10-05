@@ -40,11 +40,21 @@ const APPLIANCE_HINTS = [
   [/бойлер|водонагрев/i, "ремонт водонагревателей"],
   [/кондиционер/i, "ремонт кондиционеров"],
 ];
+// Неремонтные услуги — распознаются в любой категории
+const OTHER_HINTS = [
+  [/уборк|клининг|мыть[яе] окн|горнич/i, "клининг"],
+  [/перевез|грузчик|вывоз мебель|такелаж/i, "грузоперевозки"],
+  [/собрать|сборка мебель|разобрать шкаф/i, "сборка мебели"],
+  [/повесить полк|картин|светильник|муж на час/i, "муж на час"],
+  [/ремонт квартир|отделочн|поклейка обо/i, "ремонт квартир"],
+];
 const profiServiceQuery = (r) => {
   if (r.category === "appliances" && r.title) {
     const hit = APPLIANCE_HINTS.find(([re]) => re.test(r.title));
     if (hit) return hit[1];
   }
+  const other = OTHER_HINTS.find(([re]) => re.test(r.title || ""));
+  if (other) return other[1];
   return PROFI_SERVICE[r.category] || r.title || "мастер на час";
 };
 const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };

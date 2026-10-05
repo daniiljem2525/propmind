@@ -1363,6 +1363,7 @@ create table if not exists public.profi_offers (
   request_id    uuid references public.maintenance_requests(id) on delete cascade,
   profi_order_id text,
   chat_id       text,
+  profile_id    text,
   master_name   text not null default '',
   master_rating text,
   price_text    text,
