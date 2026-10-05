@@ -160,6 +160,8 @@ create table if not exists public.properties (
   description text,
   tenant_id   uuid references public.profiles(id) on delete set null,
   tenant_name text,
+  rental_type  text not null default 'longterm'
+                check (rental_type in ('longterm', 'shortterm')),
   lease_start date,
   lease_end   date,
   created_date timestamptz not null default now()
@@ -1460,6 +1462,88 @@ begin
          '/app/properties', pr.id
   from public.properties pr
   where pr.lease_end is not null
+    and pr.lease_end >= current_date
+    and pr.lease_end <= current_date + 30
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'lease_expiring' and n.related_id = pr.id
+        and n.created_date > now() - interval '20 days'
+    );
+end;
+$$;
+
+-- ============================================================
+-- 14. Тип сдачи объекта: долгосрок / посуточно.
+--     Посуточно: напоминания о платежах не шлются вовсе
+--     (гости платят при заселении; обслуживание — кнопкой «Службы»).
+--     Повтор scan_reminders с фильтром по типу сдачи.
+-- ============================================================
+alter table public.properties drop constraint if exists properties_rental_type_check;
+alter table public.properties add constraint properties_rental_type_check
+  check (rental_type in ('longterm', 'shortterm'));
+alter table public.properties add column if not exists rental_type text not null default 'longterm';
+
+create or replace function public.scan_reminders() returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  -- Просроченные платежи (только долгосрок; посуточные объекты — без напоминаний)
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.owner_id, 'payment_overdue', 'Платёж просрочен',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.status = 'pending' and p.due_date < current_date
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_overdue' and n.related_id = p.id
+    );
+
+  -- Ближайшие платежи: за 3 дня, только долгосрок — владельцу
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.owner_id, 'payment_upcoming', 'Скоро платёж',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.owner_id
+    );
+
+  -- Ближайшие платежи: за 3 дня — жильцу (тоже только долгосрок)
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.tenant_id, 'payment_upcoming', 'Скоро платёж',
+         'Аренда ' || coalesce(p.property_name, '') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.tenant_id is not null
+    and p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.tenant_id
+    );
+
+  -- Договоры, истекающие в ближайшие 30 дней (не про посуточных)
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select pr.owner_id, 'lease_expiring', 'Договор истекает',
+         coalesce(pr.name, 'Объект') || ' — до ' || to_char(pr.lease_end, 'DD.MM.YYYY'),
+         '/app/properties', pr.id
+  from public.properties pr
+  where pr.rental_type = 'longterm'
+    and pr.lease_end is not null
     and pr.lease_end >= current_date
     and pr.lease_end <= current_date + 30
     and not exists (

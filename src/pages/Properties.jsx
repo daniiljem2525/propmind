@@ -57,6 +57,7 @@ const emptyForm = () => ({
   lease_start: todayISO(),
   lease_end: addMonthsISO(todayISO(), 12),
   status: "vacant",
+  rental_type: "longterm",
   photo_url: "",
   description: "",
 });
@@ -73,6 +74,7 @@ const formFromProperty = (p) => ({
   lease_start: p.lease_start || todayISO(),
   lease_end: p.lease_end || addMonthsISO(todayISO(), 12),
   status: p.status || "vacant",
+  rental_type: p.rental_type || "longterm",
   photo_url: p.photo_url || "",
   description: p.description || "",
 });
@@ -203,6 +205,12 @@ function PropertyFormDialog({ open, onClose, property }) {
 
         {/* Договор */}
         <Disclosure title={t("properties.groupLease")} defaultOpen={!!property}>
+          <Field label={lang === 'ru' ? 'Тип сдачи' : 'Rental type'}>
+            <Select value={form.rental_type} onChange={set('rental_type')}>
+              <option value='longterm'>{lang === 'ru' ? 'Долгосрок' : 'Long-term'}</option>
+              <option value='shortterm'>{lang === 'ru' ? 'Посуточно (без напоминаний о платежах)' : 'Short-term (no payment reminders)'}</option>
+            </Select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label={t("properties.leaseStart")}>
               <Input type="date" value={form.lease_start} onChange={set("lease_start")} />
@@ -261,8 +269,13 @@ function PropertyCard({ property, onEdit, onDelete, onClean }) {
             onError={(e) => e.currentTarget.remove()}
           />
         )}
-        <div className="absolute left-3 top-3">
+        <div className="absolute left-3 top-3 flex gap-1.5">
           <StatusBadge config={PROPERTY_STATUS_CONFIG} value={property.status} />
+          {property.rental_type === 'shortterm' && (
+            <span className="rounded-full bg-white/90 px-2 py-0.5 text-[11px] font-bold text-slate-700 shadow-sm backdrop-blur">
+              {lang === 'ru' ? 'Посуточно' : 'Daily'}
+            </span>
+          )}
         </div>
         <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
           <button
