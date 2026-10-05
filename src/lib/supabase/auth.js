@@ -66,7 +66,9 @@ export async function signup({ full_name, email, password, invite_code }) {
   });
   if (error) {
     if (error.message.toLowerCase().includes("already")) throw new Error("EMAIL_EXISTS");
-    throw new Error("SIGNUP_FAILED");
+    // настоящий текст ошибки (например, сбой триггера профиля) — виден сразу
+    console.error("signup failed:", error);
+    throw new Error(error.message || "SIGNUP_FAILED");
   }
   // Если подтверждение email включено в Supabase — сессии не будет:
   // сообщаем интерфейсу показать экран «проверь почту»
