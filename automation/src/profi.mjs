@@ -324,7 +324,14 @@ export async function createProfiOrder(order, { headless = config.headless } = {
       err.log = log;
       throw err;
     }
-    return { url: page.url(), log, published: outcome === "done" };
+    // публикация подтверждается редиректом на страницу задачи в кабинете;
+    // сразу после клика URL ещё старый — ждём до ~20 секунд
+    let finalUrl = page.url();
+    for (let i = 0; i < 10 && !/cabinet\/order\/\d+/.test(finalUrl); i++) {
+      await page.waitForTimeout(2000);
+      finalUrl = page.url();
+    }
+    return { url: finalUrl, log, published: outcome === "done" };
   } catch (err) {
     if (err.log === undefined) err.log = log;
     throw err;

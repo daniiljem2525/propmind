@@ -103,19 +103,27 @@ async function processQueue() {
   if (!order) return false;
 
   console.log(`[${stamp()}] обрабатываю заказ ${order.id} («${order.service_query}»)`);
-  await db.updateOrder(order.id, { status: "running" });
-  try {
-    order.address = await resolveAddress(order);
-    const result = await createProfiOrder(order);
-    if (!result.published) {
-      await db.updateOrder(order.id, {
-        status: "failed",
-        error: "DRY_RUN: заказ не отправлялся",
-      });
-      console.log(`[${stamp()}] DRY_RUN — шаги мастера:\n${result.log.join("\n")}`);
-      return true;
-    }
-    await db.updateOrder(order.id, { status: "sent", result_url: result.url });
+    await db.updateOrder(order.id, { status: "running" });
+    try {
+      order.address = await resolveAddress(order);
+      const result = await createProfiOrder(order);
+      if (!result.published) {
+        await db.updateOrder(order.id, {
+          status: "failed",
+          error: "DRY_RUN: заказ не отправлялся",
+        });
+        console.log(`[${stamp()}] DRY_RUN — шаги мастера:\n${result.log.join("\n")}`);
+        return true;
+      }
+      if (!/cabinet\/order\/\d+/.test(result.url)) {
+        await db.updateOrder(order.id, {
+          status: "failed",
+          error: "Финальная кнопка нажата, но публикация не подтвердилась (нет ссылки на задачу)",
+        });
+        console.error(`[${stamp()}] публикация не подтвердилась, заказ ${order.id}`);
+        return true;
+      }
+      await db.updateOrder(order.id, { status: "sent", result_url: result.url });
     console.log(`[${stamp()}] заказ отправлен: ${result.url}`);
     console.log(result.log.join("\n"));
   } catch (err) {
@@ -199,6 +207,10 @@ async function sendIntro(order, offer) {
 }
 
 // Новые отклики/сообщения мастеров → profi_offers + уведомление владельцу.
+// Один и тот же чат Профи может числиться за несколькими заказами очереди —
+// уведомляем о новом сообщении только один раз.
+const notifiedKeys = new Set();
+
 async function monitorOffers() {
   let sent;
   try {
@@ -244,6 +256,11 @@ async function monitorOffers() {
       if (prev && prev.last_message === incomingText && prev.intro_sent_at) {
         continue; // нового от мастера нет, вступительное уже отправлено
       }
+      // один и тот же чат может числиться за несколькими заказами очереди —
+      // уведомление о новом сообщении отправляем только один раз
+      const notifyKey = `${chat.chatId}:${incomingText.slice(0, 120)}`;
+      if (notifiedKeys.has(notifyKey)) continue;
+      notifiedKeys.add(notifyKey);
       const incomingRaw = lastIncoming ? lastIncoming.text : chat.preview;
       const proposed = extractProposedTime(incomingRaw);
       if (!prev) {
