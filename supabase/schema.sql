@@ -1285,35 +1285,10 @@ create trigger on_auth_user_created
 -- ============================================================
 
 -- ============================================================
--- 10. Демо-аккаунт владельца: owner@arendora.test / secret123
+-- 10. Демо-аккаунт УДАЛЁН из схемы: в проде это была дыра
+--     (известный пароль owner@arendora.test). Пользователей для
+--     локальной разработки создавайте через приложение.
 -- ============================================================
-do $seed$
-declare
-  v_id uuid;
-begin
-  if not exists (select 1 from auth.users where email = 'owner@arendora.test') then
-    insert into auth.users (
-      instance_id, id, aud, role, email, encrypted_password,
-      email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
-      created_at, updated_at, confirmation_token, recovery_token,
-      email_change, email_change_token_new
-    ) values (
-      '00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
-      'owner@arendora.test', crypt('secret123', gen_salt('bf')),
-      now(), '{"provider":"email","providers":["email"]}',
-      '{"role":"owner","full_name":"Тестовый Владелец"}',
-      now(), now(), '', '', '', ''
-    ) returning id into v_id;
-
-    insert into auth.identities (
-      id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at
-    ) values (
-      gen_random_uuid(), v_id, 'email', 'email',
-      jsonb_build_object('sub', v_id::text, 'email', 'owner@arendora.test'),
-      now(), now(), now()
-    );
-  end if;
-end $seed$;
 
 -- ============================================================
 -- 11. Очередь внешних заказов (автоматизация Профи.ру / Авито)
