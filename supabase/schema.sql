@@ -1400,3 +1400,72 @@ alter table public.automation_orders add constraint automation_orders_status_che
 alter table public.automation_orders drop constraint if exists automation_orders_deadline_check;
 alter table public.automation_orders add constraint automation_orders_deadline_check
   check (deadline in ('today', 'tomorrow', 'week', 'anytime'));
+
+-- ============================================================
+-- 13. Напоминание «Скоро платёж» за 3 дня (владельцу и жильцу).
+--     Шлётся один раз на платёж; дедупликация как у просрочки.
+--     Выполняется на базе — worker не нужен.
+-- ============================================================
+create or replace function public.scan_reminders() returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  -- Просроченные платежи: pending с прошедшей датой
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.owner_id, 'payment_overdue', 'Платёж просрочен',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  where p.status = 'pending' and p.due_date < current_date
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_overdue' and n.related_id = p.id
+    );
+
+  -- Ближайшие платежи: за 3 дня до срока — владельцу
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.owner_id, 'payment_upcoming', 'Скоро платёж',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  where p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.owner_id
+    );
+
+  -- Ближайшие платежи: за 3 дня — жильцу (его собственный платёж)
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select p.tenant_id, 'payment_upcoming', 'Скоро платёж',
+         'Аренда ' || coalesce(p.property_name, '') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id
+  from public.payments p
+  where p.tenant_id is not null
+    and p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.tenant_id
+    );
+
+  -- Договоры, истекающие в ближайшие 30 дней
+  insert into public.notifications(user_id, type, title, message, link, related_id)
+  select pr.owner_id, 'lease_expiring', 'Договор истекает',
+         coalesce(pr.name, 'Объект') || ' — до ' || to_char(pr.lease_end, 'DD.MM.YYYY'),
+         '/app/properties', pr.id
+  from public.properties pr
+  where pr.lease_end is not null
+    and pr.lease_end >= current_date
+    and pr.lease_end <= current_date + 30
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'lease_expiring' and n.related_id = pr.id
+        and n.created_date > now() - interval '20 days'
+    );
+end;
+$$;
