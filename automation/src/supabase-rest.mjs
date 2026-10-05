@@ -59,6 +59,22 @@ export const db = {
     return Array.isArray(rows) && rows[0] ? rows[0] : null;
   },
 
+  // Другой активный заказ той же заявки (защита от дублей на Профи)
+  async olderActiveOrder(requestId, orderId) {
+    const rows =
+      (await request("GET", "/automation_orders", {
+        query: {
+          select: "id,status",
+          request_id: `eq.${requestId}`,
+          id: `neq.${orderId}`,
+          status: "in.(pending,running,sent)",
+          order: "created_date.asc",
+          limit: "1",
+        },
+      })) || [];
+    return rows[0] || null;
+  },
+
   updateOrder(id, patch) {
     return request("PATCH", "/automation_orders", {
       query: { id: `eq.${id}` },

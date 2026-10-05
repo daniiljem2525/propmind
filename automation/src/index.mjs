@@ -108,6 +108,19 @@ async function processQueue(slot, profileDir) {
   const claimed = await db.claimOrder(order.id);
   if (!claimed) return false;
 
+  // защита от дублей: если по этой заявке уже есть активный заказ — отменяем
+  const duplicate = claimed.request_id
+    ? await db.olderActiveOrder(claimed.request_id, claimed.id)
+    : null;
+  if (duplicate) {
+    await db.updateOrder(order.id, {
+      status: "cancelled",
+      error: "Дубль заявки — заказ уже есть на Профи",
+    });
+    console.log(`[${stamp()}] дубль заявки — заказ ${order.id} отменён`);
+    return false;
+  }
+
   console.log(`[${stamp()}] слот ${slot}: обрабатываю заказ ${order.id} («${claimed.service_query}»)`);
   try {
     claimed.address = await resolveAddress(claimed);
@@ -213,14 +226,26 @@ function composeDetails(title, description) {
 
 // Шаг 1 переговоров: здороваемся и спрашиваем цену/сроки. Адрес не раскрываем —
 // он уйдёт только после согласования времени владельцем.
+const introChatIds = new Set(); // вступительное уже отправлено в этот чат
+
 async function sendIntro(order, offer, profileDir = config.profileDir) {
   if (!offer || !offer.chat_id) return;
+  if (introChatIds.has(offer.chat_id)) {
+    // в чат уже здоровались (дубль-строка отклика) — только помечаем
+    if (offer.id) {
+      await db
+        .updateOffer(offer.id, { intro_sent_at: new Date().toISOString() })
+        .catch(() => {});
+    }
+    return;
+  }
   const details = composeDetails(order.title, order.details).slice(0, 400);
   if (!details) return;
   const budget = Number(order.budget) > 0 ? ` Ориентир по бюджету — до ${Math.round(Number(order.budget))} руб.` : "";
   const text = `Здравствуйте! ${details}.${budget} Подскажите, пожалуйста, сколько будет стоить и когда сможете подойти?`;
   try {
-    await sendChatMessage(order.result_url.match(/order\/(\d+)/)[1], offer.chat_id, text);
+    await sendChatMessage(order.result_url.match(/order\/(\d+)/)[1], offer.chat_id, text, profileDir);
+    introChatIds.add(offer.chat_id);
     if (offer.id) {
       await db.updateOffer(offer.id, {
         intro_sent_at: new Date().toISOString(),
@@ -397,8 +422,23 @@ async function tryRepeatHire(order, profiOrderId, profileDir) {
 // Владелец решил (approved/countered/declined) → пишем мастеру в чат Профи.
 async function reactOffers(profileDir = config.profileDir) {
   const offers = (await db.offersToReact()) || [];
+  // один и тот же чат может числиться за несколькими строками откликов
+  // (когда заказ отправляли дважды) — отвечаем только один раз
+  const processedChats = new Set();
   for (const offer of offers) {
     if (!offer.profi_order_id || !offer.chat_id) continue;
+    if (processedChats.has(offer.chat_id)) {
+      // дубль-строка: помечаем обработанной без повторной отправки
+      await db
+        .updateOffer(offer.id, {
+          replied_at: new Date().toISOString(),
+          reply_text: "(дубль чата — ответ уже отправлен)",
+          ...(offer.status === "approved" ? { status: "hired" } : {}),
+        })
+        .catch(() => {});
+      continue;
+    }
+    processedChats.add(offer.chat_id);
     const address = offer.automation_orders?.address || "";
     const text =
       offer.status === "approved"
