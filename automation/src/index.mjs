@@ -151,16 +151,20 @@ async function processQueue(slot, profileDir) {
 }
 
 // Цикл одного слота. Слот 0, помимо очереди, ведёт мониторинг и переговоры.
+// Приоритет: очередь заявок — всегда первой; чаты — только когда очередь пуста.
 async function slotLoop(slot) {
   const profileDir = slotProfileDir(slot);
   for (;;) {
     try {
+      let hadOrder = false;
       if (slot === 0) {
         if (config.autoEnqueue) await autoEnqueue();
-        await monitorOffers(profileDir);
         await reactOffers(profileDir);
+        hadOrder = await processQueue(slot, profileDir);
+        if (!hadOrder) await monitorOffers(profileDir);
+      } else {
+        hadOrder = await processQueue(slot, profileDir);
       }
-      await processQueue(slot, profileDir);
     } catch (err) {
       console.error(`[${stamp()}] слот ${slot}: цикл прерван: ${err.message}`);
     }
