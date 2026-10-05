@@ -27,6 +27,26 @@ const PROFI_SERVICE = {
   furniture: "сборка мебели",
   other: "",
 };
+// Узкий запрос по типу техники — приводит профильных местных мастеров
+const APPLIANCE_HINTS = [
+  [/стиральн/i, "ремонт стиральных машин"],
+  [/холодильник|морозильн/i, "ремонт холодильников"],
+  [/посудомоечн/i, "ремонт посудомоечных машин"],
+  [/пылесос/i, "ремонт пылесосов"],
+  [/духовк|электроплит|газов. плит/i, "ремонт плит и духовок"],
+  [/кофемашин|кофеварок/i, "ремонт кофемашин"],
+  [/телевизор/i, "ремонт телевизоров"],
+  [/микроволновк|свч/i, "ремонт микроволновых печей"],
+  [/бойлер|водонагрев/i, "ремонт водонагревателей"],
+  [/кондиционер/i, "ремонт кондиционеров"],
+];
+const profiServiceQuery = (r) => {
+  if (r.category === "appliances" && r.title) {
+    const hit = APPLIANCE_HINTS.find(([re]) => re.test(r.title));
+    if (hit) return hit[1];
+  }
+  return PROFI_SERVICE[r.category] || r.title || "мастер на час";
+};
 const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };
 
 // Суть заявки одним предложением: без дублей заголовка и описания
@@ -215,7 +235,7 @@ export default function RequestDetails({ request, open, onClose }) {
       await AutomationOrder.create({
         request_id: request.id,
         platform: "profi",
-        service_query: PROFI_SERVICE[request.category] || request.title || "мастер на час",
+        service_query: profiServiceQuery(request),
         details: requestDetailsText(request).slice(0, 900),
         address,
         budget: request.estimate_cost ?? null,

@@ -7,14 +7,36 @@ import { createProfiOrder, listChats, readChatMessages, sendChatMessage, hireSpe
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const stamp = () => new Date().toLocaleTimeString("ru-RU");
 
+// Уточнение услуги по названию заявки: узкий запрос приводит профильных
+// местных мастеров вместо «онлайн-консультаций» со всей России.
+const APPLIANCE_HINTS = [
+  [/стиральн/i, "ремонт стиральных машин"],
+  [/холодильник|морозильн/i, "ремонт холодильников"],
+  [/посудомоечн/i, "ремонт посудомоечных машин"],
+  [/пылесос/i, "ремонт пылесосов"],
+  [/духовк|электроплит|газов. плит/i, "ремонт плит и духовок"],
+  [/кофемашин|кофеварок/i, "ремонт кофемашин"],
+  [/телевизор/i, "ремонт телевизоров"],
+  [/микроволновк|свч/i, "ремонт микроволновых печей"],
+  [/бойлер|водонагрев/i, "ремонт водонагревателей"],
+  [/кондиционер/i, "ремонт кондиционеров"],
+];
+
+function serviceFromRequest(req) {
+  if (req.category === "appliances" && req.title) {
+    const hit = APPLIANCE_HINTS.find(([re]) => re.test(req.title));
+    if (hit) return hit[1];
+  }
+  return CATEGORY_TO_SERVICE[req.category] || req.title || "мастер на час";
+}
+
 function orderFromRequest(req) {
   return {
     request_id: req.id,
     owner_id: req.owner_id,
     platform: "profi",
     status: "pending",
-    service_query:
-      CATEGORY_TO_SERVICE[req.category] || req.title || "мастер на час",
+    service_query: serviceFromRequest(req),
     details: [req.title, req.description].filter(Boolean).join(". ").slice(0, 900),
     address: null,
     budget: req.estimate_cost || null,
@@ -115,6 +137,9 @@ function extractProposedTime(text) {
 
 const profiOrderIdFromUrl = (url) => (url.match(/order\/(\d+)/) || [])[1] || null;
 
+// Служебные подсказки Профи (не сообщения людей) — в отклики не попадают.
+const SYSTEM_HINT = /выберите специалиста|попросите специалиста|чтобы быстрее обсудить задачу|договаривайтесь со специалистом|обменяйтесь контактами/i;
+
 // Суть заявки без повторов: заголовок и описание часто совпадают слово в слово.
 function composeDetails(title, description) {
   const raw = (description || "").trim() || (title || "").trim();
@@ -181,7 +206,7 @@ async function monitorOffers() {
       try {
         const msgs = await readChatMessages(profiOrderId, chat.chatId);
         readOk = true;
-        const incoming = msgs.filter((m) => !m.mine && m.text);
+        const incoming = msgs.filter((m) => !m.mine && m.text && !SYSTEM_HINT.test(m.text));
         if (incoming.length) lastIncoming = incoming[incoming.length - 1];
       } catch (err) {
         console.error(`[${stamp()}] чтение чата ${chat.chatId}: ${err.message}`);
