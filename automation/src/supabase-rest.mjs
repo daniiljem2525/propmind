@@ -48,6 +48,17 @@ export const db = {
     return rows && rows[0] ? rows[0] : null;
   },
 
+  // Атомарный захват: pending → running. Если другой слот успел первым,
+  // вернётся null (условие status=eq.pending не совпадёт).
+  async claimOrder(id) {
+    const rows = await request("PATCH", "/automation_orders", {
+      query: { id: `eq.${id}`, status: "eq.pending" },
+      body: { status: "running", updated_at: new Date().toISOString() },
+      headers: { Prefer: "return=representation" },
+    });
+    return Array.isArray(rows) && rows[0] ? rows[0] : null;
+  },
+
   updateOrder(id, patch) {
     return request("PATCH", "/automation_orders", {
       query: { id: `eq.${id}` },

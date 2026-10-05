@@ -448,8 +448,8 @@ async function handleStep(page, order, log) {
  * order: { service_query, details, address, budget, deadline, hint_option }
  * Возвращает { url, log } — адрес страницы заказа.
  */
-export async function createProfiOrder(order, { headless = config.headless } = {}) {
-  const ctx = await chromium.launchPersistentContext(config.profileDir, {
+export async function createProfiOrder(order, { headless = config.headless, profileDir = config.profileDir } = {}) {
+  const ctx = await chromium.launchPersistentContext(profileDir, {
     headless,
     viewport: { width: 1280, height: 800 },
     locale: "ru-RU",
@@ -524,8 +524,8 @@ export async function interactiveLogin() {
 const orderPageUrl = (profiOrderId, chatId) =>
   `https://profi.ru/cabinet/order/${profiOrderId}/${chatId ? `?tabName=CHAT&chatId=${chatId}` : ""}`;
 
-async function withPage(fn) {
-  const ctx = await chromium.launchPersistentContext(config.profileDir, {
+async function withPage(fn, profileDir = config.profileDir) {
+  const ctx = await chromium.launchPersistentContext(profileDir, {
     headless: config.headless,
     viewport: { width: 1280, height: 900 },
     locale: "ru-RU",
@@ -533,7 +533,7 @@ async function withPage(fn) {
   });
   const page = ctx.pages()[0] || (await ctx.newPage());
   try {
-    return await fn(page);
+    return await fn(page, profileDir);
   } finally {
     await ctx.close();
   }
@@ -543,7 +543,7 @@ async function withPage(fn) {
  * Список чатов по опубликованному заказу.
  * Возвращает [{ chatId, name, preview }].
  */
-export async function listChats(profiOrderId) {
+export async function listChats(profiOrderId, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
@@ -557,14 +557,14 @@ export async function listChats(profiOrderId) {
         })
         .filter((c) => c.chatId && c.name),
     );
-  });
+  }, profileDir);
 }
 
 /**
  * Прочитать переписку чата. Сторона сообщения определяется по позиции
  * пузыря (свои — справа). Возвращает [{ mine, text, time }].
  */
-export async function readChatMessages(profiOrderId, chatId) {
+export async function readChatMessages(profiOrderId, chatId, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
@@ -586,11 +586,11 @@ export async function readChatMessages(profiOrderId, chatId) {
         };
       });
     });
-  });
+  }, profileDir);
 }
 
 /** Отправить сообщение мастеру в чат. */
-export async function sendChatMessage(profiOrderId, chatId, text) {
+export async function sendChatMessage(profiOrderId, chatId, text, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
@@ -610,14 +610,14 @@ export async function sendChatMessage(profiOrderId, chatId, text) {
     }, text);
     if (!sent) throw new Error("Сообщение не подтвердилось в чате Профи");
     return true;
-  });
+  }, profileDir);
 }
 
 /**
  * «Выбрать специалиста» в чате — финальное найм-действие Профи.
  * Вызывается после согласующего сообщения, когда владелец нажал «Принять».
  */
-export async function hireSpecialist(profiOrderId, chatId) {
+export async function hireSpecialist(profiOrderId, chatId, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
@@ -643,14 +643,14 @@ export async function hireSpecialist(profiOrderId, chatId) {
     });
     await page.waitForTimeout(2500);
     return { hired: true, dialog: confirmed };
-  });
+  }, profileDir);
 }
 
 /**
  * Написать конкретному специалисту на новом заказе (повторный найм):
  * находим его в «Подходящих специалистах» по profile id и открываем чат.
  */
-export async function contactSpecialist(profiOrderId, profileId, text) {
+export async function contactSpecialist(profiOrderId, profileId, text, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
@@ -670,5 +670,5 @@ export async function contactSpecialist(profiOrderId, profileId, text) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(3000);
     return { contacted: true, chatId };
-  });
+  }, profileDir);
 }

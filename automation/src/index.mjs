@@ -1,6 +1,7 @@
 // Воркер: опрашивает Supabase на заказы в очереди (automation_orders,
 // status=pending), создаёт их на Профи.ру и пишет результат обратно.
-import { config, assertConfig, CATEGORY_TO_SERVICE, URGENCY_TO_DEADLINE } from "./config.mjs";
+import fs from "node:fs";
+import { config, assertConfig, CATEGORY_TO_SERVICE, URGENCY_TO_DEADLINE, slotProfileDir } from "./config.mjs";
 import { db } from "./supabase-rest.mjs";
 import { createProfiOrder, listChats, readChatMessages, sendChatMessage, hireSpecialist, contactSpecialist } from "./profi.mjs";
 
@@ -98,70 +99,83 @@ async function resolveAddress(order) {
   return config.defaultAddress || null;
 }
 
-async function processQueue() {
+// Обработка одного заказа слотом. Возвращает true, если заказ был.
+async function processQueue(slot, profileDir) {
   const order = await db.nextPendingOrder();
   if (!order) return false;
 
-  // пользователь мог отменить заказ, пока он ждал в очереди
-  const fresh = await db.getOrder(order.id);
-  if (!fresh || fresh.status !== "pending") {
-    console.log(`[${stamp()}] заказ ${order.id} отменён — пропускаю`);
-    return false;
-  }
+  // атомарный захват: pending → running; если другой слот успел первым — null
+  const claimed = await db.claimOrder(order.id);
+  if (!claimed) return false;
 
-  console.log(`[${stamp()}] обрабатываю заказ ${order.id} («${order.service_query}»)`);
-  await db.updateOrder(order.id, { status: "running" });
+  console.log(`[${stamp()}] слот ${slot}: обрабатываю заказ ${order.id} («${claimed.service_query}»)`);
   try {
-    // повторная проверка после пометки running: отмена могла прийти в этот момент
-    const recheck = await db.getOrder(order.id);
-    if (recheck?.status === "cancelled") {
-      console.log(`[${stamp()}] заказ ${order.id} отменён — не создаю`);
+    claimed.address = await resolveAddress(claimed);
+    const result = await createProfiOrder(claimed, { profileDir });
+    if (!result.published) {
+      await db.updateOrder(order.id, {
+        status: "failed",
+        error: "DRY_RUN: заказ не отправлялся",
+      });
+      console.log(`[${stamp()}] DRY_RUN — шаги мастера:\n${result.log.join("\n")}`);
       return true;
     }
-    order.address = await resolveAddress(order);
-      const result = await createProfiOrder(order);
-      if (!result.published) {
-        await db.updateOrder(order.id, {
-          status: "failed",
-          error: "DRY_RUN: заказ не отправлялся",
-        });
-        console.log(`[${stamp()}] DRY_RUN — шаги мастера:\n${result.log.join("\n")}`);
-        return true;
-      }
-      if (!/cabinet\/order\/\d+/.test(result.url)) {
-        await db.updateOrder(order.id, {
-          status: "failed",
-          error: "Финальная кнопка нажата, но публикация не подтвердилась (нет ссылки на задачу)",
-        });
-        console.error(`[${stamp()}] публикация не подтвердилась, заказ ${order.id}`);
-        return true;
-      }
-      await db.updateOrder(order.id, { status: "sent", result_url: result.url });
-    console.log(`[${stamp()}] заказ отправлен: ${result.url}`);
-    console.log(result.log.join("\n"));
+    if (!/cabinet\/order\/\d+/.test(result.url)) {
+      await db.updateOrder(order.id, {
+        status: "failed",
+        error: "Финальная кнопка нажата, но публикация не подтвердилась (нет ссылки на задачу)",
+      });
+      console.error(`[${stamp()}] публикация не подтвердилась, заказ ${order.id}`);
+      return true;
+    }
+    await db.updateOrder(order.id, { status: "sent", result_url: result.url });
+    console.log(`[${stamp()}] слот ${slot}: заказ отправлен: ${result.url}`);
   } catch (err) {
     await db.updateOrder(order.id, { status: "failed", error: String(err.message || err) });
-    console.error(`[${stamp()}] ошибка: ${err.message}`);
-    console.error(err.stack);
+    console.error(`[${stamp()}] слот ${slot}: ошибка: ${err.message}`);
   }
   return true;
 }
 
-async function main() {
-  assertConfig();
-  console.log(`[${stamp()}] воркер запущен. Опрос каждые ${config.pollIntervalSec} сек.`);
-  console.log(`Профи-профиль: ${config.profileDir}; headless=${config.headless}; dry_run=${config.dryRun}`);
+// Цикл одного слота. Слот 0, помимо очереди, ведёт мониторинг и переговоры.
+async function slotLoop(slot) {
+  const profileDir = slotProfileDir(slot);
   for (;;) {
     try {
-      if (config.autoEnqueue) await autoEnqueue();
-      await processQueue();
-      await monitorOffers();
-      await reactOffers();
+      if (slot === 0) {
+        if (config.autoEnqueue) await autoEnqueue();
+        await monitorOffers(profileDir);
+        await reactOffers(profileDir);
+      }
+      await processQueue(slot, profileDir);
     } catch (err) {
-      console.error(`[${stamp()}] цикл прерван: ${err.message}`);
+      console.error(`[${stamp()}] слот ${slot}: цикл прерван: ${err.message}`);
     }
     await sleep(config.pollIntervalSec * 1000);
   }
+}
+
+// Профили дополнительных слотов — копии основного (залогиненного)
+function ensureSlotProfiles() {
+  for (let i = 1; i < config.parallelSlots; i++) {
+    const dir = slotProfileDir(i);
+    if (!fs.existsSync(dir) && fs.existsSync(config.profileDir)) {
+      fs.cpSync(config.profileDir, dir, { recursive: true });
+      console.log(`[${stamp()}] слот ${i}: профиль скопирован в ${dir}`);
+    }
+  }
+}
+
+async function main() {
+  assertConfig();
+  ensureSlotProfiles();
+  console.log(`[${stamp()}] воркер запущен. Опрос каждые ${config.pollIntervalSec} сек.`);
+  console.log(
+    `Слотов: ${config.parallelSlots}; headless=${config.headless}; dry_run=${config.dryRun}; мониторинг чатов: раз в ${config.monitorIntervalSec} сек.`,
+  );
+  const loops = [];
+  for (let i = 0; i < config.parallelSlots; i++) loops.push(slotLoop(i));
+  await Promise.all(loops);
 }
 
 // ============ Мониторинг откликов и согласование встречи ============
@@ -199,7 +213,7 @@ function composeDetails(title, description) {
 
 // Шаг 1 переговоров: здороваемся и спрашиваем цену/сроки. Адрес не раскрываем —
 // он уйдёт только после согласования времени владельцем.
-async function sendIntro(order, offer) {
+async function sendIntro(order, offer, profileDir = config.profileDir) {
   if (!offer || !offer.chat_id) return;
   const details = composeDetails(order.title, order.details).slice(0, 400);
   if (!details) return;
@@ -226,7 +240,7 @@ const notifiedKeys = new Set();
 // заказы, проверенные недавно: старые заказы не дёргаем каждые 20 секунд
 const lastMonitored = new Map();
 
-async function monitorOffers() {
+async function monitorOffers(profileDir = config.profileDir) {
   let sent;
   try {
     sent = (await db.sentOrders()) || [];
@@ -250,7 +264,7 @@ async function monitorOffers() {
     // Повторный найм: если на новом заказе ещё никого нет, а у владельца
     // уже есть проверенный мастер этой же специализации — пишем ему первому.
     if (chats.length === 0) {
-      const repeat = await tryRepeatHire(order, profiOrderId);
+      const repeat = await tryRepeatHire(order, profiOrderId, profileDir);
       if (repeat?.chatId) {
         repeatIntroChatIds.add(repeat.chatId);
         chats = await listChats(profiOrderId);
@@ -262,7 +276,7 @@ async function monitorOffers() {
       let lastIncoming = null;
       let readOk = false;
       try {
-        const msgs = await readChatMessages(profiOrderId, chat.chatId);
+        const msgs = await readChatMessages(profiOrderId, chat.chatId, profileDir);
         readOk = true;
         const incoming = msgs.filter((m) => !m.mine && m.text && !SYSTEM_HINT.test(m.text));
         if (incoming.length) lastIncoming = incoming[incoming.length - 1];
@@ -306,7 +320,7 @@ async function monitorOffers() {
         });
         console.log(`[${stamp()}] новый отклик: ${chat.name} по заказу ${profiOrderId}`);
         const created = Array.isArray(createdOffer) ? createdOffer[0] : createdOffer;
-        if (!isRepeat) await sendIntro(order, created);
+        if (!isRepeat) await sendIntro(order, created, profileDir);
       } else {
         await db.updateOffer(prev.id, {
           last_message: incomingText,
@@ -319,7 +333,7 @@ async function monitorOffers() {
         });
         console.log(`[${stamp()}] обновление чата: ${chat.name} по заказу ${profiOrderId}`);
         if (prev.status === "new" && !prev.intro_sent_at) {
-          await sendIntro(order, prev);
+          await sendIntro(order, prev, profileDir);
         }
       }
     }
@@ -331,7 +345,7 @@ async function monitorOffers() {
 const repeatTried = new Set();
 const repeatIntroChatIds = new Set();
 
-async function tryRepeatHire(order, profiOrderId) {
+async function tryRepeatHire(order, profiOrderId, profileDir) {
   if (repeatTried.has(order.id)) return null;
   repeatTried.add(order.id);
   try {
@@ -344,7 +358,7 @@ async function tryRepeatHire(order, profiOrderId) {
     const details = composeDetails(order.title, order.details).slice(0, 400);
     if (!details) return null;
     const text = `Здравствуйте! Обращаемся повторно — в прошлый раз вы отлично помогли. Новая задача: ${details}. Подскажите, пожалуйста, сколько будет стоить и когда сможете подойти?`;
-    const res = await contactSpecialist(profiOrderId, hired.profile_id, text);
+    const res = await contactSpecialist(profiOrderId, hired.profile_id, text, profileDir);
     await db.notify(order.owner_id, {
       title: `Профи: написали проверенному мастеру — ${hired.master_name}`,
       message: res.contacted
@@ -365,7 +379,7 @@ async function tryRepeatHire(order, profiOrderId) {
 }
 
 // Владелец решил (approved/countered/declined) → пишем мастеру в чат Профи.
-async function reactOffers() {
+async function reactOffers(profileDir = config.profileDir) {
   const offers = (await db.offersToReact()) || [];
   for (const offer of offers) {
     if (!offer.profi_order_id || !offer.chat_id) continue;
@@ -377,11 +391,11 @@ async function reactOffers() {
           ? `К сожалению, такое время не подходит. Удобнее: ${offer.scheduled_at || "другое время"}. Подойдёт?`
           : "Спасибо за отклик! Мы уже нашли специалиста. Хорошего дня!";
     try {
-      await sendChatMessage(offer.profi_order_id, offer.chat_id, text);
+      await sendChatMessage(offer.profi_order_id, offer.chat_id, text, profileDir);
       let hireInfo = null;
       if (offer.status === "approved") {
         try {
-          hireInfo = await hireSpecialist(offer.profi_order_id, offer.chat_id);
+          hireInfo = await hireSpecialist(offer.profi_order_id, offer.chat_id, profileDir);
           console.log(`[${stamp()}] «Выбрать специалиста»: ${JSON.stringify(hireInfo)}`);
         } catch (err) {
           console.error(`[${stamp()}] выбор специалиста не удался: ${err.message}`);

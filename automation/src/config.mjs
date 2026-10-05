@@ -10,12 +10,19 @@ export const config = {
   pollIntervalSec: num(process.env.POLL_INTERVAL_SEC, 20),
   // как часто проверять чаты уже отправленных заказов (сек)
   monitorIntervalSec: num(process.env.MONITOR_INTERVAL_SEC, 120),
+  // сколько заказов создавать одновременно (отдельные браузеры-слоты;
+  // профили слотов копируются с основного при первом запуске)
+  parallelSlots: num(process.env.PARALLEL_SLOTS, 1),
   headless: bool(process.env.HEADLESS ?? "1"),
   defaultAddress: process.env.DEFAULT_ADDRESS || "",
   autoEnqueue: bool(process.env.AUTO_ENQUEUE_NEW_REQUESTS ?? "0"),
   dryRun: bool(process.env.DRY_RUN ?? "0"),
   profileDir: process.env.PROFILE_DIR || "./state/profi-profile",
 };
+
+// Каталог профиля для слота i (слот 0 — основной, залогиненный)
+export const slotProfileDir = (i) =>
+  i === 0 ? config.profileDir : `${config.profileDir}-${i + 1}`;
 
 export function assertConfig() {
   const missing = [];
