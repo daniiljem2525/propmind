@@ -185,8 +185,15 @@ function errorWidget(message) {
   t.textColor = MUTED;
   w.addSpacer();
   const e = w.addText("Нет связи\n" + message);
-  e.font = Font.systemFont(13);
+  e.font = Font.systemFont(12);
   e.textColor = RED;
+  if (/api key/i.test(message)) {
+    const hint = w.addText(
+      "В CONFIG должен быть ключ sb_publishable_... (Settings → API → Publishable key), не sb_secret",
+    );
+    hint.font = Font.systemFont(11);
+    hint.textColor = MUTED;
+  }
   w.refreshAfterDate = new Date(Date.now() + 10 * 60 * 1000);
   return w;
 }
