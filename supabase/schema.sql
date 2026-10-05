@@ -1453,10 +1453,10 @@ $$;
 --     (гости платят при заселении; обслуживание — кнопкой «Службы»).
 --     Повтор scan_reminders с фильтром по типу сдачи.
 -- ============================================================
+alter table public.properties add column if not exists rental_type text not null default 'longterm';
 alter table public.properties drop constraint if exists properties_rental_type_check;
 alter table public.properties add constraint properties_rental_type_check
   check (rental_type in ('longterm', 'shortterm'));
-alter table public.properties add column if not exists rental_type text not null default 'longterm';
 
 create or replace function public.scan_reminders() returns void
 language plpgsql security definer set search_path = public
