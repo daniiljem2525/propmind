@@ -12,11 +12,11 @@ function headers(extra = {}) {
   };
 }
 
-async function request(method, path, { query = {}, body } = {}) {
+async function request(method, path, { query = {}, body, headers: extraHeaders = {} } = {}) {
   const qs = new URLSearchParams(query).toString();
   const res = await fetch(`${base()}${path}${qs ? `?${qs}` : ""}`, {
     method,
-    headers: headers(),
+    headers: headers(extraHeaders),
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!res.ok) {
@@ -126,7 +126,11 @@ export const db = {
   },
 
   createOffer(row) {
-    return request("POST", "/profi_offers", { body: row });
+    // return=representation — чтобы получить созданную строку с id
+    return request("POST", "/profi_offers", {
+      body: row,
+      headers: { Prefer: "return=representation" },
+    });
   },
 
   updateOffer(id, patch) {

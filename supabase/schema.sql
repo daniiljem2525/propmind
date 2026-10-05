@@ -1370,6 +1370,7 @@ create table if not exists public.profi_offers (
   proposed_time text,
   status        text not null default 'new'
                 check (status in ('new', 'approved', 'declined', 'countered', 'hired')),
+  intro_sent_at timestamptz,
   reply_text    text,
   scheduled_at  text,
   replied_at    timestamptz,

@@ -115,6 +115,27 @@ function extractProposedTime(text) {
 
 const profiOrderIdFromUrl = (url) => (url.match(/order\/(\d+)/) || [])[1] || null;
 
+// Шаг 1 переговоров: здороваемся и спрашиваем цену/сроки. Адрес не раскрываем —
+// он уйдёт только после согласования времени владельцем.
+async function sendIntro(order, offer) {
+  if (!offer || !offer.chat_id || !order.details) return;
+  const text =
+    `Здравствуйте! ${order.details.slice(0, 400)} ` +
+    `Сколько будет стоить работа и когда сможете подойти?`;
+  try {
+    await sendChatMessage(order.result_url.match(/order\/(\d+)/)[1], offer.chat_id, text);
+    if (offer.id) {
+      await db.updateOffer(offer.id, {
+        intro_sent_at: new Date().toISOString(),
+        reply_text: text,
+      });
+    }
+    console.log(`[${stamp()}] вступительное отправлено мастеру ${offer.master_name || ""}`);
+  } catch (err) {
+    console.error(`[${stamp()}] вступительное ${offer.master_name || ""}: ${err.message}`);
+  }
+}
+
 // Новые отклики/сообщения мастеров → profi_offers + уведомление владельцу.
 async function monitorOffers() {
   let sent;
@@ -149,11 +170,13 @@ async function monitorOffers() {
       }
       if (readOk && !lastIncoming) continue; // в чате только наши сообщения
       const incomingText = (lastIncoming ? lastIncoming.text : chat.preview).slice(0, 900);
-      if (prev && prev.last_message === incomingText) continue; // нового от мастера нет
+      if (prev && prev.last_message === incomingText && prev.intro_sent_at) {
+        continue; // нового от мастера нет, вступительное уже отправлено
+      }
       const incomingRaw = lastIncoming ? lastIncoming.text : chat.preview;
       const proposed = extractProposedTime(incomingRaw);
       if (!prev) {
-        await db.createOffer({
+        const createdOffer = await db.createOffer({
           owner_id: order.owner_id,
           order_id: order.id,
           request_id: order.request_id,
@@ -173,6 +196,8 @@ async function monitorOffers() {
           relatedId: order.request_id,
         });
         console.log(`[${stamp()}] новый отклик: ${chat.name} по заказу ${profiOrderId}`);
+        const created = Array.isArray(createdOffer) ? createdOffer[0] : createdOffer;
+        await sendIntro(order, created);
       } else {
         await db.updateOffer(prev.id, {
           last_message: incomingText,
@@ -184,6 +209,9 @@ async function monitorOffers() {
           relatedId: order.request_id,
         });
         console.log(`[${stamp()}] обновление чата: ${chat.name} по заказу ${profiOrderId}`);
+        if (!prev.intro_sent_at) {
+          await sendIntro(order, prev);
+        }
       }
     }
   }
