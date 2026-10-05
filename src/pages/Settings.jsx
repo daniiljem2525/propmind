@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PushCard from "@/components/PushCard";
+import widgetScript from "../../widget/ArendoraWidget.js?raw";
 import UsersPanel from "@/components/UsersPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -393,8 +394,41 @@ export default function Settings() {
       )}
 
       {activeTab === "notifications" && (
-        <PushCard />
-
+        <>
+          <PushCard />
+          <Card className="max-w-xl mt-6">
+            <CardHeader>
+              <CardTitle>Виджет на iPhone</CardTitle>
+              <CardDescription>
+                Ближайший платёж прямо на экране „Домой“ — обновляется сам.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+                <li>Установите бесплатное приложение Scriptable из App Store.</li>
+                <li>Скопируйте скрипт кнопкой ниже — ваша почта уже вписана.</li>
+                <li>В Scriptable: «+» → вставить → впишите пароль от Arendora.</li>
+                <li>На экране „Домой“: долгое нажатие → «+» → виджет Scriptable → выберите скрипт.</li>
+              </ol>
+              <Button
+                onClick={async () => {
+                  try {
+                    const code = widgetScript.replace(
+                      'EMAIL: "daniilmelyanov2010@gmail.com",',
+                      'EMAIL: ' + JSON.stringify(user?.email || ''),
+                    );
+                    await navigator.clipboard.writeText(code);
+                    toast.success(lang === 'ru' ? 'Скрипт скопирован — вставьте в Scriptable' : 'Script copied');
+                  } catch {
+                    toast.error(t('errors.generic'));
+                  }
+                }}
+              >
+                Скопировать скрипт виджета
+              </Button>
+            </CardContent>
+          </Card>
+        </>
       )}
       {activeTab === "notifications" && (
         <Card className="max-w-xl mt-6">

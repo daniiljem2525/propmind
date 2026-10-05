@@ -59,6 +59,10 @@ export default function Dashboard() {
 
   const activeTenants = tenants.filter((x) => x.status === "active").length;
   const overdueCount = payments.filter((p) => p.status === "overdue").length;
+  const unpaid = payments
+    .filter((p) => ["pending", "overdue", "partial"].includes(p.status) && p.due_date)
+    .sort((a, b) => (a.due_date || "").localeCompare(b.due_date || ""));
+  const nearest = unpaid[0];
   const openRequests = requests.filter((r) => r.status === "new" || r.status === "in_progress").length;
 
   const recentPayments = payments.slice(0, 5);
