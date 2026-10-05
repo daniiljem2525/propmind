@@ -32,14 +32,22 @@ async function clickButton(page, text) {
   }, text);
 }
 
-// Клик по текстовому элементу-варианту (радио/чекбокс: «Сегодня, 5 октября» и т.п.)
+// Клик по текстовому элементу-варианту (радио/чекбокс). Текст может быть
+// обёрнут иначе, чем в снимке состояния, поэтому сначала точное совпадение,
+// потом вхождение подстроки.
 async function clickOption(page, text) {
   return page.evaluate((t) => {
+    const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
+    const target = norm(t);
     const els = [...document.querySelectorAll("span,div,label,p")].filter(
-      (e) => e.childElementCount === 0 && e.textContent.trim() === t,
+      (e) => e.childElementCount === 0 && e.offsetParent !== null,
     );
-    if (!els.length) return false;
-    els[els.length - 1].click();
+    let hit = els.find((e) => norm(e.textContent) === target);
+    if (!hit && target.length >= 8) {
+      hit = els.find((e) => norm(e.textContent).includes(target));
+    }
+    if (!hit) return false;
+    hit.click();
     return true;
   }, text);
 }
@@ -57,7 +65,13 @@ async function stepState(page) {
       ...new Set(
         [
           ...[...document.querySelectorAll('span[role="radio"], span[role="checkbox"]')].map(
-            (e) => e.textContent.trim(),
+            (e) => {
+              const own = e.textContent.trim();
+              if (own) return own;
+              // «кружок» без текста — ответ лежит в соседнем узле строки
+              const row = e.closest("label") || e.parentElement;
+              return row ? row.textContent.trim() : "";
+            },
           ),
           // нативные input-чекбоксы/радио с текстом в label или соседнем узле
           ...[...document.querySelectorAll('input[type="radio"], input[type="checkbox"]')]
@@ -206,12 +220,13 @@ async function handleStep(page, order, log) {
     return "continue";
   }
 
-  // 6. Описание задачи
-  const descInput = await textboxByRole(page, /Важные детали/);
-  if (descInput) {
-    await descInput.fill(order.details || order.service_query || "");
+  // 6. Любое большое текстовое поле — описание задачи
+  //    («Важные детали…», «Опишите детали задачи» — у поля бывает разное имя)
+  const taLoc = page.locator("textarea").locator("visible=true");
+  if ((await taLoc.count()) > 0) {
+    await taLoc.first().fill(order.details || order.service_query || "");
     await page.waitForTimeout(600);
-    await clickButton(page, "Продолжить");
+    if (!(await clickButton(page, "Продолжить"))) await clickButton(page, "Пропустить");
     return "continue";
   }
 
