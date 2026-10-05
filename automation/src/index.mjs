@@ -239,6 +239,8 @@ async function sendIntro(order, offer, profileDir = config.profileDir) {
 const notifiedKeys = new Set();
 // заказы, проверенные недавно: старые заказы не дёргаем каждые 20 секунд
 const lastMonitored = new Map();
+// заказы, по которым заявка уже закрыта — один раз логируем и больше не трогаем
+const closedSkipped = new Set();
 
 async function monitorOffers(profileDir = config.profileDir) {
   let sent;
@@ -248,9 +250,23 @@ async function monitorOffers(profileDir = config.profileDir) {
     return;
   }
   const now = Date.now();
+  // статусы заявок одним запросом: чтобы не следить за закрытыми задачами
+  const reqStatuses = await db.requestStatuses(
+    sent.map((o) => o.request_id).filter(Boolean),
+  );
   for (const order of sent) {
     if (now - (lastMonitored.get(order.id) || 0) < config.monitorIntervalSec * 1000) continue;
     lastMonitored.set(order.id, now);
+    if (
+      order.request_id &&
+      ["done", "closed", "cancelled"].includes(reqStatuses.get(order.request_id))
+    ) {
+      if (!closedSkipped.has(order.id)) {
+        closedSkipped.add(order.id);
+        console.log(`[${stamp()}] заявка закрыта — слежку по заказу ${order.id} прекратил`);
+      }
+      continue;
+    }
     const profiOrderId = profiOrderIdFromUrl(order.result_url);
     if (!profiOrderId) continue;
     let chats;

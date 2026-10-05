@@ -173,7 +173,7 @@ export default function Services() {
           <div className="space-y-2">
             {orders.map((o) => {
               const cfg = ORDER_STATUS_LABEL[o.status] || ORDER_STATUS_LABEL.pending;
-              const cancellable = ["pending", "running"].includes(o.status);
+              const cancellable = ["pending", "running", "sent"].includes(o.status);
               const SvcIcon = (SERVICES.find((s) => s.id === (o.service_query || "").toLowerCase()) || SERVICES[0]).icon;
               return (
                 <Card key={o.id} className="flex flex-wrap items-center gap-2 px-4 py-3 text-sm">

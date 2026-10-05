@@ -365,7 +365,7 @@ export default function RequestDetails({ request, open, onClose }) {
             <div className="space-y-2">
               {orders.map((o) => {
                 const cfg = ORDER_STATUS_LABEL[o.status] || ORDER_STATUS_LABEL.pending;
-                const cancellable = ["pending", "running"].includes(o.status);
+                const cancellable = ["pending", "running", "sent"].includes(o.status);
                 return (
                   <div key={o.id} className="flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm">
                     <span className="font-medium">{o.service_query}</span>

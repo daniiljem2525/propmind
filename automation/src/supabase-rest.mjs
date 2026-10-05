@@ -93,9 +93,19 @@ export const db = {
   async getRequest(id) {
     const rows =
       (await request("GET", "/maintenance_requests", {
-        query: { select: "id,property_id", id: `eq.${id}`, limit: "1" },
+        query: { select: "id,property_id,status", id: `eq.${id}`, limit: "1" },
       })) || [];
     return rows[0] || null;
+  },
+
+  // Статусы заявок одним запросом: Map id → status
+  async requestStatuses(ids) {
+    if (!ids.length) return new Map();
+    const rows =
+      (await request("GET", "/maintenance_requests", {
+        query: { select: "id,status", id: `in.(${ids.join(",")})` },
+      })) || [];
+    return new Map(rows.map((r) => [r.id, r.status]));
   },
 
   async getProperty(id) {
