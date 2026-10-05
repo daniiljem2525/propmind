@@ -127,7 +127,7 @@ export const db = {
   async getProperty(id) {
     const rows =
       (await request("GET", "/properties", {
-        query: { select: "id,name,address", id: `eq.${id}`, limit: "1" },
+        query: { select: "id,name,address,area_sqm,rooms", id: `eq.${id}`, limit: "1" },
       })) || [];
     return rows[0] || null;
   },

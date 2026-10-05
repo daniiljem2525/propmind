@@ -152,10 +152,14 @@ async function handleStep(page, order, log) {
           norm(e.textContent) !== norm(q),
       );
       if (items.length) {
-        // точное совпадение или самая короткая подсказка (без «довесков»)
-        items.sort((a, b) => a.textContent.length - b.textContent.length);
+        // точное совпадение; для клининга — «квартира», не «нежилые помещения»;
+        // иначе самая короткая подсказка
         const exact = items.find((e) => norm(e.textContent) === norm(q));
-        const target = exact || items[0];
+        const flat = /клин/i.test(q)
+          ? items.find((e) => norm(e.textContent).includes('квартир'))
+          : null;
+        const fallback = items.slice().sort((a, b) => a.textContent.length - b.textContent.length)[0];
+        const target = exact || flat || fallback;
         target.click();
         return target.textContent.trim().slice(0, 60);
       }
@@ -211,6 +215,42 @@ async function handleStep(page, order, log) {
     }
     await clickButton(page, "Продолжить");
     return "continue";
+  }
+
+  // 4б. Вопросы клининга — отвечаем данными объекта
+  if (/площадь/i.test(headings) && st.spin) {
+    const sp = page.locator('input[type="number"], input[inputmode="numeric"]').first();
+    await sp.fill(String(Math.round(Number(order.area_sqm) || 45)));
+    await page.waitForTimeout(400);
+    await clickButton(page, 'Продолжить');
+    return 'continue';
+  }
+  if (/Сколько комнат|Какая квартира/i.test(headings) && st.options.length > 0) {
+    const rooms = String(Math.round(Number(order.rooms) || 1));
+    const byRooms = st.options.find((o) => o.text.replace(/D/g, '') === rooms) || st.options[0];
+    await clickOption(page, byRooms.text);
+    await page.waitForTimeout(500);
+    await clickButton(page, 'Продолжить');
+    return 'continue';
+  }
+  if (/Где провести уборку|Где нужна уборка/i.test(headings) && st.options.length > 0) {
+    const flat = st.options.find((o) => /квартир/i.test(o.text)) || st.options[0];
+    await clickOption(page, flat.text);
+    await page.waitForTimeout(500);
+    await clickButton(page, 'Продолжить');
+    return 'continue';
+  }
+  if (/В каких помещениях/i.test(headings) && st.options.length > 0) {
+    // уборка после выезда гостей — все помещения
+    const allOpt = st.options.find((o) => /вс[её]/i.test(o.text));
+    if (allOpt) {
+      await clickOption(page, allOpt.text);
+    } else {
+      for (const o of st.options) await clickOption(page, o.text);
+    }
+    await page.waitForTimeout(500);
+    if (!(await clickButton(page, 'Продолжить'))) await clickButton(page, 'Дальше');
+    return 'continue';
   }
 
   // 5. Бюджет

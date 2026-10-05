@@ -81,8 +81,7 @@ async function autoEnqueue() {
   }
 }
 
-// Адрес для шага «Улица и номер дома»: из заказа → из объекта заявки →
-// DEFAULT_ADDRESS из .env
+// Данные объекта для вопросов мастера: адрес, площадь, комнаты
 async function resolveAddress(order) {
   if (order.address) return order.address;
   if (order.request_id) {
@@ -90,10 +89,14 @@ async function resolveAddress(order) {
       const req = await db.getRequest(order.request_id);
       if (req?.property_id) {
         const prop = await db.getProperty(req.property_id);
-        if (prop?.address) return prop.address;
+        if (prop) {
+          order.area_sqm = prop.area_sqm ?? null;
+          order.rooms = prop.rooms ?? null;
+          if (prop.address) return prop.address;
+        }
       }
     } catch (err) {
-      console.warn(`[${stamp()}] адрес объекта не получен: ${err.message}`);
+      console.warn(`[${stamp()}] данные объекта не получены: ${err.message}`);
     }
   }
   return config.defaultAddress || null;
@@ -300,7 +303,17 @@ async function monitorOffers(profileDir = config.profileDir) {
     if (!profiOrderId) continue;
     let chats;
     try {
-      chats = await listChats(profiOrderId);
+      const res = await listChats(profiOrderId);
+      if (res.cancelled) {
+        // задачу отменили на стороне Профи — гасим слежку навсегда
+        await db.updateOrder(order.id, {
+          status: "cancelled",
+          error: "Задача отменена на Профи.ру",
+        });
+        console.log(`[${stamp()}] задача ${profiOrderId} отменена на Профи — заказ ${order.id} закрыт`);
+        continue;
+      }
+      chats = res.chats;
     } catch (err) {
       console.error(`[${stamp()}] мониторинг ${profiOrderId}: ${err.message}`);
       continue;
@@ -312,7 +325,7 @@ async function monitorOffers(profileDir = config.profileDir) {
       const repeat = await tryRepeatHire(order, profiOrderId, profileDir);
       if (repeat?.chatId) {
         repeatIntroChatIds.add(repeat.chatId);
-        chats = await listChats(profiOrderId);
+        chats = (await listChats(profiOrderId)).chats;
       }
     }
     for (const chat of chats) {
