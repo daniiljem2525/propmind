@@ -2,7 +2,7 @@
 // status=pending), создаёт их на Профи.ру и пишет результат обратно.
 import { config, assertConfig, CATEGORY_TO_SERVICE, URGENCY_TO_DEADLINE } from "./config.mjs";
 import { db } from "./supabase-rest.mjs";
-import { createProfiOrder, listChats, readChatMessages, sendChatMessage } from "./profi.mjs";
+import { createProfiOrder, listChats, readChatMessages, sendChatMessage, hireSpecialist } from "./profi.mjs";
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const stamp = () => new Date().toLocaleTimeString("ru-RU");
@@ -202,6 +202,15 @@ async function reactOffers() {
           : "Здравствуйте! Спасибо за отклик, мы уже нашли специалиста.";
     try {
       await sendChatMessage(offer.profi_order_id, offer.chat_id, text);
+      let hireInfo = null;
+      if (offer.status === "approved") {
+        try {
+          hireInfo = await hireSpecialist(offer.profi_order_id, offer.chat_id);
+          console.log(`[${stamp()}] «Выбрать специалиста»: ${JSON.stringify(hireInfo)}`);
+        } catch (err) {
+          console.error(`[${stamp()}] выбор специалиста не удался: ${err.message}`);
+        }
+      }
       await db.updateOffer(offer.id, {
         replied_at: new Date().toISOString(),
         reply_text: text,

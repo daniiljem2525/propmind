@@ -426,9 +426,12 @@ export async function sendChatMessage(profiOrderId, chatId, text) {
     await page.waitForTimeout(5000);
     const input = page.locator('textarea[placeholder="Сообщение"]');
     if ((await input.count()) === 0) throw new Error("Не найдено поле «Сообщение» в чате Профи");
-    await input.fill(text);
-    await page.waitForTimeout(400);
-    await input.press("Enter");
+    // важно: именно посимвольная печать — fill() не обновляет состояние чата,
+    // и Enter уходит в пустое поле
+    await input.click();
+    await input.type(text, { delay: 10 });
+    await page.waitForTimeout(500);
+    await page.keyboard.press("Enter");
     await page.waitForTimeout(3000);
     // проверяем, что сообщение появилось среди пузырей
     const sent = await page.evaluate((t) => {
@@ -437,5 +440,38 @@ export async function sendChatMessage(profiOrderId, chatId, text) {
     }, text);
     if (!sent) throw new Error("Сообщение не подтвердилось в чате Профи");
     return true;
+  });
+}
+
+/**
+ * «Выбрать специалиста» в чате — финальное найм-действие Профи.
+ * Вызывается после согласующего сообщения, когда владелец нажал «Принять».
+ */
+export async function hireSpecialist(profiOrderId, chatId) {
+  return withPage(async (page) => {
+    await page.goto(orderPageUrl(profiOrderId, chatId), { waitUntil: "domcontentloaded", timeout: 60000 });
+    await page.waitForTimeout(5000);
+    const btn = page.locator('button[data-testid="chat_action_msngr_o_nazn"]');
+    if ((await btn.count()) === 0) {
+      // мастер уже нанят или кнопка недоступна
+      return { hired: false, reason: "кнопка «Выбрать специалиста» не найдена (возможно, уже выбран)" };
+    }
+    await btn.first().click();
+    await page.waitForTimeout(2500);
+    // если появился диалог подтверждения — жмём основную кнопку в нём
+    const confirmed = await page.evaluate(() => {
+      const dlg = document.querySelector('[role="dialog"], [class*="Modal"], [class*="modal"], [class*="ialog"]');
+      if (!dlg) return "no-dialog";
+      const b = [...dlg.querySelectorAll("button")].find((x) =>
+        /выбрать|подтверд|да$/i.test(x.textContent.trim()),
+      );
+      if (b) {
+        b.click();
+        return "clicked:" + b.textContent.trim().slice(0, 40);
+      }
+      return "dialog-no-button";
+    });
+    await page.waitForTimeout(2500);
+    return { hired: true, dialog: confirmed };
   });
 }
