@@ -24,6 +24,9 @@ export default function CleaningDialog({ property, open, onClose }) {
   const [comment, setComment] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // закрытый диалог без объекта не рендерим вовсе
+  if (!open || !property) return null;
+
   const submit = async (e) => {
     e.preventDefault();
     setBusy(true);
