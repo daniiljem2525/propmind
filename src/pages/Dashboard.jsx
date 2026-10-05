@@ -166,6 +166,21 @@ export default function Dashboard() {
           value={formatMoney(monthIncome, "RUB", lang)}
           sub={t("dashboard.inMonth")}
         />
+        <StatCard
+          icon={CalendarClock}
+          tile={nearest ? 'bg-sky-500' : 'bg-slate-400'}
+          label={lang === 'ru' ? 'Ближайший платёж' : 'Next payment'}
+          value={nearest ? formatMoney(nearest.amount, nearest.currency || 'RUB', lang) : '✓'}
+          sub={
+            nearest
+              ? `${nearest.tenant_name || nearest.property_name || ""} · ${lang === "ru" ? "до" : "due"} ${new Date(
+                  nearest.due_date + "T00:00:00",
+                ).toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" })}`
+              : lang === "ru"
+                ? "все платежи получены"
+                : "all payments received"
+          }
+        />
       </div>
 
       {/* Последние платежи и заявки */}
