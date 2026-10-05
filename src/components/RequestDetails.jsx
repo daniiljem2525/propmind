@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Building2, CalendarClock, Send, User, Wrench } from "lucide-react";
+import { Building2, CalendarClock, Globe, Send, User, Wrench } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Field, Textarea } from "@/components/ui/input";
-import { RequestComment, RequestEvent } from "@/lib/api/entities";
+import { AutomationOrder, RequestComment, RequestEvent } from "@/lib/api/entities";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -18,6 +18,16 @@ import {
 } from "@/lib/config/statuses";
 
 const byDate = (a, b) => (a.created_date || "").localeCompare(b.created_date || "");
+
+// Категория заявки → запрос услуги на Профи.ру (воркер automation/).
+const PROFI_SERVICE = {
+  plumbing: "сантехник",
+  electrical: "электрик",
+  appliances: "ремонт бытовой техники",
+  furniture: "сборка мебели",
+  other: "",
+};
+const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };
 
 function InfoRow({ icon: Icon, label, value }) {
   if (!value) return null;
@@ -42,6 +52,7 @@ export default function RequestDetails({ request, open, onClose }) {
   const [comments, setComments] = useState([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [sendingProfi, setSendingProfi] = useState(false);
 
   useEffect(() => {
     if (!open || !request) return undefined;
@@ -90,6 +101,29 @@ export default function RequestDetails({ request, open, onClose }) {
     }
   };
 
+  const sendToProfi = async () => {
+    setSendingProfi(true);
+    try {
+      await AutomationOrder.create({
+        request_id: request.id,
+        platform: "profi",
+        service_query: PROFI_SERVICE[request.category] || request.title || "мастер на час",
+        details: [request.title, request.description].filter(Boolean).join(". ").slice(0, 900),
+        budget: request.estimate_cost ?? null,
+        deadline: URGENCY_DEADLINE[request.urgency] || "week",
+      });
+      toast.success(
+        lang === "ru"
+          ? "Заявка в очереди: воркер создаст заказ на Профи.ру"
+          : "Queued: the worker will place the order on Profi.ru",
+      );
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setSendingProfi(false);
+    }
+  };
+
   return (
     <Dialog
       open={open}
@@ -97,9 +131,23 @@ export default function RequestDetails({ request, open, onClose }) {
       title={request.title || t("req.untitled")}
       size="lg"
       footer={
-        <Button variant="outline" onClick={onClose}>
-          {t("common.close")}
-        </Button>
+        <div className="flex items-center gap-2">
+          {user?.role === "owner" &&
+            !["done", "closed", "cancelled"].includes(request.status) && (
+              <Button
+                variant="outline"
+                onClick={sendToProfi}
+                loading={sendingProfi}
+                title="Создать заказ на Профи.ру через воркер"
+              >
+                <Globe className="h-4 w-4" />
+                {lang === "ru" ? "Отправить на Профи" : "Send to Profi"}
+              </Button>
+            )}
+          <Button variant="outline" onClick={onClose}>
+            {t("common.close")}
+          </Button>
+        </div>
       }
     >
       <div className="space-y-5">

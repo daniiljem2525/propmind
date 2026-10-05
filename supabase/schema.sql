@@ -1312,3 +1312,40 @@ begin
     );
   end if;
 end $seed$;
+
+-- ============================================================
+-- 11. Очередь внешних заказов (автоматизация Профи.ру / Авито)
+--     Воркер (automation/) читает строки status='pending' сервисным
+--     ключом, создаёт заказ на площадке и пишет результат.
+-- ============================================================
+create table if not exists public.automation_orders (
+  id            uuid primary key default gen_random_uuid(),
+  owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  request_id    uuid references public.maintenance_requests(id) on delete cascade,
+  platform      text not null default 'profi'
+                check (platform in ('profi', 'avito')),
+  status        text not null default 'pending'
+                check (status in ('pending', 'running', 'sent', 'failed')),
+  service_query text not null default '',
+  details       text not null default '',
+  address       text,
+  budget        numeric,
+  deadline      text not null default 'week'
+                check (deadline in ('today', 'week', 'anytime')),
+  hint_option   text,
+  result_url    text,
+  error         text,
+  created_date  timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+
+create index if not exists automation_orders_status_idx on public.automation_orders(status, created_date);
+create index if not exists automation_orders_request_idx on public.automation_orders(request_id);
+
+alter table public.automation_orders enable row level security;
+
+drop policy if exists "automation_orders: владелец — полные права" on public.automation_orders;
+create policy "automation_orders: владелец — полные права"
+  on public.automation_orders for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());

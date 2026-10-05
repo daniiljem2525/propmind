@@ -1,0 +1,16 @@
+{
+  "name": "arendora-automation",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Фоновый воркер Arendora: берёт заявки из Supabase и создаёт заказы на Профи.ру через браузер",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "login": "node src/login.mjs",
+    "setup": "npm install && npx playwright install chromium"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "playwright": "^1.47.0"
+  }
+}

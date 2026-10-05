@@ -16,3 +16,9 @@ chk.json
 del-*.json
 repo.json
 del-*
+automation/node_modules/
+automation/.env
+automation/state/
+automation/playwright-report/
+automation/test-results/
+automation/debug-*.png

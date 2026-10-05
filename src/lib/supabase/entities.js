@@ -22,6 +22,13 @@ export const Payment = makeEntity("payments", {
   status: "pending",
 });
 
+// Очередь заказов для внешних площадок — читает фоновый воркер automation/.
+export const AutomationOrder = makeEntity("automation_orders", {
+  platform: "profi",
+  status: "pending",
+  deadline: "week",
+});
+
 export const MaintenanceRequest = {
   ...makeEntity("maintenance_requests", {
     urgency: "medium",

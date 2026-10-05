@@ -9,6 +9,7 @@ const backend = isSupabaseConfigured ? cloud : local;
 export const Property = backend.Property;
 export const Tenant = backend.Tenant;
 export const Payment = backend.Payment;
+export const AutomationOrder = backend.AutomationOrder;
 export const MaintenanceRequest = backend.MaintenanceRequest;
 export const RequestComment = backend.RequestComment;
 export const RequestEvent = backend.RequestEvent;
