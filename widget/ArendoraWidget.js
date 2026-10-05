@@ -203,13 +203,17 @@ function errorWidget(message) {
 
 // ─── запуск ────────────────────────────────────────────────────
 
-let widget;
-try {
-  const data = await loadData();
-  widget = buildWidget(data);
-} catch (err) {
-  console.error(err);
-  widget = errorWidget(String(err.message || err));
+async function main() {
+  let widget;
+  try {
+    const data = await loadData();
+    widget = buildWidget(data);
+  } catch (err) {
+    console.error(err);
+    widget = errorWidget(String(err.message || err));
+  }
+  Script.setWidget(widget);
+  Script.complete();
 }
-Script.setWidget(widget);
-Script.complete();
+
+main();
