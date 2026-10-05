@@ -110,7 +110,7 @@ export const db = {
   offersToReact() {
     return request("GET", "/profi_offers", {
       query: {
-        select: "*",
+        select: "*, automation_orders(address)",
         status: "in.(approved,countered,declined)",
         replied_at: "is.null",
       },

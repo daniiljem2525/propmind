@@ -115,13 +115,31 @@ function extractProposedTime(text) {
 
 const profiOrderIdFromUrl = (url) => (url.match(/order\/(\d+)/) || [])[1] || null;
 
+// Суть заявки без повторов: заголовок и описание часто совпадают слово в слово.
+function composeDetails(title, description) {
+  const raw = (description || "").trim() || (title || "").trim();
+  const seen = new Set();
+  return raw
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .filter((s) => {
+      const key = s.toLowerCase().replace(/[.!,]+$/, "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .join(". ");
+}
+
 // Шаг 1 переговоров: здороваемся и спрашиваем цену/сроки. Адрес не раскрываем —
 // он уйдёт только после согласования времени владельцем.
 async function sendIntro(order, offer) {
-  if (!offer || !offer.chat_id || !order.details) return;
-  const text =
-    `Здравствуйте! ${order.details.slice(0, 400)} ` +
-    `Сколько будет стоить работа и когда сможете подойти?`;
+  if (!offer || !offer.chat_id) return;
+  const details = composeDetails(order.title, order.details).slice(0, 400);
+  if (!details) return;
+  const budget = Number(order.budget) > 0 ? ` Ориентир по бюджету — до ${Math.round(Number(order.budget))} руб.` : "";
+  const text = `Здравствуйте! ${details}.${budget} Подскажите, пожалуйста, сколько будет стоить и когда сможете подойти?`;
   try {
     await sendChatMessage(order.result_url.match(/order\/(\d+)/)[1], offer.chat_id, text);
     if (offer.id) {
@@ -222,12 +240,13 @@ async function reactOffers() {
   const offers = (await db.offersToReact()) || [];
   for (const offer of offers) {
     if (!offer.profi_order_id || !offer.chat_id) continue;
+    const address = offer.automation_orders?.address || "";
     const text =
       offer.status === "approved"
-        ? `Здравствуйте! Договорились, ждём вас ${offer.scheduled_at || "в согласованное время"}. Адрес пришлём сообщением.`
+        ? `Отлично, договарились! Ждём вас ${offer.scheduled_at || "в согласованное время"}.${address ? ` Адрес: ${address}.` : ""}`
         : offer.status === "countered"
-          ? `Здравствуйте! Такое время, к сожалению, не подходит. Удобнее: ${offer.scheduled_at || "другое время"}. Подойдёт?`
-          : "Здравствуйте! Спасибо за отклик, мы уже нашли специалиста.";
+          ? `К сожалению, такое время не подходит. Удобнее: ${offer.scheduled_at || "другое время"}. Подойдёт?`
+          : "Спасибо за отклик! Мы уже нашли специалиста. Хорошего дня!";
     try {
       await sendChatMessage(offer.profi_order_id, offer.chat_id, text);
       let hireInfo = null;

@@ -29,6 +29,15 @@ const PROFI_SERVICE = {
 };
 const URGENCY_DEADLINE = { emergency: "today", high: "today", medium: "week", low: "anytime" };
 
+// Суть заявки одним предложением: без дублей заголовка и описания
+const requestDetailsText = (r) => {
+  const t = (r.title || "").trim().replace(/[.]+\s*$/, "");
+  const d = (r.description || "").trim();
+  if (!d) return t;
+  if (!t || d.toLowerCase().startsWith(t.toLowerCase())) return d;
+  return `${t}. ${d}`;
+};
+
 // Строка отклика мастера с Профи.ру: принять / отклонить / другое время.
 const OFFER_STATUS_LABEL = {
   new: { ru: "Новый отклик", en: "New" },
@@ -207,7 +216,7 @@ export default function RequestDetails({ request, open, onClose }) {
         request_id: request.id,
         platform: "profi",
         service_query: PROFI_SERVICE[request.category] || request.title || "мастер на час",
-        details: [request.title, request.description].filter(Boolean).join(". ").slice(0, 900),
+        details: requestDetailsText(request).slice(0, 900),
         address,
         budget: request.estimate_cost ?? null,
         deadline: URGENCY_DEADLINE[request.urgency] || "week",
