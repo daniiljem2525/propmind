@@ -247,6 +247,20 @@ async function handleStep(page, order, log) {
         if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Продолжить");
         return "continue";
       }
+      // модальные вопросы редактора (например «Модель») — пропускаем:
+      // не знаем модель, специалист уточнит в чате
+      const skippedModal = await page.evaluate(() => {
+        const d =
+          document.querySelector('[role="dialog"]') ||
+          [...document.querySelectorAll("div")].find(
+            (x) => x.offsetParent !== null && /Пропустить/i.test(x.innerText) && x.querySelector("button") && x.innerText.length < 300,
+          );
+        if (!d) return false;
+        const b = [...d.querySelectorAll("button")].find((x) => /Пропустить/i.test(x.textContent));
+        if (b) { b.click(); return true; }
+        return false;
+      });
+      if (skippedModal) return "continue";
       const addrInput =
         (await textboxByRole(page, /Улица и номер дома/)) || page.getByPlaceholder(/Улица и номер дома/).locator("visible=true").first();
       if ((await addrInput.count()) > 0) {
