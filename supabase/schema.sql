@@ -1189,7 +1189,30 @@ begin
 end;
 $$;
 
--- Онлайн-оплата жильцом: платёж должен быть его и неоплаченным.
+-- Персональный код арендодателя: создаётся сервером (клиент по колоночным
+-- правам обновляет только имя/телефон — см. раздел 1а).
+create or replace function public.get_or_create_invite_code()
+returns text
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_code text;
+begin
+  select invite_code into v_code from public.profiles where id = auth.uid();
+  if v_code is not null then
+    return v_code;
+  end if;
+  loop
+    v_code := upper(substr(replace(gen_random_uuid()::text, '-', ''), 1, 8));
+    exit when not exists (select 1 from public.profiles where invite_code = v_code);
+  end loop;
+  update public.profiles set invite_code = v_code where id = auth.uid();
+  return v_code;
+end;
+$$;
+
+-- Онлайн-оплата жильцом: платёж должен быть его и неоплаченным.-- Онлайн-оплата жильцом: платёж должен быть его и неоплаченным.
 -- После оплаты владельцу уходит уведомление (INSERT → push-триггер 7б).
 create or replace function public.pay_payment(p_payment_id uuid)
 returns void

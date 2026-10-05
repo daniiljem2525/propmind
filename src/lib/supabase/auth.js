@@ -147,19 +147,13 @@ export async function updateUserPlan(id, plan) {
 
 // Персональный код арендодателя: генерируется при первом обращении
 export async function getOrCreateInviteCode() {
-  const me = await currentUserWithProfile();
-  if (!me) return null;
-  if (me.invite_code) return me.invite_code;
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  let code = "";
-  for (const b of bytes) code += alphabet[b % alphabet.length];
-  const { error } = await supabase
-    .from("profiles")
-    .update({ invite_code: code })
-    .eq("id", me.id);
-  if (error) return null;
-  return code;
+  // через RPC: прямой UPDATE invite_code закрыт колоночными правами
+  const { data, error } = await supabase.rpc("get_or_create_invite_code");
+  if (error) {
+    console.error("getOrCreateInviteCode failed:", error);
+    return null;
+  }
+  return data || null;
 }
 
 export async function updateUserRole(id, role) {
