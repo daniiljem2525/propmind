@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, ChevronDown, FileUp, MapPin, Pencil, Plus, Search, Trash2, User } from "lucide-react";
+import { Building2, ChevronDown, FileUp, MapPin, Pencil, Plus, Search, Sparkles, Trash2, User } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
@@ -19,6 +19,7 @@ import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPE_CONFIG } from "@/lib/config/statu
 import { CURRENCIES } from "@/lib/config/misc";
 import { parseCSV } from "@/lib/csv";
 import UpsellDialog from "@/components/UpsellDialog";
+import CleaningDialog from "@/components/CleaningDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
 import { addMonthsISO, cn, formatMoney, todayISO } from "@/lib/utils";
@@ -236,7 +237,7 @@ function PropertyFormDialog({ open, onClose, property }) {
 }
 
 // ——— Карточка объекта ———
-function PropertyCard({ property, onEdit, onDelete }) {
+function PropertyCard({ property, onEdit, onDelete, onClean }) {
   const { t, lang } = useLang();
   const type = PROPERTY_TYPE_CONFIG[property.type] || PROPERTY_TYPE_CONFIG.other;
   const TypeIcon = type.icon;
@@ -264,6 +265,13 @@ function PropertyCard({ property, onEdit, onDelete }) {
           <StatusBadge config={PROPERTY_STATUS_CONFIG} value={property.status} />
         </div>
         <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+          <button
+            onClick={onClean}
+            title="Вызвать клининг"
+            className="rounded-md bg-white/90 p-1.5 text-primary shadow-sm backdrop-blur transition-colors hover:bg-white"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+          </button>
           <button
             onClick={onEdit}
             title={t("common.edit")}
@@ -338,6 +346,7 @@ export default function Properties() {
 
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [cleaningFor, setCleaningFor] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Счётчик лимита для карточки тарифа
@@ -531,12 +540,15 @@ export default function Properties() {
                 setDialogOpen(true);
               }}
               onDelete={() => setDeleting(p)}
+              onClean={() => setCleaningFor(p)}
             />
           ))}
         </div>
       )}
 
       <PropertyFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} property={editing} />
+
+      <CleaningDialog property={cleaningFor} open={!!cleaningFor} onClose={() => setCleaningFor(null)} />
 
       <ConfirmDialog
         open={!!deleting}

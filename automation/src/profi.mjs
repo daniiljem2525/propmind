@@ -16,6 +16,7 @@ export class NeedsLoginError extends Error {
 
 const DEADLINE_LABELS = {
   today: /^Сегодня/,
+  tomorrow: /^Завтра/,
   week: /^В течение недели/,
   anytime: /^Когда удобно специалисту/,
 };

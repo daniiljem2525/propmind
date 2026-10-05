@@ -1331,7 +1331,7 @@ create table if not exists public.automation_orders (
   address       text,
   budget        numeric,
   deadline      text not null default 'week'
-                check (deadline in ('today', 'week', 'anytime')),
+                check (deadline in ('today', 'tomorrow', 'week', 'anytime')),
   hint_option   text,
   result_url    text,
   error         text,
@@ -1395,3 +1395,8 @@ create policy "profi_offers: владелец — полные права"
 alter table public.automation_orders drop constraint if exists automation_orders_status_check;
 alter table public.automation_orders add constraint automation_orders_status_check
   check (status in ('pending', 'running', 'sent', 'failed', 'cancelled'));
+
+-- 11в. Срок «Завтра» для клининга по кнопке
+alter table public.automation_orders drop constraint if exists automation_orders_deadline_check;
+alter table public.automation_orders add constraint automation_orders_deadline_check
+  check (deadline in ('today', 'tomorrow', 'week', 'anytime'));
