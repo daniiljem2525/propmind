@@ -64,29 +64,32 @@ async function stepState(page) {
     const options = [
       ...new Set(
         [
-          ...[...document.querySelectorAll('span[role="radio"], span[role="checkbox"]')].map(
-            (e) => {
+          ...[...document.querySelectorAll('span[role="radio"], span[role="checkbox"]')]
+            .filter((e) => e.offsetParent !== null)
+            .map((e) => {
               const own = e.textContent.trim();
-              if (own) return own;
-              // «кружок» без текста — ответ лежит в соседнем узле строки
-              const row = e.closest("label") || e.parentElement;
-              return row ? row.textContent.trim() : "";
-            },
-          ),
+              const text = own || (e.closest("label") || e.parentElement || {}).textContent?.trim() || "";
+              return JSON.stringify({ text: text.replace(/\s+/g, " ").slice(0, 80), checked: e.getAttribute("aria-checked") === "true" });
+            }),
           // нативные input-чекбоксы/радио с текстом в label или соседнем узле
           ...[...document.querySelectorAll('input[type="radio"], input[type="checkbox"]')]
             .filter((i) => i.offsetParent !== null)
-            .map(
-              (i) =>
+            .map((i) => {
+              const text =
                 i.closest("label")?.textContent?.trim() ||
                 i.parentElement?.textContent?.trim() ||
                 i.getAttribute("aria-label") ||
-                "",
-            )
-            .filter(Boolean),
-        ].map((t) => t.replace(/\s+/g, " ").slice(0, 80)),
+                "";
+              return JSON.stringify({
+                text: text.replace(/\s+/g, " ").slice(0, 80),
+                checked: i.checked,
+              });
+            }),
+        ].filter((s) => s && s !== JSON.stringify({ text: "", checked: false })),
       ),
-    ];
+    ].map((s) => {
+      try { return JSON.parse(s); } catch { return { text: s, checked: false }; }
+    });
     const textboxes = [...document.querySelectorAll("textarea, input[type=text], input:not([type])")]
       .filter((i) => i.offsetParent !== null)
       .map((i) => ({
@@ -200,9 +203,9 @@ async function handleStep(page, order, log) {
   // 4. Срок
   if (/Когда нужна услуга/.test(headings)) {
     const re = DEADLINE_LABELS[order.deadline] || DEADLINE_LABELS.week;
-    const opt = st.options.find((o) => re.test(o));
+    const opt = st.options.find((o) => re.test(o.text));
     if (opt) {
-      await clickOption(page, opt);
+      await clickOption(page, opt.text);
       await page.waitForTimeout(500);
     }
     await clickButton(page, "Продолжить");
@@ -236,7 +239,10 @@ async function handleStep(page, order, log) {
     if (editing) {
       // открыт вопрос inline-редактора — проходим его
       if (st.options.length > 0) {
-        await clickOption(page, st.options[0]);
+        // редактор Продви продвигается только при изменении ответа —
+        // кликаем вариант, который ещё не отмечен
+        const target = st.options.find((o) => !o.checked) || st.options[0];
+        await clickOption(page, target.text);
         await page.waitForTimeout(400);
         if (!(await clickButton(page, "Дальше"))) await clickButton(page, "Продолжить");
         return "continue";
@@ -356,7 +362,7 @@ async function handleStep(page, order, log) {
   // 8. Уточняющие вопросы с вариантами
   if (st.options.length > 0) {
     const wanted = (order.hint_option || "").trim().toLowerCase();
-    const byHint = wanted && st.options.find((o) => o.toLowerCase() === wanted);
+    const byHint = wanted && st.options.find((o) => o.text.toLowerCase() === wanted);
     const otherBox = await textboxByRole(page, /Другое/);
     if (byHint) {
       await clickOption(page, byHint);
@@ -373,7 +379,7 @@ async function handleStep(page, order, log) {
         (order.hint_option || order.service_query || "см. описание").slice(0, 80),
       );
     } else {
-      await clickOption(page, st.options[0]);
+      await clickOption(page, st.options[0].text);
     }
     await page.waitForTimeout(500);
     if (!(await clickButton(page, "Продолжить"))) {
@@ -455,11 +461,24 @@ export async function createProfiOrder(order, { headless = config.headless } = {
       throw err;
     }
     // публикация подтверждается редиректом на страницу задачи в кабинете;
-    // сразу после клика URL ещё старый — ждём до ~20 секунд
+    // попутно отвечаем на возможные диалоги подтверждения
     let finalUrl = page.url();
-    for (let i = 0; i < 10 && !/cabinet\/order\/\d+/.test(finalUrl); i++) {
-      await page.waitForTimeout(2000);
+    for (let i = 0; i < 20; i++) {
+      await page.waitForTimeout(3000);
       finalUrl = page.url();
+      if (/cabinet\/order\/\d+/.test(finalUrl)) break;
+      const dlg = await page.evaluate(() => {
+        const d = document.querySelector('[role="dialog"], [class*="Modal_modal"], [class*="Dialog"]');
+        if (!d || d.offsetParent === null) return null;
+        const btns = [...d.querySelectorAll("button")].map((b) => b.textContent.trim()).filter(Boolean);
+        return { text: d.innerText.slice(0, 150), btns };
+      }).catch(() => null);
+      if (dlg && dlg.btns.length) {
+        log.push(`диалог: ${dlg.text.replace(/\n/g, " ")} | кнопки: ${dlg.btns.join(",")}`);
+        // жмём позитивную кнопку (не «Отмена»)
+        const ok = dlg.btns.find((b) => /да|ок|подтверд|опубликовать|отправить|продолж|выбрать/i.test(b));
+        if (ok) await clickButton(page, ok);
+      }
     }
     return { url: finalUrl, log, published: outcome === "done" };
   } catch (err) {
