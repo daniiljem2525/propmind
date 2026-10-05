@@ -1,0 +1,8 @@
+# HTTPS-шлюз перед стеком Supabase (автосертификаты Let's Encrypt).
+# Домен supabase.arendora.ru должен указывать A-записью на IP сервера,
+# порты 80 и 443 — открыты.
+
+supabase.arendora.ru {
+	# API-шлюз Supabase (auth, rest, realtime, functions)
+	reverse_proxy 127.0.0.1:8000
+}

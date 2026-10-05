@@ -1,0 +1,26 @@
+version: "3.9"
+
+# HTTPS-шлюз для self-hosted Supabase. Запускать вместе со стеком
+# (сеть supabase_network создаётся основным docker-compose).
+services:
+  caddy:
+    image: caddy:2
+    container_name: supabase-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - supabase_network
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  supabase_network:
+    external: true
