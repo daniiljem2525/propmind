@@ -39,6 +39,24 @@ async function autoEnqueue() {
   }
 }
 
+// Адрес для шага «Улица и номер дома»: из заказа → из объекта заявки →
+// DEFAULT_ADDRESS из .env
+async function resolveAddress(order) {
+  if (order.address) return order.address;
+  if (order.request_id) {
+    try {
+      const req = await db.getRequest(order.request_id);
+      if (req?.property_id) {
+        const prop = await db.getProperty(req.property_id);
+        if (prop?.address) return prop.address;
+      }
+    } catch (err) {
+      console.warn(`[${stamp()}] адрес объекта не получен: ${err.message}`);
+    }
+  }
+  return config.defaultAddress || null;
+}
+
 async function processQueue() {
   const order = await db.nextPendingOrder();
   if (!order) return false;
@@ -46,6 +64,7 @@ async function processQueue() {
   console.log(`[${stamp()}] обрабатываю заказ ${order.id} («${order.service_query}»)`);
   await db.updateOrder(order.id, { status: "running" });
   try {
+    order.address = await resolveAddress(order);
     const result = await createProfiOrder(order);
     if (!result.published) {
       await db.updateOrder(order.id, {

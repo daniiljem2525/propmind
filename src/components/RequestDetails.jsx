@@ -4,7 +4,7 @@ import { Dialog } from "@/components/ui/dialog";
 import StatusBadge from "@/components/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Field, Textarea } from "@/components/ui/input";
-import { AutomationOrder, RequestComment, RequestEvent } from "@/lib/api/entities";
+import { AutomationOrder, Property, RequestComment, RequestEvent } from "@/lib/api/entities";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -104,11 +104,18 @@ export default function RequestDetails({ request, open, onClose }) {
   const sendToProfi = async () => {
     setSendingProfi(true);
     try {
+      // адрес объекта сразу в очередь — воркер подставит его на шаге «Улица и номер дома»
+      let address = null;
+      if (request.property_id) {
+        const prop = await Property.getById(request.property_id).catch(() => null);
+        address = prop?.address || null;
+      }
       await AutomationOrder.create({
         request_id: request.id,
         platform: "profi",
         service_query: PROFI_SERVICE[request.category] || request.title || "мастер на час",
         details: [request.title, request.description].filter(Boolean).join(". ").slice(0, 900),
+        address,
         budget: request.estimate_cost ?? null,
         deadline: URGENCY_DEADLINE[request.urgency] || "week",
       });
