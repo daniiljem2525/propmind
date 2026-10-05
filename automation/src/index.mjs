@@ -209,7 +209,7 @@ async function monitorOffers() {
           relatedId: order.request_id,
         });
         console.log(`[${stamp()}] обновление чата: ${chat.name} по заказу ${profiOrderId}`);
-        if (!prev.intro_sent_at) {
+        if (prev.status === "new" && !prev.intro_sent_at) {
           await sendIntro(order, prev);
         }
       }
