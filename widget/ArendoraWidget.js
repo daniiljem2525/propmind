@@ -36,12 +36,13 @@ function daysOverdue(iso) {
 }
 
 async function supabase(path, token) {
-  const req = new Request(CONFIG.SUPABASE_URL + "/rest/v1/" + path, {
-    headers: {
-      apikey: CONFIG.SUPABASE_ANON_KEY,
-      Authorization: token ? "Bearer " + token : "",
-    },
-  });
+  // Scriptable: заголовки назначаются свойством после создания запроса —
+  // через конструктор они теряются ("No API key found in request")
+  const req = new Request(CONFIG.SUPABASE_URL + "/rest/v1/" + path);
+  req.headers = {
+    apikey: CONFIG.SUPABASE_ANON_KEY,
+    Authorization: "Bearer " + (token || ""),
+  };
   const res = await req.loadJSON();
   return res;
 }
@@ -60,11 +61,13 @@ async function getToken() {
     const cache = JSON.parse(fm.readString(cachePath));
     if (Date.now() - cache.savedAt < 50 * 60 * 1000) return cache.token;
   }
-  const req = new Request(CONFIG.SUPABASE_URL + "/auth/v1/token?grant_type=password", {
-    method: "POST",
-    headers: { apikey: CONFIG.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email: CONFIG.EMAIL.trim(), password: CONFIG.PASSWORD }),
-  });
+  const req = new Request(CONFIG.SUPABASE_URL + "/auth/v1/token?grant_type=password");
+  req.method = "POST";
+  req.headers = {
+    apikey: CONFIG.SUPABASE_ANON_KEY,
+    "Content-Type": "application/json",
+  };
+  req.body = JSON.stringify({ email: CONFIG.EMAIL.trim(), password: CONFIG.PASSWORD });
   const res = await req.loadJSON();
   if (!res.access_token) {
     // показываем НАСТОЯЩУЮ причину от Supabase, а не общую фразу
