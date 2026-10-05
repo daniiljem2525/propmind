@@ -47,6 +47,12 @@ async function supabase(path, token) {
 
 // токен кэшируется на 50 минут, чтобы не логиниться при каждом обновлении
 async function getToken() {
+  // понятные подсказки, если конфиг не заполнен
+  if (CONFIG.SUPABASE_ANON_KEY.includes("ВСТАВЬТЕ"))
+    throw new Error("вставьте anon-ключ в CONFIG (Settings → API → anon public)");
+  if (CONFIG.EMAIL.includes("example.com") || CONFIG.PASSWORD.includes("ваш-пароль"))
+    throw new Error("впишите EMAIL и PASSWORD в CONFIG");
+
   const fm = FileManager.local();
   const cachePath = fm.joinPath(fm.documentsDirectory(), "arendora-token.json");
   if (fm.fileExists(cachePath)) {
@@ -56,10 +62,19 @@ async function getToken() {
   const req = new Request(CONFIG.SUPABASE_URL + "/auth/v1/token?grant_type=password", {
     method: "POST",
     headers: { apikey: CONFIG.SUPABASE_ANON_KEY, "Content-Type": "application/json" },
-    body: JSON.stringify({ email: CONFIG.EMAIL, password: CONFIG.PASSWORD }),
+    body: JSON.stringify({ email: CONFIG.EMAIL.trim(), password: CONFIG.PASSWORD }),
   });
   const res = await req.loadJSON();
-  if (!res.access_token) throw new Error("неверный логин или пароль");
+  if (!res.access_token) {
+    // показываем НАСТОЯЩУЮ причину от Supabase, а не общую фразу
+    const reason =
+      res.error_description ||
+      res.msg ||
+      (res.error && (res.error.description || res.error.message)) ||
+      res.message ||
+      JSON.stringify(res).slice(0, 140);
+    throw new Error(reason);
+  }
   fm.writeString(cachePath, JSON.stringify({ token: res.access_token, savedAt: Date.now() }));
   return res.access_token;
 }
