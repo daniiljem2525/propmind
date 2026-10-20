@@ -4,6 +4,7 @@ import { Property, Payment, NotificationEntity, notifyPaymentSchedule } from "@/
 import { readCollection, writeCollection } from "@/lib/api/db";
 import { getCurrentUser } from "@/lib/api/auth";
 import { uid, todayISO, addMonthsISO } from "@/lib/utils";
+import { buildMonthlySchedule } from "@/lib/schedule";
 
 // Автосвязывание: арендатор → объект (+ первый платёж)
 export async function linkTenantToProperty(tenant, property, { firstPayment = true } = {}) {
@@ -43,32 +44,8 @@ export async function unlinkTenantFromProperty(property) {
 // График платежей на 12 месяцев вперёд, без дублей по периоду
 export async function createMonthlySchedule(tenant, property, months = 12) {
   const existing = await Payment.list();
-  const items = [];
-  let cursor = todayISO();
-
-  for (let i = 0; i < months; i++) {
-    cursor = addMonthsISO(cursor, 1);
-    const d = new Date(cursor);
-    const period_month = d.getMonth() + 1;
-    const period_year = d.getFullYear();
-    const duplicate = existing.some(
-      (p) => p.tenant_id === tenant.id && p.period_month === period_month && p.period_year === period_year
-    );
-    if (!duplicate) {
-      items.push({
-        property_id: property.id,
-        property_name: property.name,
-        tenant_id: tenant.id,
-        tenant_name: tenant.full_name,
-        amount: Number(property.rent_amount),
-        currency: property.currency || "RUB",
-        due_date: cursor,
-        status: "pending",
-        period_month,
-        period_year,
-      });
-    }
-  }
+  // Арифметика периодов и защита от дублей — в src/lib/schedule.js (под тестами)
+  const items = buildMonthlySchedule({ tenant, property, months, existing });
 
   if (items.length) {
     await Payment.bulkCreate(items);
