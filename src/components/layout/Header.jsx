@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   Sun,
+  Trash2,
   User,
   UserRound,
   Wrench,
@@ -44,6 +45,7 @@ export default function Header({ onOpenMobile }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [quickOpen, setQuickOpen] = useState(false);
   const [demoConfirm, setDemoConfirm] = useState(false);
+  const [clearConfirm, setClearConfirm] = useState(false);
   const menuRef = useRef(null);
   const quickRef = useRef(null);
   const searchRef = useRef(null);
@@ -226,6 +228,16 @@ export default function Header({ onOpenMobile }) {
                 <button
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10"
                   onClick={() => {
+                    setMenuOpen(false);
+                    setClearConfirm(true);
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  {t("common.clearData")}
+                </button>
+                <button
+                  className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm text-rose-600 transition-colors hover:bg-rose-50 dark:hover:bg-rose-500/10"
+                  onClick={() => {
                     logout();
                     navigate("/login");
                   }}
@@ -249,6 +261,19 @@ export default function Header({ onOpenMobile }) {
         title={t("dashboard.confirmDemoTitle")}
         description={t("dashboard.confirmDemoDesc")}
         confirmLabel={t("common.demoData")}
+      />
+
+      <ConfirmDialog
+        open={clearConfirm}
+        onClose={() => setClearConfirm(false)}
+        onConfirm={() => {
+          setClearConfirm(false);
+          toast.clear();
+        }}
+        title={t("common.clearDataTitle")}
+        description={t("common.clearDataDesc")}
+        confirmLabel={t("common.clearData")}
+        loading={toast.clearing}
       />
     </header>
   );

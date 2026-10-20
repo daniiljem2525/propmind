@@ -1,4 +1,4 @@
-// Email-канал: письма через Edge Function send-email (Resend).
+// Email-канал: письма через Edge Function send-email (собственный SMTP).
 // Приглашение может отправить только авторизованный владелец —
 // функция проверяет JWT и шлёт письмо с персональной ссылкой.
 import { supabase, isSupabaseConfigured, SUPABASE_URL } from "@/lib/supabase/config";

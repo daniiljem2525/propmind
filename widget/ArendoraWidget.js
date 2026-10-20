@@ -9,9 +9,10 @@
 // ═══════════════════════════════════════════════════════════════
 
 const CONFIG = {
-  SUPABASE_URL: "https://bhxwpkplqjzhfqwckine.supabase.co",
-  // publishable-ключ (публичный) — НЕ секретный sb_secret!
-  SUPABASE_ANON_KEY: "sb_publishable_H3Vk7JOk4DJWMBod6CvV6Q_IRDhrqww",
+  // Self-hosted Supabase (api.arendora.ru). Anon-ключ нового
+  // сервера выдаёт deploy/generate-keys.mjs — вставить после деплоя.
+  SUPABASE_URL: "https://api.arendora.ru",
+  SUPABASE_ANON_KEY: "ВСТАВЬТЕ_ANON_КЛЮЧ",
   EMAIL: "daniilmelyanov2010@gmail.com",
   PASSWORD: "ВСТАВЬТЕ_ПАРОЛЬ",
 };

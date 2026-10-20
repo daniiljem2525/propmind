@@ -396,23 +396,38 @@ export default function Landing() {
 
       {/* Футер */}
       <footer className="border-t bg-card py-10">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 sm:flex-row lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
-              <House className="h-4 w-4 text-white" />
-            </span>
-            <span className="font-extrabold tracking-tight">Arendora</span>
-            <span className="text-sm text-muted-foreground">© 2026</span>
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+          <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+            <div className="flex items-center gap-2.5">
+              <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
+                <House className="h-4 w-4 text-white" />
+              </span>
+              <span className="font-extrabold tracking-tight">Arendora</span>
+              <span className="text-sm text-muted-foreground">© 2026</span>
+            </div>
+            <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <a href="#features" className="hover:text-foreground">{t("land.navFeatures")}</a>
+              <a href="#pricing" className="hover:text-foreground">{t("land.navPricing")}</a>
+              <a href="#faq" className="hover:text-foreground">{t("land.navFaq")}</a>
+              <Link to="/login" className="hover:text-foreground">{t("auth.signIn")}</Link>
+              <Link to="/register" className="font-medium text-primary hover:underline">{t("land.cta")}</Link>
+            </nav>
           </div>
-          <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-            <a href="#features" className="hover:text-foreground">{t("land.navFeatures")}</a>
-            <a href="#pricing" className="hover:text-foreground">{t("land.navPricing")}</a>
-            <a href="#faq" className="hover:text-foreground">{t("land.navFaq")}</a>
-            <Link to="/terms" className="hover:text-foreground">Оферта</Link>
-            <Link to="/privacy" className="hover:text-foreground">Политика</Link>
-            <Link to="/login" className="hover:text-foreground">{t("auth.signIn")}</Link>
-            <Link to="/register" className="font-medium text-primary hover:underline">{t("land.cta")}</Link>
-          </nav>
+
+          {/* Правовые документы */}
+          <div className="mt-8 border-t border-border pt-6">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Документы</p>
+            <nav className="mt-3 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground sm:justify-start">
+              <Link to="/privacy" className="hover:text-foreground hover:underline">Политика конфиденциальности</Link>
+              <Link to="/agreement" className="hover:text-foreground hover:underline">Пользовательское соглашение</Link>
+              <Link to="/terms" className="hover:text-foreground hover:underline">Публичная оферта</Link>
+              <Link to="/consent" className="hover:text-foreground hover:underline">Согласие на обработку ПД</Link>
+              <Link to="/tariffs" className="hover:text-foreground hover:underline">Тарифы и стоимость услуг</Link>
+              <Link to="/payments" className="hover:text-foreground hover:underline">Политика возвратов и платежей</Link>
+              <Link to="/usepolicy" className="hover:text-foreground hover:underline">Политика допустимого использования</Link>
+              <Link to="/cookies" className="hover:text-foreground hover:underline">Политика cookie</Link>
+            </nav>
+          </div>
         </div>
       </footer>
     </div>
@@ -447,8 +462,8 @@ function HeroVideo() {
           loop
           playsInline
           preload="auto"
-          poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg`}
-          src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4`}
+          poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg?v=2`}
+          src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4?v=2`}
         />
       </div>
 

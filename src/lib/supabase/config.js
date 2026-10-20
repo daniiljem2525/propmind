@@ -1,18 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 
 // ============================================================
-// Конфигурация Supabase.
-// Вставь сюда Project URL и anon public key из Supabase
-// (Settings → API) — после этого приложение перейдёт в
-// облачный режим: жильцы и исполнители заходят со своих
-// устройств, данные синхронизируются между всеми.
+// Конфигурация Supabase (self-hosted на api.arendora.ru).
+// Значения можно переопределить переменными VITE_SUPABASE_URL /
+// VITE_SUPABASE_ANON_KEY при сборке (deploy/generate-keys.mjs
+// генерирует anon-ключ нового сервера — он подставляется в
+// .env.production перед `npm run build`).
 //
 // Ключ anon — публичный по дизайну: граница безопасности —
 // RLS-политики в supabase/schema.sql, а не секретность ключа.
 // ============================================================
 
-export const SUPABASE_URL = "https://bhxwpkplqjzhfqwckine.supabase.co";
-export const SUPABASE_ANON_KEY = "sb_publishable_H3Vk7JOk4DJWMBod6CvV6Q_IRDhrqww";
+export const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL || "https://api.arendora.ru";
+export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
 export const isSupabaseConfigured =
   SUPABASE_URL.startsWith("https://") &&
@@ -111,8 +112,15 @@ export const supabase = isSupabaseConfigured
 // Диагностика: сколько байт сессии лежит в каждом из хранилищ и жив ли
 // сервис-воркер. Показывается на экране логина — так видно, чистит ли
 // iOS хранилище PWA при выгрузке приложения (свайп из недавних).
+// Ключ сессии supabase-js выводит из URL проекта (sb-<первая метка
+// хоста>-auth-token) — считаем его так же, чтобы диагностика не
+// зависела от конкретного проекта.
+const SESSION_STORAGE_KEY = `sb-${new URL(SUPABASE_URL).hostname
+  .split(".")[0]
+  .replace(/[^a-z0-9]/gi, "")}-auth-token`;
+
 export async function probeSessionStores() {
-  const key = "sb-bhxwpkplqjzhfqwckine-auth-token";
+  const key = SESSION_STORAGE_KEY;
   let ls = 0;
   try {
     ls = (localStorage.getItem(key) || "").length;

@@ -147,6 +147,29 @@ const DEMO_TENANTS = [
   { full_name: "Марина Ким", email: "marina.kim@example.com", phone: "+7 921 988-03-61", propertyIndex: 4 },
 ];
 
+// Полная очистка данных владельца: демо-данные и всё, что добавлено
+// поверх них (объекты, арендаторы, платежи, заявки, документы)
+export async function clearAllData() {
+  const user = getCurrentUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+
+  // Порядок важен: сначала то, что ссылается на объекты (FK)
+  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
+  let deleted = 0;
+  for (const entity of collections) {
+    const rows = await entity.list();
+    for (const row of rows) {
+      try {
+        await entity.delete(row.id);
+        deleted++;
+      } catch {
+        // пропускаем упрямые записи — очистка не должна падать
+      }
+    }
+  }
+  return { deleted };
+}
+
 export async function seedDemoData({ reset = false } = {}) {
   const user = getCurrentUser();
   if (!user) throw new Error("UNAUTHORIZED");
@@ -154,18 +177,7 @@ export async function seedDemoData({ reset = false } = {}) {
   // Reset: вычищаем данные владельца перед полным демо (только в облаке
   // с RLS никто чужой не пострадает; в локальном режиме — свои же записи)
   if (reset) {
-    // Порядок важен: сначала то, что ссылается на объекты (FK)
-    const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
-    for (const entity of collections) {
-      const rows = await entity.list();
-      for (const row of rows) {
-        try {
-          await entity.delete(row.id);
-        } catch {
-          // пропускаем упрямые записи — демо не должно падать
-        }
-      }
-    }
+    await clearAllData();
   }
 
   const existing = await Property.list();

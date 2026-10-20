@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Bell,
   Check,
@@ -504,6 +504,27 @@ export default function Settings() {
       {activeTab === "plan" && <PricingPlans />}
       {activeTab === "users" && isAdmin && <UsersPanel />}
       {searchParams.get("debug") && <SwDiag />}
+
+      <p className="mt-8 text-xs text-muted-foreground">
+        Правовые документы:{" "}
+        {[
+          ["/terms", "Оферта"],
+          ["/privacy", "Политика конфиденциальности"],
+          ["/agreement", "Соглашение"],
+          ["/consent", "Согласие на ПД"],
+          ["/tariffs", "Тарифы"],
+          ["/payments", "Возвраты и платежи"],
+          ["/usepolicy", "Допустимое использование"],
+          ["/cookies", "Cookie"],
+        ].map(([to, label], i) => (
+          <span key={to}>
+            {i > 0 && " · "}
+            <Link to={to} className="hover:text-foreground hover:underline">
+              {label}
+            </Link>
+          </span>
+        ))}
+      </p>
     </div>
   );
 }

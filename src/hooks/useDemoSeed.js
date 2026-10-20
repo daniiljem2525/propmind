@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { seedDemoData } from "@/lib/demo";
+import { seedDemoData, clearAllData } from "@/lib/demo";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 
@@ -7,6 +7,7 @@ export function useDemoSeed() {
   const { t } = useLang();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [clearing, setClearing] = useState(false);
 
   const run = async ({ reset = false } = {}) => {
     setLoading(true);
@@ -20,5 +21,17 @@ export function useDemoSeed() {
     }
   };
 
-  return { run, loading };
+  const clear = async () => {
+    setClearing(true);
+    try {
+      await clearAllData();
+      toast.success(t("demo.cleared"));
+    } catch (e) {
+      toast.error(e.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  return { run, clear, loading, clearing };
 }
