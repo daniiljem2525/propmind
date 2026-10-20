@@ -139,11 +139,11 @@ ssh root@SERVER_IP 'bash /opt/arendora/init-server.sh'
 ssh root@SERVER_IP 'cd /opt/arendora/stack && docker compose up -d'
 ```
 
-Домен задаётся в `deploy/stack/.env` — оттуда его берут `Caddyfile` и
-`docker-compose.yml`. Прочие скрипты используют тот же адрес как значение по
-умолчанию. Пока `arendora.ru` не оплачен, для проверки стека можно взять временное имя вида
-`arendora.<IP>.nip.io`: оно резолвится в ваш IP и получает нормальный сертификат,
-менять код не нужно.
+Домен встречается в трёх местах: хосты в `deploy/stack/Caddyfile`, две строки
+allow-list в `docker-compose.yml` и `SITE_URL` / `API_EXTERNAL_URL` в `.env`;
+найти все — `rg -n 'arendora\.ru' deploy/`. Пока `arendora.ru` не оплачен, для
+проверки стека можно взять временное имя вида `arendora.<IP>.nip.io`: оно
+резолвится в ваш IP и получает нормальный сертификат.
 
 ## Структура
 

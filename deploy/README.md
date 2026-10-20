@@ -17,10 +17,11 @@ Runtime), который мы запускаем НА НАШЕМ сервере 
 общаются только между собой внутри сервера. Названия путей API
 (`/rest/v1`, `/auth/v1`…) сохранены, чтобы не переписывать фронтенд.
 
-- Домен задаётся **в одном месте** — `stack/.env`: `APP_DOMAIN` и `API_DOMAIN`
-  (плюс производные `SITE_URL`, `API_EXTERNAL_URL`). `Caddyfile` и
-  `docker-compose.yml` берут их из окружения, литералов в них нет.
-- Изначально планировался `arendora.ru` (приложение) + `api.arendora.ru` (API).
+- Домен: `arendora.ru` (приложение) + `api.arendora.ru` (API). Хосты живут
+  в `stack/Caddyfile` (там же значения по умолчанию) и в двух строках
+  `docker-compose.yml` (allow-list GoTrue и redirect'ы oauth); `SITE_URL`
+  и `API_EXTERNAL_URL` в `stack/.env` — то, что видят auth и edge-функции.
+  Найти все места: `rg -n 'arendora\.ru' deploy/`.
 - Стек: обрезанный self-hosted Supabase в Docker — Postgres, GoTrue
   (Auth), PostgREST, Realtime, Edge Runtime, Caddy. Kong/Studio/Storage/
   analytics выброшены: на сервере 2 ГБ RAM они не помещаются.
@@ -57,15 +58,22 @@ deploy/
 имени, которое само резолвится в ваш IP:
 
 ```
-APP_DOMAIN=arendora.203.0.113.10.nip.io
-API_DOMAIN=api.arendora.203.0.113.10.nip.io
+# stack/Caddyfile — оба хоста и www-редирект
+arendora.203.0.113.10.nip.io, www.arendora.203.0.113.10.nip.io { … }
+api.arendora.203.0.113.10.nip.io { … }
+
+# stack/.env
 SITE_URL=https://arendora.203.0.113.10.nip.io
 API_EXTERNAL_URL=https://api.arendora.203.0.113.10.nip.io
 ```
 
-`nip.io` отдаёт А-запись на IP из имени, Caddy получает нормальный сертификат
-Let's Encrypt, код менять не нужно. Когда домен оплатите — правите четыре
-строки в `stack/.env`, перезапускаете `caddy` и пересобираете фронтенд:
+Плюс две строки в `docker-compose.yml`: `GOTRUE_URI_ALLOW_LIST` и
+`OAUTH_ALLOWED_REDIRECTS` — иначе письма и соцвход будут возвращать на старый
+адрес. `nip.io` отдаёт А-запись на IP из имени, Caddy получает нормальный
+сертификат Let's Encrypt.
+
+Когда домен оплатите — те же места возвращаете на `arendora.ru`, перезапускаете
+`caddy` и пересобираете фронтенд:
 
 ```bash
 API_EXTERNAL_URL=https://api.arendora.ru ANON_KEY=... ./deploy/build-frontend.sh root@IP

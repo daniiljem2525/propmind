@@ -1,19 +1,22 @@
 # HTTPS-шлюз Arendora (автосертификаты Let's Encrypt).
 # A-записи обоих доменов должны указывать на IP сервера, порты 80/443 открыты.
-# Адреса не зашиты: Caddy берёт их из APP_DOMAIN / API_DOMAIN (stack/.env),
-# поэтому переезд на оплаченный домен — правка двух строк в одном файле.
-# Если в логах адрес localhost — переменные не доехали до контейнера.
+# Заменяет Kong из полного стека: маршрутизация API — по префиксам пути.
+#
+# Адреса можно переопределить переменными APP_DOMAIN / API_DOMAIN, но по
+# умолчанию — боевой домен, чтобы стек работал без них. Чтобы переменные
+# действительно доехали, их надо добавить в сервис caddy в docker-compose.yml
+# (сейчас там их нет — см. «Домен» в deploy/README.md).
 #
 # CORS: НЕ добавляем здесь. GoTrue, PostgREST и edge-функции отдают
 # CORS-заголовки сами (Access-Control-Allow-Origin: * + обработка OPTIONS);
 # дублирование заголовков в ответе браузер считает ошибкой.
 
 # www — только редирект на апекс, своей статики не отдаёт
-www.{$APP_DOMAIN:localhost} {
-	redir https://{$APP_DOMAIN:localhost}{uri} permanent
+www.{$APP_DOMAIN:arendora.ru} {
+	redir https://{$APP_DOMAIN:arendora.ru}{uri} permanent
 }
 
-{$APP_DOMAIN:localhost} {
+{$APP_DOMAIN:arendora.ru} {
 	# Статика фронтенда (SPA): /var/www/arendora на хосте
 	root * /srv/arendora
 	encode gzip zstd
@@ -21,7 +24,7 @@ www.{$APP_DOMAIN:localhost} {
 	file_server
 }
 
-api.{$API_DOMAIN:localhost} {
+api.{$API_DOMAIN:api.arendora.ru} {
 	# Auth (GoTrue): /auth/v1/* -> http://auth:9999/*
 	# GoTrue отдаёт ACAO на обычных запросах, но на preflight OPTIONS
 	# (с Access-Control-Request-Headers) отвечает 204 БЕЗ CORS-заголовков —
