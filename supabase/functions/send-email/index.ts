@@ -1,13 +1,14 @@
-// Edge Function: письма Arendora через Resend.
-// Два режима вызова:
+// Edge Function: письма Arendora через собственный SMTP (хостинг почты
+// домена arendora.ru). Два режима вызова:
 //  1) Дайджест по расписанию (pg_cron → net.http_post): заголовок
 //     x-email-secret = EMAIL_WEBHOOK_SECRET, body { kind: "digest" }.
 //     Письмо получает каждый владелец, у которого есть события.
 //  2) Из приложения (Bearer JWT): приглашение жильцу —
 //     body { template: "invite", to, invite_link, owner_name }.
-// Секреты: RESEND_API_KEY (обязателен), EMAIL_FROM (опц.),
-// EMAIL_WEBHOOK_SECRET (для режима 1).
+// Секреты: SMTP_HOST, SMTP_USER, SMTP_PASS (обязательны), SMTP_PORT,
+// EMAIL_FROM (опц.), EMAIL_WEBHOOK_SECRET (для режима 1).
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import nodemailer from "npm:nodemailer@6.9.16";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -18,27 +19,26 @@ const cors = {
 const json = (data: unknown, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: cors });
 
-const FROM = Deno.env.get("EMAIL_FROM") || "Arendora <onboarding@resend.dev>";
+const SMTP_HOST = Deno.env.get("SMTP_HOST") || "";
+const SMTP_PORT = Number(Deno.env.get("SMTP_PORT") || 465);
+const SMTP_USER = Deno.env.get("SMTP_USER") || "";
+const SMTP_PASS = Deno.env.get("SMTP_PASS") || "";
+const FROM = Deno.env.get("EMAIL_FROM") || `Arendora <${SMTP_USER}>`;
 
 async function sendEmail(
-  apiKey: string,
   to: string,
   subject: string,
   html: string
 ) {
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ from: FROM, to: [to], subject, html }),
+  if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS)
+    throw new Error("smtp_not_configured");
+  const transport = nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_PORT === 465,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
   });
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`resend ${res.status}: ${detail.slice(0, 200)}`);
-  }
-  return res.json();
+  await transport.sendMail({ from: FROM, to, subject, html });
 }
 
 const wrap = (title: string, bodyHtml: string) => `
@@ -58,9 +58,6 @@ const wrap = (title: string, bodyHtml: string) => `
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   try {
-    const apiKey = Deno.env.get("RESEND_API_KEY");
-    if (!apiKey) return json({ ok: false, error: "email_not_configured" }, 500);
-
     const body = await req.json().catch(() => ({}));
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -115,7 +112,7 @@ Deno.serve(async (req) => {
            ${leases?.length ? `<p style="margin:12px 0 4px"><b>Договоры истекают в течение 30 дней: ${leases.length}</b></p><ul style="margin:0;padding-left:18px">${leases.map((l: { name: string; lease_end: string }) => `<li>${l.name} — до ${new Date(l.lease_end).toLocaleDateString("ru-RU")}</li>`).join("")}</ul>` : ""}`
         );
         try {
-          await sendEmail(apiKey, o.email, "Arendora: дайджест недели", html);
+          await sendEmail(o.email, "Arendora: дайджест недели", html);
           sent++;
         } catch (e) {
           console.error("digest send failed", o.email, String(e));
@@ -146,7 +143,7 @@ Deno.serve(async (req) => {
          <p style="margin:0 0 16px"><a href="${link}" style="background:#0f766e;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Создать аккаунт</a></p>
          <p style="margin:0;color:#64748b;font-size:13px">Если кнопка не работает, откройте: ${link}</p>`
       );
-      await sendEmail(apiKey, to, "Приглашение в Arendora", html);
+      await sendEmail(to, "Приглашение в Arendora", html);
       return json({ ok: true, sent: 1 });
     }
 

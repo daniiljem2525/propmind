@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, KeyRound, MailCheck } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
+import SocialAuth from "@/components/auth/SocialAuth";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
@@ -103,6 +104,7 @@ export default function Register() {
         </div>
       ) : step === "form" ? (
         <form onSubmit={submitForm} className="space-y-4">
+          <SocialAuth />
           <Field label={t("auth.fullName")}>
             <Input value={form.full_name} onChange={set("full_name")} placeholder={lang === "ru" ? "Иван Петров" : "John Smith"} autoComplete="name" />
           </Field>

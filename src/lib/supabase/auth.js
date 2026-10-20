@@ -1,4 +1,4 @@
-import { supabase } from "./config";
+import { supabase, SUPABASE_URL } from "./config";
 
 // Supabase Auth: тот же интерфейс, что у localStorage-версии.
 // Роль и имя хранятся в profiles (создаются триггером при регистрации).
@@ -91,6 +91,18 @@ export async function signup({ full_name, email, password, invite_code }) {
 
 export async function logout() {
   await supabase.auth.signOut();
+}
+
+// Соц-вход (Яндекс / VK / Mail.ru). У Supabase нет таких провайдеров,
+// поэтому OAuth ведёт наша edge-функция oauth: она создаёт/находит
+// пользователя и возвращает на /auth/social одноразовый token_hash,
+// который фронт обменивает на обычную сессию через verifyOtp().
+export const SOCIAL_PROVIDERS = ["yandex", "vk", "mailru"];
+
+export function loginWithSocial(provider) {
+  const base = `${window.location.origin}${import.meta.env.BASE_URL}`;
+  const redirectTo = `${base}auth/social`;
+  window.location.href = `${SUPABASE_URL}/functions/v1/oauth/start?provider=${provider}&redirect_to=${encodeURIComponent(redirectTo)}`;
 }
 
 export async function updateProfile(userId, { full_name }) {

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
+import SocialAuth from "@/components/auth/SocialAuth";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
@@ -124,6 +125,8 @@ export default function Login() {
           </Button>
         </div>
 
+        <SocialAuth />
+
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="h-px flex-1 bg-border" />
           {t("auth.orEmail")}
@@ -165,6 +168,17 @@ export default function Login() {
         <Button type="submit" variant="gradient" className="w-full" size="lg" loading={loading}>
           {t("auth.signIn")}
         </Button>
+
+        <p className="text-center text-xs text-muted-foreground">
+          Входя в сервис, вы соглашаетесь с{" "}
+          <Link to="/terms" className="text-primary hover:underline">
+            публичной офертой
+          </Link>{" "}
+          и{" "}
+          <Link to="/privacy" className="text-primary hover:underline">
+            политикой конфиденциальности
+          </Link>
+        </p>
       </form>
       {location.search.includes("debug") && <StorageProbe />}
     </AuthLayout>
