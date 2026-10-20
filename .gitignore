@@ -1,24 +1,45 @@
+# --- зависимости и сборка ---
 node_modules
 dist
 dist-ssr
 *.local
-.DS_Store
 npm-debug.log*
-video/shots/
 vite.log
+
+# --- ОС ---
+.DS_Store
+
+# --- служебное для агентов/сессий ---
+.zcode/
 .v2c/
+video/shots/
+
+# --- секреты и локальное состояние ---
+.env
+.env.*
+!.env.example
+deploy/stack/.env
+automation/.env
+automation/state/
+automation/node_modules/
+# временные файлы Supabase CLI: ref проекта, версии сервисов
+supabase/.temp/
+
+# --- отладочный мусор воркера ---
+automation/debug-*.png
+automation/*.log
+automation/playwright-report/
+automation/test-results/
+
+# --- исходная запись демо (рендер лежит в public/video/arendora-demo.mp4) ---
+recordings/
+
+# --- разовые выгрузки из панелей (историческое, не удалять) ---
 props*.json
 inv*.json
 fcode.txt
 tok.json
 reg*.json
 chk.json
-del-*.json
 repo.json
 del-*
-automation/node_modules/
-automation/.env
-automation/state/
-automation/playwright-report/
-automation/test-results/
-automation/debug-*.png
