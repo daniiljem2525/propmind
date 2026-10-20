@@ -1,70 +1,185 @@
-# Комплект перехода с облачного Supabase на self-hosted (VPS в РФ)
+# Переезд Arendora на собственный сервер (reg.ru, РФ)
 
-Цель: локализация персональных данных (152-ФЗ, ч. 5 ст. 18) при полном
-сохранении функциональности. Клиент приложения меняет только SUPABASE_URL
-и ключи — весь код (RLS, триггеры, RPC, Realtime) совместим без правок.
+## Текущее состояние
 
-## Этапы
+**Стек описан и готов к запуску, но на VPS ещё не поднят.** Домен `arendora.ru`
+не оплачен, DNS не настроен. Поэтому всё ниже — инструкция на момент, когда
+домен появится; до этого проверять стек можно на временном имени
+(см. «Домен ещё не оплачен»).
 
-1. [ ] VPS куплен (2 vCPU / 2–4 ГБ / NVMe 20+ ГБ / Ubuntu 22.04, РФ)
-2. [ ] Домен куплен, DNS: `supabase.arendora.ru` → IP сервера (A-запись)
-3. [ ] `generate-keys.mjs` → сгенерированы JWT_SECRET и ключи
-4. [ ] Клонирование стека + `.env` (см. ниже)
-5. [ ] `docker compose up -d` → сервисы поднялись
-6. [ ] `migrate/dump.sh` → дамп из облачного Supabase
-7. [ ] `migrate/restore.sh` → восстановление на новый сервер
-8. [ ] Caddy (HTTPS) → `docker compose -f caddy-compose.yml up -d`
-9. [ ] Проверки: регистрация, вход, пуши, Realtime
-10. [ ] Клиент переключён (config.js → новый URL), деплой
-11. [ ] Старый Supabase держим включённым 3 дня как страховку → off
-12. [ ] Уведомление в РКН + правка Политики конфиденциальности
+Цель: полное снятие с облачного Supabase — всё работает на своём VPS
+(152-ФЗ, ч. 5 ст. 18). Код приложения меняет только адрес API и ключи.
 
-## Установка стека (этап 4–5)
+**Почему в тексте встречается слово «Supabase»**: это название
+открытого кода (Postgres + GoTrue + PostgREST + Realtime + Edge
+Runtime), который мы запускаем НА НАШЕМ сервере из образов Docker.
+Никаких обращений к облачному supabase.com нет и не будет — компоненты
+общаются только между собой внутри сервера. Названия путей API
+(`/rest/v1`, `/auth/v1`…) сохранены, чтобы не переписывать фронтенд.
 
-```bash
-ssh root@IP
-git clone --depth 1 https://github.com/supabase/supabase /opt/supabase
-cd /opt/supabase/docker
-cp .env.example .env   # заполнить значениями из generate-keys.mjs
-docker compose pull && docker compose up -d
+- Домен задаётся **в одном месте** — `stack/.env`: `APP_DOMAIN` и `API_DOMAIN`
+  (плюс производные `SITE_URL`, `API_EXTERNAL_URL`). `Caddyfile` и
+  `docker-compose.yml` берут их из окружения, литералов в них нет.
+- Изначально планировался `arendora.ru` (приложение) + `api.arendora.ru` (API).
+- Стек: обрезанный self-hosted Supabase в Docker — Postgres, GoTrue
+  (Auth), PostgREST, Realtime, Edge Runtime, Caddy. Kong/Studio/Storage/
+  analytics выброшены: на сервере 2 ГБ RAM они не помещаются.
+- Письма: собственный SMTP-хостинг домена arendora.ru.
+- Воркер Профи.ру: systemd-сервис на том же сервере.
+
+## Состав набора
+
+```
+deploy/
+  generate-keys.mjs       генератор секретов (JWT, ключи API, пароль БД)
+  upload.sh               заливка стека+функций+воркера на сервер
+  build-frontend.sh       сборка dist с новым URL и выкладка в /var/www
+  init-server.sh          подготовка чистого сервера (docker, swap, firewall, cron)
+  backup.sh               ежедневный бэкап (cron 04:00, 14 копий)
+  stack/
+    docker-compose.yml    обрезанный стек
+    Caddyfile             HTTPS: статика + маршрутизация API вместо Kong
+    .env.example          шаблон секретов
+    volumes/db/*.sql      init-скрипты БД (роли, webhooks, realtime) — из официального стека
+    functions/            edge-функции: main/ (роутер edge-runtime), oauth/, send-email/, send-push/
+  migrate/
+    dump.sh               дамп из облачного Supabase
+    restore.sh            восстановление на сервере (+ post-restore.sql)
+    post-restore.sql      realtime publication + перезапись вебхуков на свой runtime
+  worker/
+    arendora-worker.service  systemd-юнит воркера
+    install-worker.sh        установка воркера на сервере
 ```
 
-В `.env` критичные поля: POSTGRES_PASSWORD, JWT_SECRET, ANON_KEY,
-SERVICE_ROLE_KEY, SITE_URL=https://supabase.arendora.ru, API_EXTERNAL_URL.
+## Домен ещё не оплачен
 
-Панель Studio (порт 3000) на слабом VPS (2 ГБ) отключить в compose
-(сервис studio — удалить или профили profiles ограничить).
+Пока DNS на `arendora.ru` не переключён, стек можно проверить на временном
+имени, которое само резолвится в ваш IP:
 
-## HTTPS (этап 8)
+```
+APP_DOMAIN=arendora.203.0.113.10.nip.io
+API_DOMAIN=api.arendora.203.0.113.10.nip.io
+SITE_URL=https://arendora.203.0.113.10.nip.io
+API_EXTERNAL_URL=https://api.arendora.203.0.113.10.nip.io
+```
 
-Caddy автоматически получает сертификаты Let's Encrypt.
-Скопировать Caddyfile, поправить домен, запустить `caddy-compose.yml`.
+`nip.io` отдаёт А-запись на IP из имени, Caddy получает нормальный сертификат
+Let's Encrypt, код менять не нужно. Когда домен оплатите — правите четыре
+строки в `stack/.env`, перезапускаете `caddy` и пересобираете фронтенд:
 
-## Миграция данных (этап 6–7)
+```bash
+API_EXTERNAL_URL=https://api.arendora.ru ANON_KEY=... ./deploy/build-frontend.sh root@IP
+```
 
-Дамп делается с машины, где стоит postgresql-client 16:
+Только после этого имеет смысл чек-лист из раздела «Проверки».
+
+## Порядок развертывания
+
+### 0. Предварительно (вручную, вне сервера)
+
+- [ ] **Оплатить и настроить домен** (сейчас не оплачен — до этого шага стек
+      работает только на nip.io-имени, см. раздел выше)
+- [ ] DNS у регистратора: A `arendora.ru` → IP, A `api.arendora.ru` → IP
+- [ ] Из старого облачного проекта нужен ТОЛЬКО пароль БД (Dashboard →
+      Project Settings → Database → connection string) — для дампа данных.
+      Больше ничего: ключи API, VAPID и секреты вебхуков генерирует
+      `generate-keys.mjs`, письма идут через ваш SMTP.
+- [ ] Соцвход (Яндекс/ВК/Mail.ru) пока отключён — приложений нет.
+      Когда создадите: вписать `*_CLIENT_ID`/`*_CLIENT_SECRET` в
+      `/opt/arendora/stack/.env`, `docker compose up -d functions`, и
+      добавить redirect `https://api.arendora.ru/functions/v1/oauth/callback`
+      в кабинках провайдеров. Кнопки соцвхода до этого просто не проходят.
+- [ ] SMTP-данные почтового хостинга: хост, порт, логин, пароль ящика
+      (например `noreply@arendora.ru`)
+
+### 1. Подготовка сервера
+
+```bash
+./deploy/upload.sh root@SERVER_IP              # заливает всё в /opt/arendora
+ssh root@SERVER_IP 'bash /opt/arendora/init-server.sh'
+```
+
+### 2. Секреты и запуск стека
+
+```bash
+node deploy/generate-keys.mjs                  # локально, ОДИН раз
+# вывод вставить в /opt/arendora/stack/.env (скопировать из .env.example),
+# дописать SMTP; ключи соцвхода — когда появятся приложения у провайдеров
+ssh root@SERVER_IP 'cd /opt/arendora/stack && docker compose up -d'
+ssh root@SERVER_IP 'docker compose -f /opt/arendora/stack/docker-compose.yml ps'
+```
+
+Все сервисы должны быть healthy. Realtime поднимается 20–60 секунд.
+
+### 3. Перенос данных
+
+Локально (или на любой машине с postgresql-client 16+):
 
 ```bash
 apt install -y postgresql-client-16
-./migrate/dump.sh "postgresql://postgres:ПАРОЛЬ@db.СТАРЫЙ-ПРОЕКТ.supabase.co:5432/postgres"
-scp dump/*.sql root@НОВЫЙ_IP:/opt/migration/
-./migrate/restore.sh   # уже на новом сервере
+./deploy/migrate/dump.sh "postgresql://postgres:ПАРОЛЬ@db.СТАРЫЙ-ПРОЕКТ.supabase.co:5432/postgres"
+# если прямой хост закрыт — connection string из Session pooler
+scp deploy/dump/*.sql root@SERVER_IP:/opt/migration/
 ```
 
-Дамп включает: схему public (структура + данные), пользователей
-auth.users, storage.objects. Пароли пользователей переезжают вместе
-с auth.users — перелогин не требуется, если JWT_SECRET новый сервера
-совпадает со старым (взять его в дашборде старого проекта: Settings →
-API → JWT Settings, и указать в новом .env).
+На сервере:
 
-## Бэкапы
+```bash
+bash /opt/arendora/migration/restore.sh /opt/migration
+```
 
-`backup.sh` вешается на cron сервера (ежедневно 04:00), хранит 14
-ежедневных дампов в /var/backups/arendora. Проверка восстановления —
-раз в месяц (см. restore/verify.sh).
+restore.sh восстанавливает public + auth.users (отключая триггер
+`handle_new_user`, иначе профили задвоятся), собирает publication
+`supabase_realtime` (pg_dump её не переносит!) и переписывает вебхуки
+pg_net/pg_cron с облачного проекта на свой edge-runtime.
+
+### 4. Фронтенд
+
+```bash
+ANON_KEY=<из stack/.env> ./deploy/build-frontend.sh root@SERVER_IP
+```
+
+### 5. Воркер Профи.ру
+
+Профиль браузера (`automation/state/profi-profile`) — скопировать с
+Windows-машины на сервер: `scp -r automation/state/profi-profile root@SERVER_IP:/opt/arendora/worker/`
+(секретная папка сессии Профи.ру — не публиковать).
+
+```bash
+ssh root@SERVER_IP 'bash /opt/arendora/worker/install-worker.sh'
+# вписать SERVICE_ROLE_KEY в /opt/arendora/worker.env
+ssh root@SERVER_IP 'systemctl start arendora-worker'
+ssh root@SERVER_IP 'journalctl -u arendora-worker -f'
+```
+
+Если Профи.ру требует SMS-подтверждение — `NeedsLoginError`, тогда
+однократно интерактивно: `cd /opt/arendora/automation && HEADLESS=0 npm run login`.
+
+### 6. Виджет iPhone (Scriptable)
+
+`widget/ArendoraWidget.js`: вписать новый anon-ключ (EMAIL/PASSWORD
+уже заполнены).
+
+## Проверки
+
+- [ ] `https://<APP_DOMAIN>` открывается, сертификат валиден
+- [ ] регистрация/вход по email, данные (объекты/платежи) на месте
+- [ ] realtime: два окна — изменение в одном мгновенно в другом
+- [ ] соцвход Яндекс/ВК/Mail.ru
+- [ ] приглашение жильцу приходит письмом (через ваш SMTP)
+- [ ] push-уведомления (тест из приложения)
+- [ ] напоминания pg_cron: `cron.job` содержит `arendora-reminders` и `arendora-digest`
+- [ ] воркер: тестовая заявка проходит в DRY_RUN, затем боевой прогон
 
 ## После переключения
 
-- Старый проект: Settings → Pause project (не удалять 3 дня)
-- РКН: уведомление об обработке ПДн (rkn.gov.ru)
-- Privacy.jsx: раздел 6 переписать на «собственный сервер в РФ»
+- [ ] Старый облачный проект Supabase: Settings → Pause (не удалять 3 дня)
+- [ ] Раздел 6/8 Privacy.jsx уже описывает размещение в РФ (правки внесены)
+- [ ] Уведомление РКН об обработке ПДн (rkn.gov.ru)
+
+## Эксплуатация
+
+- Логи: `docker compose logs -f <сервис>`, воркер: `journalctl -u arendora-worker`
+- Бэкапы: `/var/backups/arendora/` (14 дней), проверка восстановления — раз в месяц
+- Обновление стека: `docker compose pull && docker compose up -d`
+- RAM: стек ~700–900 МБ + Chromium ~300–500 МБ; swap 2 ГБ обязателен

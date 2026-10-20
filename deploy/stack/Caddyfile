@@ -1,0 +1,65 @@
+# HTTPS-шлюз Arendora (автосертификаты Let's Encrypt).
+# A-записи обоих доменов должны указывать на IP сервера, порты 80/443 открыты.
+# Адреса не зашиты: Caddy берёт их из APP_DOMAIN / API_DOMAIN (stack/.env),
+# поэтому переезд на оплаченный домен — правка двух строк в одном файле.
+# Если в логах адрес localhost — переменные не доехали до контейнера.
+#
+# CORS: НЕ добавляем здесь. GoTrue, PostgREST и edge-функции отдают
+# CORS-заголовки сами (Access-Control-Allow-Origin: * + обработка OPTIONS);
+# дублирование заголовков в ответе браузер считает ошибкой.
+
+# www — только редирект на апекс, своей статики не отдаёт
+www.{$APP_DOMAIN:localhost} {
+	redir https://{$APP_DOMAIN:localhost}{uri} permanent
+}
+
+{$APP_DOMAIN:localhost} {
+	# Статика фронтенда (SPA): /var/www/arendora на хосте
+	root * /srv/arendora
+	encode gzip zstd
+	try_files {path} /index.html
+	file_server
+}
+
+api.{$API_DOMAIN:localhost} {
+	# Auth (GoTrue): /auth/v1/* -> http://auth:9999/*
+	# GoTrue отдаёт ACAO на обычных запросах, но на preflight OPTIONS
+	# (с Access-Control-Request-Headers) отвечает 204 БЕЗ CORS-заголовков —
+	# браузер такие предзапросы отклоняет. Отвечаем на preflight сами.
+	@auth path /auth/v1/*
+	handle @auth {
+		uri strip_prefix /auth/v1
+		@preflight method OPTIONS
+		header @preflight Access-Control-Allow-Origin "*"
+		header @preflight Access-Control-Allow-Headers "authorization, apikey, x-client-info, x-supabase-api-version, content-type, prefer, sb-api-key"
+		header @preflight Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+		respond @preflight 204
+		reverse_proxy auth:9999
+	}
+
+	# PostgREST: /rest/v1/* -> http://rest:3000/*
+	@rest path /rest/v1/*
+	handle @rest {
+		uri strip_prefix /rest/v1
+		reverse_proxy rest:3000
+	}
+
+	# Realtime (websocket): /realtime/v1/* -> ws://realtime:4000/socket/*
+	@realtime path /realtime/v1/*
+	handle @realtime {
+		uri strip_prefix /realtime/v1
+		rewrite * /socket{uri}
+		reverse_proxy realtime:4000
+	}
+
+	# Edge Functions: /functions/v1/* -> http://functions:9000/*
+	@functions path /functions/v1/*
+	handle @functions {
+		uri strip_prefix /functions/v1
+		reverse_proxy functions:9000
+	}
+
+	handle {
+		respond 404
+	}
+}

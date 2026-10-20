@@ -1,0 +1,22 @@
+[Unit]
+Description=Arendora — воркер Профи.ру (Playwright)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/arendora/automation
+EnvironmentFile=/opt/arendora/worker.env
+# npm может отсутствовать в PATH у systemd
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/npm start
+Restart=always
+RestartSec=30
+# Chromium прожорлив: не даём воркеру залить весь сервер
+MemoryMax=900M
+MemoryHigh=700M
+OOMScoreAdjust=250
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

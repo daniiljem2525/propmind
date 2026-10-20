@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Дамп данных из облачного Supabase перед миграцией.
 # Использование: ./dump.sh "postgresql://postgres:ПАРОЛЬ@db.ПРОЕКТ.supabase.co:5432/postgres"
+# Если прямой хост не отвечает (нужен IPv4 add-on) — возьмите connection
+# string из Session pooler (Dashboard → Database → Connection string).
 # Требуется postgresql-client 16+: apt install -y postgresql-client-16
 set -euo pipefail
 
@@ -9,23 +11,17 @@ OUT="$(dirname "$0")/../dump"
 mkdir -p "$OUT"
 STAMP=$(date +%Y%m%d-%H%M)
 
-echo "1/3 Схема public (структура + данные + RLS/триггеры/RPC)…"
+echo "1/2 Схема public (структура + данные + RLS/триггеры/RPC)…"
 PGSSLMODE=require pg_dump "$CONN" \
   --schema=public --no-owner --no-privileges \
   -f "$OUT/public-$STAMP.sql"
 
-echo "2/3 Пользователи auth.users (только данные)…"
+echo "2/2 Пользователи auth.users (данные: пароли переезжают)…"
 PGSSLMODE=require pg_dump "$CONN" \
-  --schema=auth --table=auth.users --data-only --column-inserts \
+  --schema=auth --table=auth.users --table=auth.identities \
+  --data-only --column-inserts \
   -f "$OUT/auth-users-$STAMP.sql"
 
-echo "3/3 Идентичности и refresh-токены auth (данные)…"
-PGSSLMODE=require pg_dump "$CONN" \
-  --schema=auth --table=auth.identities --table=auth.sessions \
-  --table=auth.refresh_tokens --data-only \
-  -f "$OUT/auth-sessions-$STAMP.sql" || true
-
 echo "Готово: файлы в $OUT/"
-echo "ВАЖНО: JWT_SECRET нового сервера должен совпадать со старым"
-echo "(дашборд старого проекта: Settings → API → JWT Settings),"
-echo "тогда сессии и пароли пользователей переедут без перелогина."
+echo "Дальше: scp $OUT/*.sql root@НОВЫЙ_IP:/opt/migration/ и на сервере ./restore.sh /opt/migration"
+echo "Сессии не переносим: на новом сервере свой JWT_SECRET — пользователи перелогинятся один раз."
