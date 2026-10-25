@@ -72,32 +72,45 @@ function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
         // Старый объект отвязываем всегда, когда жилец переезжает:
         // связь может быть и по tenant_id, и по имени записи без аккаунта
         const oldProp = properties.find((p) => p.id === editing.property_id);
-        if (oldProp && oldProp.id !== property?.id) {
+        const movedOut = oldProp && oldProp.id !== property?.id;
+        if (movedOut) {
           await unlinkTenantFromProperty(oldProp, { ...editing, ...payload });
         }
         if (property) {
-          await Tenant.update(editing.id, payload);
-          // Автосвязывание: объект → rented; бросит TENANT_ALREADY_SETTLED,
-          // если жилец уже заселён в другой объект
-          await linkTenantToProperty({ ...editing, ...payload }, property, { firstPayment: false });
+          try {
+            // Сначала заселение (проверит занятость объекта), затем правка
+            // карточки — при запрете жилец не останется «в воздухе»
+            await linkTenantToProperty({ ...editing, ...payload }, property, { firstPayment: false });
+            await Tenant.update(editing.id, payload);
+          } catch (e) {
+            // Не заселился — вернуть на старое место, если выселили
+            if (movedOut && oldProp) {
+              await linkTenantToProperty({ ...editing, ...payload }, oldProp, {
+                firstPayment: false,
+              }).catch(() => {});
+            }
+            throw e;
+          }
           toast.success(t("tenants.relinked"));
         } else {
           await Tenant.update(editing.id, payload);
           toast.success(t("tenants.saved"));
         }
       } else {
-        const tenant = await Tenant.create(payload);
-        if (tenant.invite_code) {
-          // Облачный режим: показываем код — жилец зарегистрируется сам
-          setInviteCode(tenant.invite_code);
-          onClose();
-          return;
-        }
         if (property) {
-          // Автосвязывание: объект → rented, первый платёж создаётся сам
-          await linkTenantToProperty(tenant, property);
+          const tenant = await Tenant.create(payload);
+          try {
+            // Автосвязывание: объект → rented, первый платёж создаётся сам.
+            // При запрете (объект занят / жилец уже заселён) запись жильца
+            // не должна оставаться осиротевшей — откатываем.
+            await linkTenantToProperty(tenant, property);
+          } catch (e) {
+            await Tenant.delete(tenant.id).catch(() => {});
+            throw e;
+          }
           toast.success(t("tenants.autoLinked"));
         } else {
+          await Tenant.create(payload);
           toast.success(t("tenants.saved"));
         }
       }
@@ -108,6 +121,8 @@ function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
     } catch (err) {
       if (err?.code === "TENANT_ALREADY_SETTLED") {
         setError(t("tenants.alreadySettled"));
+      } else if (err?.code === "PROPERTY_OCCUPIED") {
+        setError(t("tenants.propertyOccupied"));
       } else {
         toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
       }
@@ -145,12 +160,19 @@ function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
         <Field label={t("tenants.property")} hint={t("common.optional")}>
           <Select value={form.property_id} onChange={set("property_id")}>
             <option value="">{t("tenants.selectProperty")}</option>
-            {properties.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-                {p.tenant_name ? ` · ${p.tenant_name}` : ""}
-              </option>
-            ))}
+            {properties.map((p) => {
+              // Занятый другим жильцом объект нельзя выбрать: один объект —
+              // один жилец (свой текущий объект доступен при редактировании)
+              const occupied =
+                (p.tenant_id && p.tenant_id !== editing?.id) ||
+                (!p.tenant_id && p.tenant_name && p.tenant_name !== editing?.full_name);
+              return (
+                <option key={p.id} value={p.id} disabled={occupied}>
+                  {p.name}
+                  {p.tenant_name ? ` · ${p.tenant_name}` : ""}
+                </option>
+              );
+            })}
           </Select>
         </Field>
         <Field label={t("common.status")}>

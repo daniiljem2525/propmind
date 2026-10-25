@@ -246,7 +246,12 @@ export const Tenant = {
       const row = await TenantBase.update(id, patch);
       return { ...row, has_account: false };
     }
-    await supabase.from("profiles").update(cleanLite(patch)).eq("id", id);
+    // У profiles нет колонок property_* — связь жильца-аккаунта с объектом
+    // живёт только в properties.tenant_id, в профиль её писать нельзя
+    const profilePatch = { ...patch };
+    delete profilePatch.property_id;
+    delete profilePatch.property_name;
+    await supabase.from("profiles").update(cleanLite(profilePatch)).eq("id", id);
     return { id, ...patch, has_account: true };
   },
 

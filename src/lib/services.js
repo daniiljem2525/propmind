@@ -14,21 +14,27 @@ const isVirtual = (tenant) => tenant?.has_account === false;
 // Автосвязывание: арендатор → объект (+ первый платёж).
 // Бросает TENANT_ALREADY_SETTLED, если жилец уже живёт в другом объекте.
 export async function linkTenantToProperty(tenant, property, { firstPayment = true } = {}) {
-  // Запрет двойного заселения: жилец может жить только в одном объекте.
-  // Проверяем только жёсткую связь по id (properties.tenant_id и обратную
-  // ссылку tenants.property_id): имена совпадают у разных людей.
+  // Запрет двойного заселения — в обе стороны:
+  // 1) жилец не может жить в двух объектах;
+  // 2) объект не может быть занят двумя жильцами (id — жёсткая связь,
+  //    имя — страховка для старых записей, где связь была только строкой).
   try {
     const { Tenant } = await import("@/lib/api/entities");
     const props = await Property.list();
+    const target = props.find((p) => p.id === property.id) || property;
     const elsewhere = props.find((p) => p.id !== property.id && p.tenant_id === tenant.id);
     const current = isVirtual(tenant) ? (await Tenant.getById(tenant.id))?.property_id : null;
+    const occupiedByOther =
+      (target.tenant_id && target.tenant_id !== tenant.id) ||
+      (!target.tenant_id && target.tenant_name && target.tenant_name !== tenant.full_name);
     if (elsewhere || (current && current !== property.id)) {
-      const err = new Error("TENANT_ALREADY_SETTLED");
-      err.code = "TENANT_ALREADY_SETTLED";
-      throw err;
+      throw Object.assign(new Error("TENANT_ALREADY_SETTLED"), { code: "TENANT_ALREADY_SETTLED" });
+    }
+    if (occupiedByOther) {
+      throw Object.assign(new Error("PROPERTY_OCCUPIED"), { code: "PROPERTY_OCCUPIED" });
     }
   } catch (e) {
-    if (e?.code === "TENANT_ALREADY_SETTLED") throw e;
+    if (e?.code === "TENANT_ALREADY_SETTLED" || e?.code === "PROPERTY_OCCUPIED") throw e;
     // Сбой проверки (сеть и т.п.) не должен ломать связывание — оно идёт дальше
     console.error("settle check failed:", e);
   }

@@ -867,11 +867,14 @@ begin
 
   v_property := v_inv.property_id;
   if v_inv.role = 'tenant' and v_property is not null then
+    -- Не перезаписываем объект, занятый другим жильцом: один объект —
+    -- один жилец. Свободным считаем и объект без id-связи без имени.
     update public.properties set
       tenant_id = v_uid,
       tenant_name = (select full_name from public.profiles where id = v_uid),
       status = 'rented'
-    where id = v_property and owner_id = v_inv.owner_id;
+    where id = v_property and owner_id = v_inv.owner_id
+      and (tenant_id = v_uid or (tenant_id is null and coalesce(tenant_name, '') = ''));
   end if;
 
   update public.invites set used_by = v_uid where code = v_inv.code;

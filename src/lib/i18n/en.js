@@ -457,6 +457,7 @@ export const en = {
   "tenants.autoLinked": "Tenant linked to the property, first payment created",
   "tenants.relinked": "Link updated",
   "tenants.alreadySettled": "This tenant is already settled in another property. Unlink them there first — a tenant can live in only one property.",
+  "tenants.propertyOccupied": "This property is already occupied by another tenant. Move out the current tenant first.",
   "tenants.emptyTitle": "No tenants yet",
   "tenants.emptySubtitle": "Add a tenant and link a property — the first payment is created automatically",
   "tenants.required": "Provide name and email",
