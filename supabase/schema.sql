@@ -1528,3 +1528,294 @@ begin
     );
 end;
 $$;
+
+-- ============================================================
+-- 15. Разделение демо и реальных данных
+--     Демо-записи помечаются is_demo: клиент показывает либо демо-
+--     портфель (демо-режим), либо реальные данные — смешения нет.
+--     Созданное в демо-режиме наследует флаг и удаляется вместе
+--     с демо-данными. Идемпотентно: работает на чистой базе
+--     и на существующей.
+-- ============================================================
+alter table public.properties          add column if not exists is_demo boolean not null default false;
+alter table public.payments            add column if not exists is_demo boolean not null default false;
+alter table public.maintenance_requests add column if not exists is_demo boolean not null default false;
+alter table public.request_comments    add column if not exists is_demo boolean not null default false;
+alter table public.request_events      add column if not exists is_demo boolean not null default false;
+alter table public.documents           add column if not exists is_demo boolean not null default false;
+alter table public.notifications       add column if not exists is_demo boolean not null default false;
+alter table public.invites             add column if not exists is_demo boolean not null default false;
+alter table public.automation_orders   add column if not exists is_demo boolean not null default false;
+alter table public.profi_offers        add column if not exists is_demo boolean not null default false;
+
+-- Уведомления участников заявки наследуют её «демость», чтобы
+-- не просачивались в реальный режим (и наоборот).
+drop function if exists public.notify_users(uuid[], text, text, text, text, uuid);
+create or replace function public.notify_users(
+  p_users uuid[], p_type text, p_title text, p_message text, p_link text, p_related uuid,
+  p_is_demo boolean default false
+)
+returns void
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  i int;
+begin
+  for i in 1..coalesce(array_length(p_users, 1), 0) loop
+    if p_users[i] is not null and p_users[i] <> auth.uid() then
+      insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+      values (p_users[i], p_type, p_title, p_message, p_link, p_related, p_is_demo);
+    end if;
+  end loop;
+end;
+$$;
+
+create or replace function public.on_request_changed()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_actor uuid := auth.uid();
+  v_actor_name text;
+  v_actor_role text;
+  v_event text;
+  v_details text := '';
+  v_title text;
+  v_parties uuid[];   -- все участники: владелец, жилец, автор, исполнитель
+begin
+  select full_name, role into v_actor_name, v_actor_role
+  from public.profiles where id = v_actor;
+
+  -- Каждое событие заявки приходит каждому участнику (без дублей),
+  -- кроме того, кто это действие совершил.
+  select coalesce(array_agg(distinct u), '{}') into v_parties
+  from unnest(ARRAY[new.owner_id, new.tenant_id, new.created_by, new.contractor_id]) as u
+  where u is not null;
+
+  if tg_op = 'INSERT' then
+    insert into public.request_events(request_id, actor_id, actor_name, actor_role, event, details, is_demo)
+    values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), 'created', '', new.is_demo);
+
+    perform public.notify_users(
+      v_parties, 'maintenance_new', 'Новая заявка',
+      coalesce(nullif(new.title, ''), left(new.description, 60)) || ' — ' || coalesce(new.property_name, ''),
+      '/app/maintenance', new.id, new.is_demo
+    );
+    return new;
+  end if;
+
+  -- UPDATE: реагируем только на смену статуса
+  if new.status is not distinct from old.status then
+    return new;
+  end if;
+
+  v_title := coalesce(nullif(new.title, ''), left(new.description, 60));
+  v_event := case new.status
+    when 'assigned'    then 'assigned'
+    when 'in_progress' then 'accepted'
+    when 'done'        then 'reported'
+    when 'closed'      then 'closed'
+    when 'cancelled'   then 'cancelled'
+    when 'new'         then 'declined'
+    else new.status
+  end;
+  if new.status = 'done' and new.work_cost is not null then
+    v_details := 'Стоимость: ' || to_char(new.work_cost, 'FM999999990') || ' ₽';
+  elsif new.status = 'cancelled' and new.cancel_reason is not null then
+    v_details := 'Причина: ' || new.cancel_reason;
+  end if;
+
+  insert into public.request_events(request_id, actor_id, actor_name, actor_role, event, details, is_demo)
+  values (new.id, v_actor, coalesce(v_actor_name, ''), coalesce(v_actor_role, 'system'), v_event, v_details, new.is_demo);
+
+  if new.status = 'assigned' then
+    -- исполнителю — своя формулировка, остальным участникам — общая
+    if new.contractor_id is not null and new.contractor_id <> v_actor then
+      perform public.notify_users(
+        ARRAY[new.contractor_id], 'maintenance_assigned', 'Новая работа',
+        v_title || ' — ' || coalesce(new.property_name, ''), '/app', new.id, new.is_demo
+      );
+    end if;
+    perform public.notify_users(
+      (select coalesce(array_agg(distinct u), '{}') from unnest(v_parties) as u
+       where u <> v_actor and (new.contractor_id is null or u <> new.contractor_id)),
+      'maintenance_updated', 'Исполнитель назначен',
+      v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id, new.is_demo
+    );
+
+  else
+    perform public.notify_users(
+      (select coalesce(array_agg(distinct u), '{}') from unnest(v_parties) as u where u <> v_actor),
+      'maintenance_updated',
+      case new.status
+        when 'in_progress' then 'Заявка в работе'
+        when 'done'        then 'Работа выполнена'
+        when 'closed'      then 'Заявка закрыта'
+        when 'cancelled'   then 'Заявка отменена'
+        when 'new'         then 'Исполнитель отклонил заявку'
+        else 'Заявка обновлена'
+      end,
+      v_title || ' — ' || coalesce(new.property_name, ''), '/app/maintenance', new.id, new.is_demo
+    );
+  end if;
+
+  return new;
+end;
+$$;
+
+-- Напоминания по демо-платежам/договорам — демо-уведомления:
+-- в реальном режиме они не видны.
+create or replace function public.scan_reminders() returns void
+language plpgsql security definer set search_path = public
+as $$
+begin
+  -- Просроченные платежи (только долгосрок; посуточные объекты — без напоминаний)
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select p.owner_id, 'payment_overdue', 'Платёж просрочен',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id, p.is_demo
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.status = 'pending' and p.due_date < current_date
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_overdue' and n.related_id = p.id
+    );
+
+  -- Ближайшие платежи: за 3 дня, только долгосрок — владельцу
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select p.owner_id, 'payment_upcoming', 'Скоро платёж',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id, p.is_demo
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.owner_id
+    );
+
+
+  -- Ближайшие платежи: за 3 дня — жильцу (тоже только долгосрок)
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select p.tenant_id, 'payment_upcoming', 'Скоро платёж',
+         'Аренда ' || coalesce(p.property_name, '') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id, p.is_demo
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.tenant_id is not null
+    and p.status in ('pending', 'partial') and p.due_date = current_date + 3
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.tenant_id
+    );
+
+  -- Договоры, истекающие в ближайшие 30 дней (не про посуточных)
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select pr.owner_id, 'lease_expiring', 'Договор истекает',
+         coalesce(pr.name, 'Объект') || ' — до ' || to_char(pr.lease_end, 'DD.MM.YYYY'),
+         '/app/properties', pr.id, pr.is_demo
+  from public.properties pr
+  where pr.rental_type = 'longterm'
+    and pr.lease_end is not null
+    and pr.lease_end >= current_date
+    and pr.lease_end <= current_date + 30
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'lease_expiring' and n.related_id = pr.id
+        and n.created_date > now() - interval '20 days'
+    );
+end;
+$$;
+
+-- Демо-уведомления не будят устройство: push уходит только по реальным.
+create or replace function public.notify_push()
+returns trigger
+language plpgsql
+security definer set search_path = public, extensions
+as $$
+begin
+  if new.is_demo then
+    return new;
+  end if;
+  begin
+    perform net.http_post(
+      url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'x-push-secret', 'PASTE_PUSH_WEBHOOK_SECRET'
+      ),
+      body := jsonb_build_object(
+        'notification', jsonb_build_object(
+          'user_id', new.user_id,
+          'title', new.title,
+          'message', new.message,
+          'link', new.link
+        )
+      )
+    );
+  exception when others then
+    -- сбой доставки push не должен откатывать действие пользователя
+    raise warning 'push dispatch failed: %', sqlerrm;
+  end;
+  return new;
+end;
+$$;
+
+-- ============================================================
+-- 16. Жильцы-записи: арендатор добавляется владельцем сразу,
+--     без аккаунта на платформе (имя/телефон/email — просто данные).
+--     Подключённые аккаунты остаются профилями role=tenant;
+--     таблица tenants — для записей без аккаунта. В облаке FK
+--     property.tenant_id / payments.tenant_id указывают на profiles,
+--     поэтому у записей связи пишутся строками (tenant_name) и
+--     tenants.property_id.
+-- ============================================================
+create table if not exists public.tenants (
+  id           uuid primary key default gen_random_uuid(),
+  owner_id     uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  full_name    text not null,
+  email        text,
+  phone        text,
+  notes        text,
+  status       text not null default 'active'
+               check (status in ('active', 'inactive')),
+  property_id  uuid references public.properties(id) on delete set null,
+  property_name text,
+  move_in_date date,
+  is_demo      boolean not null default false,
+  created_date timestamptz not null default now()
+);
+
+create index if not exists tenants_owner_idx on public.tenants(owner_id, created_date);
+
+alter table public.tenants enable row level security;
+
+drop policy if exists "tenants: владелец — полные права" on public.tenants;
+create policy "tenants: владелец — полные права"
+  on public.tenants for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());
+
+-- Realtime: публикация уже существует после restore — добавляем таблицу
+-- (идемпотентно: повторный прогон схемы не падает)
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'tenants'
+  ) then
+    alter publication supabase_realtime add table public.tenants;
+  end if;
+end $$;

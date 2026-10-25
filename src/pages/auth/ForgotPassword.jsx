@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
+import { usePageMeta } from "@/lib/usePageMeta";
 
 export default function ForgotPassword() {
   const { t } = useLang();
   const { requestPasswordReset } = useAuth();
   const navigate = useNavigate();
+  usePageMeta(`${t("auth.resetTitle")} — Arendora`, null, "/forgot-password");
 
   const [email, setEmail] = useState("");
   const [resetLink, setResetLink] = useState("");

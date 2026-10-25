@@ -9,7 +9,9 @@ import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoSeen } from "@/lib/demo";
 import { Document, Property } from "@/lib/api/entities";
 import { uploadFile, SAFE_DOC_TYPES } from "@/lib/api/files";
 import { useLang } from "@/lib/i18n/LangContext";
@@ -192,7 +194,10 @@ export default function Documents() {
   const [q, setQ] = useState("");
   const [type, setType] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  useNewParam(() => setDialogOpen(true));
+  const demoGate = useDemoExitGate();
+  // В демо-режиме — сначала выход из демо (с удалением демо-данных)
+  const openCreate = () => demoGate.guarded(() => setDialogOpen(true));
+  useNewParam(openCreate);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
 
@@ -264,8 +269,7 @@ export default function Documents() {
         actions={
           <Button
             onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
+              openCreate();
             }}
           >
             <Plus className="h-4 w-4" />
@@ -304,16 +308,17 @@ export default function Documents() {
             <div className="flex flex-wrap justify-center gap-2">
               <Button
                 onClick={() => {
-                  setEditing(null);
-                  setDialogOpen(true);
+                  openCreate();
                 }}
               >
                 <Plus className="h-4 w-4" />
                 {t("documents.upload")}
               </Button>
-              <Button variant="outline" onClick={demo.run} loading={demo.loading}>
-                {t("common.demoData")}
-              </Button>
+              {!isDemoSeen() && (
+                <Button variant="outline" onClick={demo.run} loading={demo.loading}>
+                  {t("common.demoData")}
+                </Button>
+              )}
             </div>
           }
         />
@@ -404,6 +409,8 @@ export default function Documents() {
       <DocumentFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting?.name} />
+
+      {demoGate.dialog}
     </div>
   );
 }

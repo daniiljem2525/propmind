@@ -15,9 +15,8 @@ export function useNewParam(onNew) {
     if (isNew !== "1" || consumedKey.current === location.key) return;
     consumedKey.current = location.key;
     // Параметр убираем из адресной строки напрямую через history:
-    // setParams здесь запускает вторую навигацию посреди page-transition
-    // (AnimatePresence mode="wait" в AppLayout), страница перемонтируется
-    // и только что открытый диалог закрывается.
+    // setParams здесь запускает вторую навигацию посреди смены страницы,
+    // страница перемонтируется и только что открытый диалог закрывается.
     try {
       const url = new URL(window.location.href);
       url.searchParams.delete("new");

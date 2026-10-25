@@ -3,16 +3,30 @@
 import { Property, Payment, NotificationEntity, notifyPaymentSchedule } from "@/lib/api/entities";
 import { readCollection, writeCollection } from "@/lib/api/db";
 import { getCurrentUser } from "@/lib/api/auth";
+import { isDemoMode } from "@/lib/demoMode";
 import { uid, todayISO, addMonthsISO } from "@/lib/utils";
 import { buildMonthlySchedule } from "@/lib/schedule";
+
+// Жилец без аккаунта на платформе: в property/payments у него нет uuid-профиля,
+// связи пишутся строками (tenant_name) и tenants.property_id
+const isVirtual = (tenant) => tenant?.has_account === false;
 
 // Автосвязывание: арендатор → объект (+ первый платёж)
 export async function linkTenantToProperty(tenant, property, { firstPayment = true } = {}) {
   await Property.update(property.id, {
-    tenant_id: tenant.id,
+    tenant_id: isVirtual(tenant) ? null : tenant.id,
     tenant_name: tenant.full_name,
     status: "rented",
   });
+  if (isVirtual(tenant)) {
+    // Обратная ссылка записи жильца на объект
+    try {
+      const { Tenant } = await import("@/lib/api/entities");
+      await Tenant.update(tenant.id, { property_id: property.id, property_name: property.name });
+    } catch (e) {
+      console.error("tenant backlink failed:", e);
+    }
+  }
 
   if (firstPayment && Number(property.rent_amount) > 0) {
     const due = todayISO();
@@ -20,7 +34,7 @@ export async function linkTenantToProperty(tenant, property, { firstPayment = tr
     await Payment.create({
       property_id: property.id,
       property_name: property.name,
-      tenant_id: tenant.id,
+      tenant_id: isVirtual(tenant) ? null : tenant.id,
       tenant_name: tenant.full_name,
       amount: Number(property.rent_amount),
       currency: property.currency || "RUB",
@@ -32,34 +46,46 @@ export async function linkTenantToProperty(tenant, property, { firstPayment = tr
   }
 }
 
-export async function unlinkTenantFromProperty(property) {
-  if (!property || !property.tenant_id) return;
+export async function unlinkTenantFromProperty(property, tenant = null) {
+  if (!property) return;
+  if (!property.tenant_id && !isVirtual(tenant)) return;
   await Property.update(property.id, {
     tenant_id: null,
     tenant_name: null,
     status: property.status === "maintenance" ? "maintenance" : "vacant",
   });
+  if (isVirtual(tenant)) {
+    try {
+      const { Tenant } = await import("@/lib/api/entities");
+      await Tenant.update(tenant.id, { property_id: null, property_name: null });
+    } catch (e) {
+      console.error("tenant unlink failed:", e);
+    }
+  }
 }
 
 // График платежей на 12 месяцев вперёд, без дублей по периоду
 export async function createMonthlySchedule(tenant, property, months = 12) {
   const existing = await Payment.list();
-  // Арифметика периодов и защита от дублей — в src/lib/schedule.js (под тестами)
-  const items = buildMonthlySchedule({ tenant, property, months, existing });
+  // Виртуальному жильцу uuid-профиля не пишем (FK на profiles)
+  const scheduleTenant = isVirtual(tenant) ? { ...tenant, id: null } : tenant;
+  const items = buildMonthlySchedule({ tenant: scheduleTenant, property, months, existing });
 
   if (items.length) {
     await Payment.bulkCreate(items);
     // Жилец (другой аккаунт) узнаёт о графике: уведомление в базе
     // запускает push-рассылку. Сбой уведомления не ломает график.
-    try {
-      await notifyPaymentSchedule(
-        property.tenant_id || tenant.id,
-        items.length,
-        items[items.length - 1].due_date,
-        property.name
-      );
-    } catch (e) {
-      console.error("notifyPaymentSchedule failed:", e);
+    if (!isVirtual(tenant)) {
+      try {
+        await notifyPaymentSchedule(
+          property.tenant_id || tenant.id,
+          items.length,
+          items[items.length - 1].due_date,
+          property.name
+        );
+      } catch (e) {
+        console.error("notifyPaymentSchedule failed:", e);
+      }
     }
   }
   return items.length;
@@ -99,7 +125,12 @@ export function syncOverduePayments() {
   const notifications = readCollection("notifications");
   let changed = 0;
 
+  // Демо-платежи трогаем только внутри демо-режима: их просрочка —
+  // часть сценария демо, реальному режиму она не видна
+  const demoOn = isDemoMode();
+
   payments.forEach((p) => {
+    if (!!p.is_demo !== demoOn) return;
     if (p.status === "pending" && p.due_date && p.due_date < today) {
       p.status = "overdue";
       p.updated_date = new Date().toISOString();
@@ -115,6 +146,7 @@ export function syncOverduePayments() {
           (lang === "ru" ? "Просрочен платёж" : "Overdue payment") +
           ` — ${p.tenant_name || p.property_name || ""}, ${p.due_date}`,
         is_read: false,
+        is_demo: !!p.is_demo,
         link: "/app/payments",
         related_id: p.id,
       });

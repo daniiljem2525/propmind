@@ -3,6 +3,8 @@
 
 import { Property, Tenant, Payment, MaintenanceRequest, RequestComment, RequestEvent, Document, NotificationEntity } from "@/lib/api/entities";
 import { getCurrentUser } from "@/lib/api/auth";
+import { isDemoMode, setDemoMode } from "@/lib/demoMode";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { todayISO, addDaysISO, addMonthsISO } from "@/lib/utils";
 
 // Фото-заглушки: локальные SVG-градиенты (без внешних запросов —
@@ -32,6 +34,22 @@ const photo = (seed) => {
     `</svg>`;
   return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
 };
+
+// «Демо уже показывали»: после первой загрузки/удаления демо баннер
+// на дашборде и кнопки демо в пустых состояниях больше не показываем.
+export function isDemoSeen() {
+  try {
+    return localStorage.getItem("arendora:demoSeen") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markDemoSeen() {
+  try {
+    localStorage.setItem("arendora:demoSeen", "1");
+  } catch {}
+}
 
 function monthISO(offsetMonths, day) {
   const base = addMonthsISO(todayISO(), offsetMonths);
@@ -153,11 +171,12 @@ export async function clearAllData() {
   const user = getCurrentUser();
   if (!user) throw new Error("UNAUTHORIZED");
 
-  // Порядок важен: сначала то, что ссылается на объекты (FK)
+  // Порядок важен: сначала то, что ссылается на объекты (FK).
+  // listAll, а не list: list скрывает записи по демо-режиму.
   const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
   let deleted = 0;
   for (const entity of collections) {
-    const rows = await entity.list();
+    const rows = await (entity.listAll ? entity.listAll() : entity.list());
     for (const row of rows) {
       try {
         await entity.delete(row.id);
@@ -167,26 +186,66 @@ export async function clearAllData() {
       }
     }
   }
+  // Данных не осталось — демо-режим выключаем, чтобы не смотреть в пустоту
+  setDemoMode(false);
+  markDemoSeen();
   return { deleted };
+}
+
+// Удаление только демо-данных: реальные объекты, платежи и заявки
+// владельца не затрагиваются. Режим не переключает — см. clearDemoData.
+async function deleteDemoRows() {
+  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
+  let deleted = 0;
+  for (const entity of collections) {
+    const rows = await (entity.listAll ? entity.listAll() : entity.list());
+    for (const row of rows) {
+      if (!row.is_demo) continue;
+      try {
+        await entity.delete(row.id);
+        deleted++;
+      } catch {}
+    }
+  }
+  // Облако: демо-приглашения жильцов лежат отдельной таблицей вне фасада
+  if (isSupabaseConfigured) {
+    try {
+      const { supabase } = await import("@/lib/supabase/config");
+      await supabase.from("invites").delete().eq("is_demo", true);
+    } catch {}
+  }
+  return { deleted };
+}
+
+export async function clearDemoData() {
+  const user = getCurrentUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+  const res = await deleteDemoRows();
+  // Демо удалено — возвращаемся к реальным данным
+  setDemoMode(false);
+  markDemoSeen();
+  return res;
 }
 
 export async function seedDemoData({ reset = false } = {}) {
   const user = getCurrentUser();
   if (!user) throw new Error("UNAUTHORIZED");
 
-  // Reset: вычищаем данные владельца перед полным демо (только в облаке
-  // с RLS никто чужой не пострадает; в локальном режиме — свои же записи)
+  // Демо живёт в отдельном «слое»: включаем демо-режим — интерфейс
+  // показывает демо-портфель, реальные данные скрываются (не удаляются).
+  setDemoMode(true);
+
+  // Перезагрузка демо: пересоздаём только демо-слой, реальное не трогаем
   if (reset) {
-    await clearAllData();
+    await deleteDemoRows();
   }
 
-  const existing = await Property.list();
-  if (existing.length > 0) return { skipped: true };
+  // Сид уже выполнялся (демо-объекты есть) — не дублируем
+  const existing = await (Property.listAll ? Property.listAll() : Property.list());
+  if (!reset && existing.some((p) => p.is_demo)) return { skipped: true };
 
-  // Демо-режим: открываем полный тариф Pro, чтобы ничто не блокировалось лимитами
-  try {
-    localStorage.setItem("arendora:plan", "pro");
-  } catch {}
+  // Тариф в демо-режиме всегда максимальный (getPlanLimits учитывает
+  // демо-режим) — реальный план аккаунта не трогаем.
 
   // ——— Объекты ———
   const properties = [];
@@ -214,8 +273,10 @@ export async function seedDemoData({ reset = false } = {}) {
       property_name: property.name,
       move_in_date: property.lease_start,
     });
+    // Демо-жильцы — записи без аккаунта: tenant_id (FK на profiles)
+    // не пишем, связь живёт в tenants.property_id и tenant_name
     await Property.update(property.id, {
-      tenant_id: tenant.id,
+      tenant_id: null,
       tenant_name: tenant.full_name,
       status: "rented",
     });
@@ -255,7 +316,7 @@ export async function seedDemoData({ reset = false } = {}) {
       await Payment.create({
         property_id: property.id,
         property_name: property.name,
-        tenant_id: tenant.id,
+        tenant_id: tenant.has_account === false ? null : tenant.id,
         tenant_name: tenant.full_name,
         amount: property.rent_amount,
         currency: "RUB",
@@ -354,7 +415,9 @@ export async function seedDemoData({ reset = false } = {}) {
   }
 
   // ——— Уведомления ———
-  await NotificationEntity.bulkCreate([
+  // Нефатально: уведомления не блокируют демо, если вставка не удалась
+  try {
+    await NotificationEntity.bulkCreate([
     {
       user_id: user.id,
       type: "payment_overdue",
@@ -380,6 +443,9 @@ export async function seedDemoData({ reset = false } = {}) {
       link: "/app/properties",
     },
   ]);
+  } catch (e) {
+    console.error("demo notifications skipped:", e);
+  }
 
   return {
     skipped: false,

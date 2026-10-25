@@ -1,5 +1,6 @@
 import { supabase } from "./config";
 import { makeEntity } from "./db";
+import { isDemoMode } from "@/lib/demoMode";
 
 // RPC-вызов смены статуса заявки: возвращает { ok, error? } из БД
 async function rpcAction(fn, args) {
@@ -149,19 +150,30 @@ export async function notifyPaymentSchedule(tenantId, count, until, property) {
   if (error) throw error;
 }
 
-// Жильцы в облачном режиме = профили с ролью tenant.
-// «Добавить жильца» создаёт код приглашения: владелец передаёт его жильцу,
-// при регистрации по коду профиль привяжется к объекту автоматически.
+// Жильцы: записи владельца (без аккаунта — добавляются сразу,
+// независимо от платформы) + подключённые аккаунты-профили (role=tenant).
+// Виртуальные записи живут в таблице tenants; платформенные собираются
+// из properties.tenant_id и invites, как раньше.
+const TenantBase = makeEntity("tenants", { status: "active" });
+
 export const Tenant = {
-  collection: "profiles",
+  collection: "tenants",
 
   async list() {
-    // Свои жильцы: привязанные к объектам + подключённые по приглашениям.
-    // Жильцы других арендодателей не видны.
+    // Свои жильцы: виртуальные записи + подключённые к платформе.
+    // Демо-режим показывает только демо-слой (и наоборот).
+    const demoOn = isDemoMode();
+
+    const { data: virtual } = await supabase
+      .from("tenants")
+      .select("*")
+      .eq("is_demo", demoOn)
+      .order("created_date", { ascending: false });
     const { data: props } = await supabase
       .from("properties")
       .select("id, name, tenant_id")
-      .not("tenant_id", "is", null);
+      .not("tenant_id", "is", null)
+      .eq("is_demo", demoOn);
     const byTenant = Object.fromEntries(
       (props || []).map((p) => [p.tenant_id, { property_id: p.id, property_name: p.name }])
     );
@@ -175,61 +187,96 @@ export const Tenant = {
         ...(invs || []).map((i) => i.used_by),
       ].filter(Boolean)),
     ];
-    if (ids.length === 0) return [];
-    const { data: profs, error } = await supabase
-      .from("profiles")
-      .select("id, full_name, email, phone, created_date")
-      .eq("role", "tenant")
-      .in("id", ids)
-      .order("full_name");
-    if (error) return [];
-    return (profs || []).map((p) => ({
-      id: p.id,
-      full_name: p.full_name,
-      email: p.email,
-      phone: p.phone,
-      status: "active",
-      created_date: p.created_date,
-      ...(byTenant[p.id] || {}),
-    }));
+    let platform = [];
+    if (ids.length > 0) {
+      const { data: profs } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, phone, created_date")
+        .eq("role", "tenant")
+        .in("id", ids)
+        .order("full_name");
+      platform = (profs || []).map((p) => ({
+        id: p.id,
+        full_name: p.full_name,
+        email: p.email,
+        phone: p.phone,
+        status: "active",
+        has_account: true,
+        created_date: p.created_date,
+        ...(byTenant[p.id] || {}),
+      }));
+    }
+    return [
+      ...platform,
+      ...(virtual || []).map((v) => ({ ...v, has_account: false })),
+    ];
   },
 
   async create(data) {
-    const { data: { user } } = await supabase.auth.getUser();
-    const code = (crypto.randomUUID().replace(/-/g, "")).slice(0, 8).toUpperCase();
-    const { data: inv, error } = await supabase
-      .from("invites")
-      .insert({
-        code,
-        owner_id: user.id,
-        role: "tenant",
-        property_id: data.property_id || null,
-      })
-      .select()
-      .single();
-    if (error) throw error;
-    return {
-      id: null,
-      invite_code: inv.code,
-      invite_role: "tenant",
-      full_name: data.full_name,
-      email: data.email,
-      property_id: data.property_id || null,
-    };
+    // Арендатор добавляется сразу записью — аккаунт на платформе не нужен.
+    // Подключение живого жильца — по коду приглашения владельца (register?ref=).
+    return TenantBase.create(data);
+  },
+
+  // Все свои записи-жильцы без фильтра по демо-режиму — для очистки
+  async listAll() {
+    const { data } = await supabase
+      .from("tenants")
+      .select("*")
+      .order("created_date", { ascending: false });
+    return (data || []).map((v) => ({ ...v, has_account: false }));
+  },
+
+  async getById(id) {
+    const row = await TenantBase.getById(id);
+    if (row) return { ...row, has_account: false };
+    // платформенный жилец — профиль
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("id, full_name, email, phone, created_date")
+      .eq("id", id)
+      .maybeSingle();
+    return prof ? { ...prof, status: "active", has_account: true } : null;
   },
 
   async update(id, patch) {
+    // Виртуальная запись — в таблице tenants; платформенный профиль — в profiles
+    const { data: existing } = await supabase.from("tenants").select("id").eq("id", id).maybeSingle();
+    if (existing) {
+      const row = await TenantBase.update(id, patch);
+      return { ...row, has_account: false };
+    }
     await supabase.from("profiles").update(cleanLite(patch)).eq("id", id);
-    return { id, ...patch };
+    return { id, ...patch, has_account: true };
   },
 
   async delete(id) {
-    await supabase.from("properties").update({ tenant_id: null, tenant_name: null, status: "vacant" }).eq("tenant_id", id);
+    const { data: existing } = await supabase
+      .from("tenants")
+      .select("id, property_id")
+      .eq("id", id)
+      .maybeSingle();
+    if (existing) {
+      // Виртуальный: отвязать объект и удалить запись
+      if (existing.property_id) {
+        await supabase
+          .from("properties")
+          .update({ tenant_name: null, status: "vacant" })
+          .eq("id", existing.property_id);
+      }
+      await supabase.from("tenants").delete().eq("id", id);
+      return true;
+    }
+    // Платформенный: снять привязку с объектов
+    await supabase
+      .from("properties")
+      .update({ tenant_id: null, tenant_name: null, status: "vacant" })
+      .eq("tenant_id", id);
     return true;
   },
 
   async bulkCreate(items) {
-    return [];
+    return TenantBase.bulkCreate(items);
   },
 };
 

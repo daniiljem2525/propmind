@@ -12,9 +12,11 @@ import {
   Globe,
   House,
   LogIn,
+  Moon,
   Quote,
   ShieldCheck,
   Sparkles,
+  Sun,
   Timer,
   Users,
   Wrench,
@@ -22,6 +24,8 @@ import {
   Zap,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n/LangContext";
+import { useTheme } from "@/lib/theme";
+import { usePageMeta } from "@/lib/usePageMeta";
 import { PLANS } from "@/lib/config/misc";
 import { formatMoney } from "@/lib/utils";
 import { cn } from "@/lib/utils";
@@ -39,7 +43,9 @@ const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4"];
 
 export default function Landing() {
   const { t, lang, setLang } = useLang();
+  const { theme, toggleTheme } = useTheme();
   const [yearly, setYearly] = useState(false);
+  usePageMeta(t("meta.homeTitle"), t("meta.homeDesc"), "/");
 
   // Клик по логотипу: если мы уже на "/", плавно поднимаемся наверх
   const logoClick = (e) => {
@@ -83,6 +89,13 @@ export default function Landing() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              title={t("common.theme")}
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
             <button
               onClick={() => setLang(lang === "ru" ? "en" : "ru")}
               className="flex items-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -319,7 +332,7 @@ export default function Landing() {
                 </ul>
                 {p.monthly == null ? (
                   <a
-                    href={`mailto:sales@arendora.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
+                    href={`mailto:support@arendora.ru?subject=${encodeURIComponent(t("plans.contactSubject"))}`}
                     className="mt-5 inline-flex items-center justify-center rounded-md border bg-card px-4 py-2.5 text-sm font-semibold transition-opacity hover:bg-muted"
                   >
                     {t("plans.contactUs")}
@@ -343,7 +356,7 @@ export default function Landing() {
           </div>
           <p className="mt-8 text-center text-sm text-muted-foreground">
             {t("land.pricingNote")}{" "}
-            <a href={`mailto:sales@arendora.app?subject=${encodeURIComponent(t("plans.contactSubject"))}`} className="font-medium text-primary hover:underline">
+            <a href={`mailto:support@arendora.ru?subject=${encodeURIComponent(t("plans.contactSubject"))}`} className="font-medium text-primary hover:underline">
               {t("plans.contactUs")}
             </a>
           </p>
@@ -427,6 +440,23 @@ export default function Landing() {
               <Link to="/usepolicy" className="hover:text-foreground hover:underline">Политика допустимого использования</Link>
               <Link to="/cookies" className="hover:text-foreground hover:underline">Политика cookie</Link>
             </nav>
+          </div>
+
+          {/* Контакты (ст. 9, 10 Закона РФ «О защите прав потребителей») */}
+          <div className="mt-8 border-t border-border pt-6 text-sm text-muted-foreground">
+            <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Контакты</p>
+            <p className="mt-3">
+              Поддержка и обращения:{" "}
+              <a href="mailto:support@arendora.ru" className="text-primary hover:underline">
+                support@arendora.ru
+              </a>{" "}
+              · ответ в течение 1–2 рабочих дней. Вопросы обработки персональных
+              данных —{" "}
+              <Link to="/privacy" className="text-primary hover:underline">
+                Политика конфиденциальности
+              </Link>
+              .
+            </p>
           </div>
         </div>
       </footer>

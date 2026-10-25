@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import SocialAuth from "@/components/auth/SocialAuth";
+import ConsentCheckbox from "@/components/auth/ConsentCheckbox";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { seedDemoData } from "@/lib/demo";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { probeSessionStores } from "@/lib/supabase/config";
 import { useLang } from "@/lib/i18n/LangContext";
+import { usePageMeta } from "@/lib/usePageMeta";
 import { useToast } from "@/components/ui/toast";
 
 // Диагностика хранилища сессии: видно на экране логина, что осталось
@@ -42,6 +44,7 @@ export default function Login() {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  usePageMeta(`${t("auth.signInTitle")} — Arendora`, null, "/login");
 
   // Демо-аккаунт существует всегда — даже в пустом браузере
   useEffect(() => {
@@ -52,6 +55,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
 
@@ -77,6 +81,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!email || !password) return setError(t("auth.errors.required"));
+    if (!consent) return setError(t("auth.errors.consentRequired"));
     setLoading(true);
     try {
       await login(email, password);
@@ -156,6 +161,8 @@ export default function Login() {
             </button>
           </div>
         </Field>
+
+        <ConsentCheckbox checked={consent} onChange={setConsent} />
 
         {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">{error}</p>}
 

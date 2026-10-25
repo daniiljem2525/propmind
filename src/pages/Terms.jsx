@@ -6,6 +6,7 @@ export default function Terms() {
     <LegalPage
       title="Публичная оферта об оказании доступа к сервису Arendora"
       edition="Редакция от 06.10.2026"
+      path="/terms"
     >
 
         <P>
@@ -307,13 +308,13 @@ export default function Terms() {
           <br />
           ИНН: [ИНН] · Адрес: [почтовый адрес]
           <br />
-          Контакт: daniilemelyanov2010@gmail.com
+          Контакт: support@arendora.ru
           <br />
           Адрес Сервиса: https://daniiljem2525.github.io/propmind/
         </P>
         <P>
           По всем вопросам использования Сервиса, оплаты, а также с
-          претензиями и обращениями: daniilemelyanov2010@gmail.com.
+          претензиями и обращениями: support@arendora.ru.
         </P>
       </LegalPage>
   );

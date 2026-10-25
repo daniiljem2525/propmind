@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured, SUPABASE_URL } from "@/lib/supabase/con
 
 // Публичный VAPID-ключ (публичный по дизайну; приватный — в секретах функции)
 const VAPID_PUBLIC_KEY =
-  "BAqN2QoWqgYD7SujCHnSZupGpskTsIYyE2uHUz7fWVkX8fbjkrxDLlC2yq3akNBLRWIs02b2LFB4azntqHbyDv8";
+  "BNcM1FhDG6QX875e-1PFI_ONO9ziGdeKME7o5GS2z5qQZjhiLoo71qFrEcx6jP8t17iIOofVKbSobJXetFRLpQk";
 
 export function pushSupported() {
   return (

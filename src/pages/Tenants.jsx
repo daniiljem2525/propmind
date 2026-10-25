@@ -9,12 +9,14 @@ import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import UpsellDialog from "@/components/UpsellDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
 import { getOrCreateInviteCode } from "@/lib/api/auth";
 import { sendInviteEmail } from "@/lib/email";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoSeen } from "@/lib/demo";
 import { Tenant, Property } from "@/lib/api/entities";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { linkTenantToProperty, unlinkTenantFromProperty, createMonthlySchedule } from "@/lib/services";
@@ -26,7 +28,7 @@ import { cn, initials, todayISO } from "@/lib/utils";
 const STATUS_OPTIONS = ["active", "inactive", "pending"];
 
 // ——— Форма арендатора: имя + email обязательны, объект — опционально ———
-function TenantFormDialog({ open, onClose, editing, properties }) {
+function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
   const { t, lang } = useLang();
   const toast = useToast();
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", property_id: "", notes: "", status: "active" });
@@ -95,6 +97,9 @@ function TenantFormDialog({ open, onClose, editing, properties }) {
         }
       }
       onClose();
+      // Мгновенное обновление списка в этом окне: realtime как правило
+      // успевает сам, но не полагаемся на него для действий пользователя
+      try { onSaved?.(); } catch {}
     } catch (err) {
       toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
     } finally {
@@ -164,7 +169,7 @@ export default function Tenants() {
   const { user } = useAuth();
   const toast = useToast();
   const demo = useDemoSeed();
-  const { data: tenants, loading } = useCollection(Tenant);
+  const { data: tenants, loading, refresh } = useCollection(Tenant);
   const { data: properties } = useCollection(Property);
 
   const [q, setQ] = useState("");
@@ -172,14 +177,18 @@ export default function Tenants() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const planLimits = getPlanLimits(user?.plan);
+  const demoGate = useDemoExitGate();
 
   const tryCreate = () => {
     if (planLimits.tenants !== null && tenants.length >= planLimits.tenants) {
       setUpsellOpen(true);
       return;
     }
-    setEditing(null);
-    setDialogOpen(true);
+    // В демо-режиме — сначала выход из демо (с удалением демо-данных)
+    demoGate.guarded(() => {
+      setEditing(null);
+      setDialogOpen(true);
+    });
   };
   useNewParam(tryCreate);
 
@@ -354,9 +363,11 @@ export default function Tenants() {
                 <Plus className="h-4 w-4" />
                 {t("tenants.addTenant")}
               </Button>
-              <Button variant="outline" onClick={demo.run} loading={demo.loading}>
-                {t("common.demoData")}
-              </Button>
+              {!isDemoSeen() && (
+                <Button variant="outline" onClick={demo.run} loading={demo.loading}>
+                  {t("common.demoData")}
+                </Button>
+              )}
             </div>
           }
         />
@@ -453,7 +464,7 @@ export default function Tenants() {
         </Card>
       )}
 
-      <TenantFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
+      <TenantFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} onSaved={refresh} />
 
       {/* Код приглашения новому жильцу (облачный режим) */}
       <Dialog open={!!inviteCode} onClose={() => setInviteCode(null)} title={t("tenants.inviteTitle")} size="md">
@@ -498,6 +509,7 @@ export default function Tenants() {
         description={t("tenants.confirmScheduleDesc").replace("{name}", scheduleConfirm?.full_name || "")}
         confirmLabel={t("tenants.createSchedule")}
       />
+      {demoGate.dialog}
     </div>
   );
 }

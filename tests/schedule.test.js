@@ -24,7 +24,10 @@ describe("buildMonthlySchedule", () => {
   });
 
   it("пропускает периоды, которые уже есть у арендатора", () => {
-    const items = call({ existing: [{ tenant_id: "t1", period_month: 2, period_year: 2026 }] });
+    // Дубль — пара «жилец + объект»: один период у жильца на разных объектах возможен
+    const items = call({
+      existing: [{ tenant_id: "t1", property_id: "p1", period_month: 2, period_year: 2026 }],
+    });
     expect(items).toHaveLength(11);
     expect(items.some((p) => p.period_month === 2 && p.period_year === 2026)).toBe(false);
   });

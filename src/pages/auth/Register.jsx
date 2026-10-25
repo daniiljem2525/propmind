@@ -3,17 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, KeyRound, MailCheck } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import SocialAuth from "@/components/auth/SocialAuth";
+import ConsentCheckbox from "@/components/auth/ConsentCheckbox";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
+import { usePageMeta } from "@/lib/usePageMeta";
 
 // Многошаговая регистрация: данные → OTP → редирект
 export default function Register() {
   const { t, lang } = useLang();
   const { signup, verifyOtp } = useAuth();
   const navigate = useNavigate();
+  usePageMeta(`${t("auth.signUpTitle")} — Arendora`, null, "/register");
 
   const [step, setStep] = useState("form");
   // Индивидуальная ссылка арендодателя: /register?ref=КОД (или ?code=КОД)
@@ -26,6 +29,7 @@ export default function Register() {
   const [otp, setOtp] = useState("");
   const [demoCode, setDemoCode] = useState("");
   const [error, setError] = useState("");
+  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -36,6 +40,7 @@ export default function Register() {
     if (!form.full_name || !form.email || !form.password) return setError(t("auth.errors.required"));
     if (form.password.length < 8) return setError(t("auth.errors.weakPassword"));
     if (form.password !== form.confirm) return setError(t("auth.errors.passwordMismatch"));
+    if (!consent) return setError(t("auth.errors.consentRequired"));
 
     setLoading(true);
     try {
@@ -120,6 +125,8 @@ export default function Register() {
           <Field label={t("auth.inviteCode")} hint={t("auth.inviteHint")}>
             <Input value={form.invite_code} onChange={set("invite_code")} placeholder="AB12CD34" className="uppercase" />
           </Field>
+
+          <ConsentCheckbox checked={consent} onChange={setConsent} />
 
           {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">{error}</p>}
 

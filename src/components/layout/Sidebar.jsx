@@ -44,7 +44,10 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
       ? "admin"
       : user.role;
   const items = NAV_ITEMS.filter(
-    (item) => (!item.adminOnly || visibleRole === "admin") && (!item.roles || item.roles.includes(visibleRole))
+    (item) =>
+      // Админ-панель — только платформенному администратору (is_platform_admin в профиле)
+      (!item.adminOnly || user?.is_platform_admin === true) &&
+      (!item.roles || item.roles.includes(visibleRole))
   );
 
   return (

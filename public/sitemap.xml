@@ -1,8 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- __SITE_URL__ заменяется на этапе сборки (vite.config.js).
+     Google использует только <loc> и <lastmod> — priority/changefreq убраны.
+     lastmod держим актуальным вручную, только когда страница реально менялась.
+     При добавлении статьи в content/blog/ добавить её URL сюда же. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://daniiljem2525.github.io/propmind/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>https://daniiljem2525.github.io/propmind/blog</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>https://daniiljem2525.github.io/propmind/register</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
-  <url><loc>https://daniiljem2525.github.io/propmind/terms</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
-  <url><loc>https://daniiljem2525.github.io/propmind/privacy</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>__SITE_URL__</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__blog</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__blog/programma-dlya-upravleniya-arendoy</loc><lastmod>2026-10-17</lastmod></url>
+  <url><loc>__SITE_URL__blog/uchet-arendy-v-excel</loc><lastmod>2026-10-10</lastmod></url>
+  <url><loc>__SITE_URL__register</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__tariffs</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__terms</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__privacy</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__agreement</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__consent</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__payments</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__usepolicy</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__cookies</loc><lastmod>2026-10-24</lastmod></url>
 </urlset>

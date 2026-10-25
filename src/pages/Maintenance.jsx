@@ -24,7 +24,9 @@ import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoSeen } from "@/lib/demo";
 import { MaintenanceRequest, Property } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
@@ -383,12 +385,15 @@ export default function Maintenance() {
   const [status, setStatus] = useState("all");
   const [urgency, setUrgency] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const demoGate = useDemoExitGate();
+  // В демо-режиме — сначала выход из демо (с удалением демо-данных)
+  const openCreate = () => demoGate.guarded(() => setDialogOpen(true));
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [assignFor, setAssignFor] = useState(null);
   const [cancelling, setCancelling] = useState(null);
   const [detailsFor, setDetailsFor] = useState(null);
-  useNewParam(() => setDialogOpen(true));
+  useNewParam(openCreate);
 
   const doneRequests = useMemo(() => requests.filter((r) => r.status === "done"), [requests]);
 
@@ -440,8 +445,7 @@ export default function Maintenance() {
         actions={
           <Button
             onClick={() => {
-              setEditing(null);
-              setDialogOpen(true);
+              openCreate();
             }}
           >
             <Plus className="h-4 w-4" />
@@ -490,16 +494,17 @@ export default function Maintenance() {
             <div className="flex flex-wrap justify-center gap-2">
               <Button
                 onClick={() => {
-                  setEditing(null);
-                  setDialogOpen(true);
+                  openCreate();
                 }}
               >
                 <Plus className="h-4 w-4" />
                 {t("maintenance.addRequest")}
               </Button>
-              <Button variant="outline" onClick={demo.run} loading={demo.loading}>
-                {t("common.demoData")}
-              </Button>
+              {!isDemoSeen() && (
+                <Button variant="outline" onClick={demo.run} loading={demo.loading}>
+                  {t("common.demoData")}
+                </Button>
+              )}
             </div>
           }
         />
@@ -677,6 +682,7 @@ export default function Maintenance() {
       <RequestDetails request={detailsFor} open={!!detailsFor} onClose={() => setDetailsFor(null)} />
 
       <ConfirmDialog open={!!deleting} onClose={() => setDeleting(null)} onConfirm={confirmDelete} description={deleting?.title || deleting?.description?.slice(0, 80)} />
+      {demoGate.dialog}
     </div>
   );
 }

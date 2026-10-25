@@ -1,5 +1,11 @@
+# __BASE__ и __SITE_URL__ заменяются на этапе сборки (vite.config.js):
+# для GitHub Pages это /propmind/ и https://daniiljem2525.github.io/propmind/
 User-agent: *
 Allow: /
-Disallow: /app
+Disallow: __BASE__app
 
-Sitemap: https://daniiljem2525.github.io/propmind/sitemap.xml
+# Яндекс: не склеивать страницы по рекламным/трекинговым меткам.
+# Google директиву игнорирует — безвредно.
+Clean-param: utm_source&utm_medium&utm_campaign&utm_content&utm_term&gclid&yclid&ysclid&fbclid&from&ref
+
+Sitemap: __SITE_URL__sitemap.xml

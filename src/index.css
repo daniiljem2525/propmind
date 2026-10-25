@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light;
     --background: 210 20% 96%;
     --foreground: 215 28% 12%;
     --card: 0 0% 100%;
@@ -20,19 +21,20 @@
   }
 
   .dark {
-    --background: 213 26% 8%;
-    --foreground: 210 20% 94%;
-    --card: 213 22% 12%;
-    --card-foreground: 210 20% 94%;
-    --primary: 172 62% 36%;
+    color-scheme: dark;
+    --background: 215 22% 15%;
+    --foreground: 210 18% 100%;
+    --card: 214 20% 19%;
+    --card-foreground: 210 18% 100%;
+    --primary: 172 62% 45%;
     --primary-foreground: 0 0% 100%;
-    --accent: 172 58% 48%;
+    --accent: 172 56% 55%;
     --accent-foreground: 0 0% 100%;
-    --muted: 215 16% 18%;
-    --muted-foreground: 215 10% 64%;
-    --border: 215 14% 22%;
-    --input: 215 14% 26%;
-    --ring: 172 58% 48%;
+    --muted: 215 15% 25%;
+    --muted-foreground: 215 12% 80%;
+    --border: 215 13% 31%;
+    --input: 215 13% 33%;
+    --ring: 172 58% 55%;
   }
 
   * {
@@ -69,4 +71,13 @@
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+/* Мягкое появление страницы: без анимации выхода — раскладка не прыгает */
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
 }

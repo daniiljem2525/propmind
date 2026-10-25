@@ -26,6 +26,8 @@ import { useTheme } from "@/lib/theme";
 import { useCollection } from "@/hooks/useCollection";
 import { NotificationEntity, Property, Tenant } from "@/lib/api/entities";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
+import { isDemoMode, subscribeDemoMode } from "@/lib/demoMode";
 import { cn, initials } from "@/lib/utils";
 
 export default function Header({ onOpenMobile }) {
@@ -34,6 +36,9 @@ export default function Header({ onOpenMobile }) {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const toast = useDemoSeed();
+  const demoGate = useDemoExitGate();
+  const [demoOn, setDemoOn] = useState(isDemoMode);
+  useEffect(() => subscribeDemoMode(() => setDemoOn(isDemoMode())), []);
 
   const { data: notifications } = useCollection(NotificationEntity);
   const { data: properties } = useCollection(Property);
@@ -136,6 +141,17 @@ export default function Header({ onOpenMobile }) {
       </div>
 
       <div className="ml-auto flex items-center gap-1.5">
+        {/* Индикатор демо-режима: пользователь видит, что смотрит песочницу */}
+        {demoOn && (
+          <span
+            title={t("header.demoModeHint")}
+            className="hidden items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-600 sm:flex dark:text-amber-400"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            {t("header.demoMode")}
+          </span>
+        )}
+
         {/* Быстрое создание */}
         {QUICK_CREATE.length > 0 && (
         <div ref={quickRef} className="relative">
@@ -154,7 +170,8 @@ export default function Header({ onOpenMobile }) {
                   className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors hover:bg-muted"
                   onClick={() => {
                     setQuickOpen(false);
-                    navigate(item.to);
+                    // В демо-режиме добавление — только после выхода из демо
+                    demoGate.guarded(() => navigate(item.to));
                   }}
                 >
                   <item.icon className="h-4 w-4 text-primary" />
@@ -275,6 +292,8 @@ export default function Header({ onOpenMobile }) {
         confirmLabel={t("common.clearData")}
         loading={toast.clearing}
       />
+
+      {demoGate.dialog}
     </header>
   );
 }

@@ -23,7 +23,9 @@ import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useAuth } from "@/lib/authContext";
 import { useNewParam } from "@/hooks/useNewParam";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoSeen } from "@/lib/demo";
 import { Payment, Tenant, Property, payPayment } from "@/lib/api/entities";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { pushNotification } from "@/lib/services";
@@ -82,7 +84,8 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
       const tenant = tenants.find((x) => x.id === form.tenant_id);
       const d = new Date(form.due_date);
       const payload = {
-        tenant_id: tenant?.id || null,
+        // Жилец без аккаунта: uuid-профиля нет, связь — строкой
+        tenant_id: tenant?.has_account === false ? null : tenant?.id || null,
         tenant_name: tenant?.full_name || null,
         property_id: property.id,
         property_name: property.name,
@@ -200,7 +203,10 @@ export default function Payments() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
-  useNewParam(() => setDialogOpen(true));
+  const demoGate = useDemoExitGate();
+  // В демо-режиме — сначала выход из демо (с удалением демо-данных)
+  const openCreate = () => demoGate.guarded(() => setDialogOpen(true));
+  useNewParam(openCreate);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [selected, setSelected] = useState(() => new Set());
@@ -465,8 +471,7 @@ export default function Payments() {
             </Button>
             <Button
               onClick={() => {
-                setEditing(null);
-                setDialogOpen(true);
+                openCreate();
               }}
             >
               <Plus className="h-4 w-4" />
@@ -516,16 +521,17 @@ export default function Payments() {
             <div className="flex flex-wrap justify-center gap-2">
               <Button
                 onClick={() => {
-                  setEditing(null);
-                  setDialogOpen(true);
+                  openCreate();
                 }}
               >
                 <Plus className="h-4 w-4" />
                 {t("payments.addPayment")}
               </Button>
-              <Button variant="outline" onClick={demo.run} loading={demo.loading}>
-                {t("common.demoData")}
-              </Button>
+              {!isDemoSeen() && (
+                <Button variant="outline" onClick={demo.run} loading={demo.loading}>
+                  {t("common.demoData")}
+                </Button>
+              )}
             </div>
           }
         />
@@ -638,6 +644,7 @@ export default function Payments() {
         description={confirmContent().description}
         confirmLabel={confirmContent().label}
       />
+      {demoGate.dialog}
     </div>
   );
 }

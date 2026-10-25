@@ -77,6 +77,11 @@ export default function Dashboard() {
     .slice(0, 5);
 
   const isEmpty = properties.length === 0 && tenants.length === 0 && payments.length === 0 && requests.length === 0;
+  // Демо уже загружали или удаляли — больше не навязываем баннер
+  let demoSeen = false;
+  try {
+    demoSeen = localStorage.getItem("arendora:demoSeen") === "1";
+  } catch {}
 
   const handleRenew = async (p) => {
     setRenewingId(p.id);
@@ -97,7 +102,7 @@ export default function Dashboard() {
     <div className="animate-fade-in">
       <PageHeader title={t("dashboard.title")} subtitle={dateStr} />
 
-      {isEmpty && (
+      {isEmpty && !demoSeen && (
         <Card className="mb-6 overflow-hidden border-primary/30">
           <div className="brand-gradient flex flex-col items-start gap-4 p-6 text-white sm:flex-row sm:items-center">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15">
@@ -114,44 +119,6 @@ export default function Dashboard() {
             >
               <Sparkles className="h-4 w-4" />
               {t("dashboard.loadDemo")}
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {!isEmpty && !(properties.length > 0 && tenants.length > 0 && payments.length > 0) && (
-        <Card className="mb-6 p-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h3 className="flex items-center gap-2 font-bold">
-                <Sparkles className="h-4 w-4 text-amber-500" />
-                {t("onboarding.title")}
-              </h3>
-              <div className="mt-3 flex flex-col gap-2.5">
-                {[
-                  { done: properties.length > 0, label: t("onboarding.step1"), to: "/app/properties" },
-                  { done: tenants.length > 0, label: t("onboarding.step2"), to: "/app/tenants" },
-                  { done: payments.length > 0, label: t("onboarding.step3"), to: "/app/payments" },
-                ].map((s) => (
-                  <Link key={s.to} to={s.to} className="group flex items-center gap-2.5 text-sm">
-                    <span
-                      className={cn(
-                        "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                        s.done ? "border-primary bg-primary" : "border-input group-hover:border-primary"
-                      )}
-                    >
-                      {s.done && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
-                    </span>
-                    <span className={cn(s.done ? "text-muted-foreground line-through" : "font-medium")}>
-                      {s.label}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            </div>
-            <Button variant="outline" onClick={() => setDemoConfirm(true)} loading={demo.loading} className="shrink-0">
-              <Sparkles className="h-4 w-4" />
-              {t("common.demoData")}
             </Button>
           </div>
         </Card>

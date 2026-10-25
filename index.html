@@ -3,23 +3,75 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Arendora — облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Запуск за 15 минут, бесплатно до 3 объектов." />
-    <meta name="keywords" content="управление недвижимостью, аренда, платежи, арендаторы, property management, SaaS" />
+    <meta name="description" content="Управляйте квартирами, платежами и заявками в одном окне. Связи и график платежей строятся сами. Бесплатно до 3 объектов — без карты." />
     <meta name="theme-color" content="#0F766E" />
-    <link rel="canonical" href="https://daniiljem2525.github.io/propmind/" />
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large" />
+    <!-- __SITE_URL__ и __BASE__ заменяются на этапе сборки (vite.config.js) -->
+    <link rel="canonical" href="__SITE_URL__" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://daniiljem2525.github.io/propmind/" />
-    <meta property="og:image" content="https://daniiljem2525.github.io/propmind/icon-512.png" />
-    <meta name="twitter:image" content="https://daniiljem2525.github.io/propmind/icon-512.png" />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__img/hero-city.jpg" />
+    <meta property="og:image:width" content="1406" />
+    <meta property="og:image:height" content="1120" />
+    <meta property="og:image:alt" content="Дашборд Arendora: объекты, платежи и заявки в одном окне" />
+    <meta name="twitter:image" content="__SITE_URL__img/hero-city.jpg" />
     <meta property="og:site_name" content="Arendora" />
     <meta property="og:title" content="Arendora — управление недвижимостью без таблиц и хаоса" />
     <meta property="og:description" content="Объекты, арендаторы, платежи, заявки и аналитика в одном окне. Связи создаются автоматически. Запуск за 15 минут — бесплатно до 3 объектов." />
     <meta property="og:locale" content="ru_RU" />
     <meta property="og:locale:alternate" content="en_US" />
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Arendora — управление недвижимостью без таблиц и хаоса" />
     <meta name="twitter:description" content="Запуск за 15 минут. Автосвязывание объектов, арендаторов и платежей. Бесплатно до 3 объектов." />
-    <title>Arendora — управление недвижимостью</title>
+    <title>Arendora — управление недвижимостью без таблиц и хаоса</title>
+    <!-- Разметка сущностей для Google/Яндекс. FAQPage и HowTo убраны: Google
+         полностью отключил их rich-результаты (FAQ — в мае 2026), пользы ноль,
+         а тексты дублировали лендинг и требовали синхронизации.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "__SITE_URL__",
+          "logo": "__SITE_URL__icon-512.png",
+          "email": "support@arendora.ru",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@arendora.ru",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "__SITE_URL__",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "__SITE_URL__",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатно до 3 объектов и 3 арендаторов"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -68,6 +120,49 @@
       window.addEventListener("unhandledrejection", (e) => {
         pmShowFatal("REJ", e.reason?.message || String(e.reason));
       });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока она не
+      // задана, счётчик не подключается вовсе — ноль лишних запросов.
+      (function () {
+        var id = "__METRICA_ID__".replace(/[^0-9]/g, "");
+        if (!id) return;
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js";
+        s.onload = function () {
+          if (!window.ym) return;
+          window.ym(id, "init", {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            webvisor: true,
+          });
+        };
+        document.head.appendChild(s);
+      })();
     </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>

@@ -7,6 +7,7 @@ import { Field, Input } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
+import { usePageMeta } from "@/lib/usePageMeta";
 
 export default function ResetPassword() {
   const { t } = useLang();
@@ -15,6 +16,7 @@ export default function ResetPassword() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const token = params.get("token") || "";
+  usePageMeta(`${t("auth.resetTitle")} — Arendora`, null, "/reset-password");
 
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");

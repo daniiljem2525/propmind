@@ -1,4 +1,5 @@
 import { supabase } from "./config";
+import { isDemoMode } from "@/lib/demoMode";
 
 // Supabase-реализация сущностей: тот же интерфейс, что у localStorage-версии.
 // owner_id проставляется на стороне БД (default auth.uid()), RLS — граница доступа.
@@ -14,6 +15,17 @@ export function makeEntity(collection, defaults = {}) {
     collection,
 
     async list() {
+      // Строгое разделение: демо-режим показывает только демо-записи,
+      // обычный — только реальные.
+      const q = isDemoMode()
+        ? supabase.from(collection).select("*").eq("is_demo", true)
+        : supabase.from(collection).select("*").eq("is_demo", false);
+      const { data, error } = await q.order("created_date", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+
+    async listAll() {
       const { data, error } = await supabase
         .from(collection)
         .select("*")
@@ -34,7 +46,9 @@ export function makeEntity(collection, defaults = {}) {
 
     async create(data) {
       const defaults = await resolveDefaults();
-      const payload = { ...defaults, ...clean(data) };
+      // Новая запись наследует текущий режим: созданное в демо — демо.
+      // Явный флаг в data (сид) переопределяет.
+      const payload = { is_demo: isDemoMode(), ...defaults, ...clean(data) };
       const { data: row, error } = await supabase
         .from(collection)
         .insert(payload)
@@ -45,11 +59,10 @@ export function makeEntity(collection, defaults = {}) {
     },
 
     async bulkCreate(items) {
-      const now = Date.now();
       const payload = [];
       for (let i = 0; i < items.length; i++) {
         const defaults = await resolveDefaults();
-        payload.push({ ...defaults, ...clean(items[i]) });
+        payload.push({ is_demo: isDemoMode(), ...defaults, ...clean(items[i]) });
       }
       const { data, error } = await supabase.from(collection).insert(payload).select();
       if (error) throw error;

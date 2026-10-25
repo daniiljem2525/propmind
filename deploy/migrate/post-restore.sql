@@ -18,7 +18,7 @@ BEGIN
     'profiles','properties','payments','invites',
     'maintenance_requests','request_comments','request_events',
     'documents','notifications','push_subscriptions',
-    'automation_orders','profi_offers'
+    'automation_orders','profi_offers','tenants'
   ] LOOP
     IF EXISTS (SELECT 1 FROM information_schema.tables
                WHERE table_schema='public' AND table_name=t) THEN

@@ -110,9 +110,15 @@ export async function updateProfile(userId, { full_name }) {
   return currentUserWithProfile();
 }
 
-export async function changePassword(_userId, _current, next) {
+export async function changePassword(_userId, current, next) {
+  // Проверяем текущий пароль повторным входом: updateUser сам его не спрашивает,
+  // а без проверки любой, кто сел за чужой компьютер, сменил бы пароль.
+  const { data: { user }, error: userErr } = await supabase.auth.getUser();
+  if (userErr || !user?.email) throw new Error("SESSION_EXPIRED");
+  const { error: verifyErr } = await supabase.auth.signInWithPassword({ email: user.email, password: current });
+  if (verifyErr) throw new Error("WRONG_PASSWORD");
   const { error } = await supabase.auth.updateUser({ password: next });
-  if (error) throw new Error("WRONG_PASSWORD");
+  if (error) throw new Error(error.message?.toLowerCase().includes("password") ? "WEAK_PASSWORD" : "PASSWORD_UPDATE_FAILED");
   return true;
 }
 

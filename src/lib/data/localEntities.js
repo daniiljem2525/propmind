@@ -1,16 +1,23 @@
 import { readCollection, writeCollection } from "./localDb";
+import { isDemoMode } from "@/lib/demoMode";
 import { uid, todayISO, addMonthsISO } from "@/lib/utils";
 
 const clean = (obj) =>
   Object.fromEntries(Object.entries(obj || {}).filter(([, v]) => v !== undefined));
 
 // Каждая запись видна только своему владельцу (owner_id) — имитация RLS.
+// Демо-записи (is_demo) видны в list() только при включённом демо-режиме;
+// listAll() отдаёт и те, и другие — для очистки и проверки перед сидом.
 function makeEntity(collection, defaults = {}) {
   const resolveDefaults = () => (typeof defaults === "function" ? defaults() : { ...defaults });
   const ownedRows = () => {
     const user = CURRENT_USER_FN();
     if (!user) return [];
     return readCollection(collection).filter((r) => r.owner_id === user.id);
+  };
+  const visibleRows = () => {
+    const demoOn = isDemoMode();
+    return ownedRows().filter((r) => demoOn === !!r.is_demo);
   };
   const sortDesc = (rows) =>
     [...rows].sort((a, b) => (b.created_date || "").localeCompare(a.created_date || ""));
@@ -19,6 +26,10 @@ function makeEntity(collection, defaults = {}) {
     collection,
 
     async list() {
+      return sortDesc(visibleRows());
+    },
+
+    async listAll() {
       return sortDesc(ownedRows());
     },
 
@@ -30,6 +41,9 @@ function makeEntity(collection, defaults = {}) {
       const user = CURRENT_USER_FN();
       if (!user) throw new Error("UNAUTHORIZED");
       const row = {
+        // Новая запись наследует текущий режим: созданное в демо — демо.
+        // Явный флаг в data (сид) переопределяет.
+        is_demo: isDemoMode(),
         ...resolveDefaults(),
         ...clean(data),
         id: uid(),
@@ -48,6 +62,7 @@ function makeEntity(collection, defaults = {}) {
       if (!user) throw new Error("UNAUTHORIZED");
       const now = new Date().toISOString();
       const created = items.map((item, i) => ({
+        is_demo: isDemoMode(),
         ...resolveDefaults(),
         ...clean(item),
         id: uid(),
@@ -89,9 +104,11 @@ export function registerCurrentUserFn(fn) {
 }
 
 // Журнал событий заявки в localStorage: строка без owner_id была бы
-// невидима для list() (он фильтрует по владельцу)
+// невидима для list() (он фильтрует по владельцу). Событие наследует
+// is_demo заявки — демо-журнал виден только в демо-режиме.
 function pushLocalEvent(requestId, event, details = "") {
   const user = CURRENT_USER_FN();
+  const req = readCollection("maintenance_requests").find((r) => r.id === requestId);
   const rows = readCollection("request_events");
   rows.push({
     id: uid(),
@@ -101,6 +118,7 @@ function pushLocalEvent(requestId, event, details = "") {
     actor_role: user?.role || "system",
     event,
     details,
+    is_demo: !!(req && req.is_demo),
     owner_id: user?.id || null,
     created_date: new Date().toISOString(),
   });

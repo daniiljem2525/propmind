@@ -165,8 +165,18 @@ supabase/         schema.sql (14 секций) + edge-функции (oauth, sen
 deploy/           self-hosted стек, миграции, systemd-воркер
 legal-docs/       исходники юридических документов
 widget/           виджет iOS (Scriptable)
+docs/             SEO-чек-лист и служебные документы
 tests/            vitest
 ```
+
+## SEO
+
+Базовый набор внедрён: per-page title/description/canonical, JSON-LD
+(Organization, WebSite, SoftwareApplication, Article, BreadcrumbList),
+robots.txt с Clean-param, sitemap с постами блога, опциональная
+Яндекс.Метрика (переменная `VITE_YANDEX_METRICA_ID`). Ручные шаги
+(Search Console, Вебмастер, Метрика, реквизиты) — в
+[`docs/SEO-CHECKLIST.md`](docs/SEO-CHECKLIST.md).
 
 ## Тесты
 

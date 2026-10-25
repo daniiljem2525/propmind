@@ -16,12 +16,10 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PushCard from "@/components/PushCard";
-import widgetScript from "../../widget/ArendoraWidget.js?raw";
 import UsersPanel from "@/components/UsersPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog } from "@/components/ui/dialog";
-import { Field, Input, Select, Switch } from "@/components/ui/input";
+import { Dialog, ConfirmDialog } from "@/components/ui/dialog";import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
 import { getPushState, enablePush, disablePush } from "@/lib/push";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -30,6 +28,8 @@ import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
 import { useToast } from "@/components/ui/toast";
 import { PLANS } from "@/lib/config/misc";
+import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoMode, toggleDemoMode, subscribeDemoMode } from "@/lib/demoMode";
 import { cn, formatDate, formatMoney, initials } from "@/lib/utils";
 
 const PREFS_KEY = "arendora:prefs";
@@ -250,6 +250,15 @@ export default function Settings() {
   const isAdmin = user?.is_platform_admin === true;
   const activeTab = tab === "plan" && !isWorkspaceOwner ? "profile" : tab;
 
+  // Демо-данные: переключатель режима, перезагрузка, удаление демо и полная очистка
+  const demo = useDemoSeed();
+  const [demoConfirm, setDemoConfirm] = useState(null); // null | "reset" | "clearDemo" | "clear"
+  const [demoOn, setDemoOn] = useState(isDemoMode);
+  useEffect(() => {
+    const unsub = subscribeDemoMode(() => setDemoOn(isDemoMode()));
+    return unsub;
+  }, []);
+
   // Профиль
   const [name, setName] = useState(user?.full_name || "");
   const [showPw, setShowPw] = useState(false);
@@ -286,7 +295,12 @@ export default function Settings() {
       toast.success(t("auth.passwordChanged"));
       setPw({ current: "", next: "", repeat: "" });
     } catch (err) {
-      toast.error(err.message === "WRONG_PASSWORD" ? t("settings.wrongPassword") : t("errors.generic"));
+      const msgs = {
+        WRONG_PASSWORD: t("settings.wrongPassword"),
+        WEAK_PASSWORD: t("auth.errors.weakPassword"),
+        SESSION_EXPIRED: t("auth.errors.sessionExpired"),
+      };
+      toast.error(msgs[err.message] || `${t("errors.generic")} (${err.message})`);
     } finally {
       setPwSaving(false);
     }
@@ -355,6 +369,50 @@ export default function Settings() {
         </Card>
       )}
 
+      {isWorkspaceOwner && activeTab === "profile" && (
+        <Card className="mt-6 max-w-xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-amber-500" />
+              {t("settings.demoTitle")}
+            </CardTitle>
+            <CardDescription>{t("settings.demoDesc")}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-medium">{t("settings.demoMode")}</p>
+                <p className="text-xs text-muted-foreground">{t("settings.demoModeDesc")}</p>
+              </div>
+              <Switch checked={demoOn} onChange={() => toggleDemoMode()} />
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setDemoConfirm("reset")}
+                loading={demo.loading || demo.clearing}
+              >
+                {t("settings.demoReload")}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setDemoConfirm("clearDemo")}
+                loading={demo.loading || demo.clearing}
+              >
+                {t("settings.demoDelete")}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => setDemoConfirm("clear")}
+                loading={demo.loading || demo.clearing}
+              >
+                {t("settings.demoClear")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {activeTab === "appearance" && (
         <Card className="max-w-xl">
           <CardHeader>
@@ -396,38 +454,6 @@ export default function Settings() {
       {activeTab === "notifications" && (
         <>
           <PushCard />
-          <Card className="max-w-xl mt-6">
-            <CardHeader>
-              <CardTitle>Виджет на iPhone</CardTitle>
-              <CardDescription>
-                Ближайший платёж прямо на экране „Домой“ — обновляется сам.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-                <li>Установите бесплатное приложение Scriptable из App Store.</li>
-                <li>Скопируйте скрипт кнопкой ниже — ваша почта уже вписана.</li>
-                <li>В Scriptable: «+» → вставить → впишите пароль от Arendora.</li>
-                <li>На экране „Домой“: долгое нажатие → «+» → виджет Scriptable → выберите скрипт.</li>
-              </ol>
-              <Button
-                onClick={async () => {
-                  try {
-                    const code = widgetScript.replace(
-                      'EMAIL: "daniilmelyanov2010@gmail.com",',
-                      'EMAIL: ' + JSON.stringify(user?.email || ''),
-                    );
-                    await navigator.clipboard.writeText(code);
-                    toast.success(lang === 'ru' ? 'Скрипт скопирован — вставьте в Scriptable' : 'Script copied');
-                  } catch {
-                    toast.error(t('errors.generic'));
-                  }
-                }}
-              >
-                Скопировать скрипт виджета
-              </Button>
-            </CardContent>
-          </Card>
         </>
       )}
       {activeTab === "notifications" && (
@@ -504,6 +530,39 @@ export default function Settings() {
       {activeTab === "plan" && <PricingPlans />}
       {activeTab === "users" && isAdmin && <UsersPanel />}
       {searchParams.get("debug") && <SwDiag />}
+
+      <ConfirmDialog
+        open={demoConfirm !== null}
+        onClose={() => setDemoConfirm(null)}
+        onConfirm={() => {
+          const mode = demoConfirm;
+          setDemoConfirm(null);
+          if (mode === "reset") demo.run({ reset: true });
+          if (mode === "clearDemo") demo.clearDemo();
+          if (mode === "clear") demo.clear();
+        }}
+        title={
+          demoConfirm === "clear"
+            ? t("settings.demoClearConfirmTitle")
+            : demoConfirm === "clearDemo"
+              ? t("settings.demoDeleteConfirmTitle")
+              : t("settings.demoReloadConfirmTitle")
+        }
+        description={
+          demoConfirm === "clear"
+            ? t("settings.demoClearConfirmDesc")
+            : demoConfirm === "clearDemo"
+              ? t("settings.demoDeleteConfirmDesc")
+              : t("settings.demoReloadConfirmDesc")
+        }
+        confirmLabel={
+          demoConfirm === "clear"
+            ? t("common.delete")
+            : demoConfirm === "clearDemo"
+              ? t("settings.demoDelete")
+              : t("common.demoData")
+        }
+      />
 
       <p className="mt-8 text-xs text-muted-foreground">
         Правовые документы:{" "}

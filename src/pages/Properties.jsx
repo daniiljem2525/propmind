@@ -11,7 +11,9 @@ import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
+import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
+import { isDemoSeen } from "@/lib/demo";
 import { Property } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
@@ -346,14 +348,18 @@ export default function Properties() {
   const [upsellOpen, setUpsellOpen] = useState(false);
   const { data: properties, loading } = useCollection(Property);
   const planLimits = getPlanLimits(user?.plan);
+  const demoGate = useDemoExitGate();
 
   const tryCreate = () => {
     if (planLimits.properties !== null && properties.length >= planLimits.properties) {
       setUpsellOpen(true);
       return;
     }
-    setEditing(null);
-    setDialogOpen(true);
+    // В демо-режиме — сначала выход из демо (с удалением демо-данных)
+    demoGate.guarded(() => {
+      setEditing(null);
+      setDialogOpen(true);
+    });
   };
   useNewParam(tryCreate);
 
@@ -517,9 +523,11 @@ export default function Properties() {
                 <Plus className="h-4 w-4" />
                 {t("properties.addProperty")}
               </Button>
-              <Button variant="outline" onClick={demo.run} loading={demo.loading}>
-                {t("common.demoData")}
-              </Button>
+              {!isDemoSeen() && (
+                <Button variant="outline" onClick={demo.run} loading={demo.loading}>
+                  {t("common.demoData")}
+                </Button>
+              )}
             </div>
           }
         />
@@ -583,6 +591,8 @@ export default function Properties() {
         description={t("properties.confirmImportDesc").replace("{n}", pendingImport?.length || 0)}
         confirmLabel={t("properties.importCsv")}
       />
+
+      {demoGate.dialog}
     </div>
   );
 }

@@ -6,6 +6,7 @@ export default function Agreement() {
     <LegalPage
       title="Пользовательское соглашение"
       edition="Редакция от 06.10.2026"
+      path="/agreement"
     >
       <P>
         Настоящее Пользовательское соглашение (далее — «Соглашение») определяет
@@ -188,7 +189,7 @@ export default function Agreement() {
       <H>9. Реквизиты</H>
       <P>
         Исполнитель: [ФИО исполнителя — ИП или ООО], ИНН [ИНН] ·
-        daniilemelyanov2010@gmail.com. Связанный набор документов:{" "}
+        support@arendora.ru. Связанный набор документов:{" "}
         <Link to="/terms" className="text-primary hover:underline">
           Оферта
         </Link>{" "}

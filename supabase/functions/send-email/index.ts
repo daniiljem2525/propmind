@@ -82,6 +82,7 @@ Deno.serve(async (req) => {
           .from("payments")
           .select("id, amount, currency, due_date")
           .eq("owner_id", o.id)
+          .eq("is_demo", false)
           .eq("status", "pending")
           .lt("due_date", new Date().toISOString().slice(0, 10));
         const week = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
@@ -89,6 +90,7 @@ Deno.serve(async (req) => {
           .from("payments")
           .select("id, amount, currency, due_date")
           .eq("owner_id", o.id)
+          .eq("is_demo", false)
           .eq("status", "pending")
           .gte("due_date", new Date().toISOString().slice(0, 10))
           .lte("due_date", week);
@@ -96,6 +98,7 @@ Deno.serve(async (req) => {
           .from("properties")
           .select("id, name, lease_end")
           .eq("owner_id", o.id)
+          .eq("is_demo", false)
           .not("lease_end", "is", null)
           .lte(
             "lease_end",

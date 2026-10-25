@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ToastProvider } from "@/components/ui/toast";
 import ConnectionBanner from "@/components/ConnectionBanner";
+import CookieBanner from "@/components/CookieBanner";
 import { LangProvider } from "@/lib/i18n/LangContext";
 import { ThemeProvider } from "@/lib/theme";
 import { AuthProvider, useAuth as useAuthSafe } from "@/lib/authContext";
@@ -106,6 +107,7 @@ export default function App() {
                 </Route>
               </Routes>
             </AuthProvider>
+            <CookieBanner />
           </ThemeProvider>
         </LangProvider>
       </ToastProvider>

@@ -37,6 +37,7 @@ export function buildMonthlySchedule({
     const duplicate = existing.some(
       (p) =>
         p.tenant_id === tenant.id &&
+        p.property_id === property.id &&
         p.period_month === period_month &&
         p.period_year === period_year
     );

@@ -6,6 +6,7 @@ export default function Cookies() {
     <LegalPage
       title="Политика использования файлов cookie и локальных хранилищ"
       edition="Редакция от 06.10.2026 · Дополнение к Политике конфиденциальности"
+      path="/cookies"
     >
       <P>
         Настоящая Политика описывает, какие файлы cookie и данные локальных
@@ -112,7 +113,7 @@ export default function Cookies() {
         </Link>{" "}
         в целях работы Сервиса (исполнение договора) и обеспечения его
         безопасности. По вопросам cookie можно обращаться:
-        daniilemelyanov2010@gmail.com.
+        support@arendora.ru.
       </P>
     </LegalPage>
   );

@@ -1,3 +1,5 @@
+import { isDemoMode } from "@/lib/demoMode";
+
 export const CURRENCIES = [
   { code: "RUB", label: "₽ RUB" },
   { code: "USD", label: "$ USD" },
@@ -37,6 +39,9 @@ export const PLAN_LIMITS = {
 };
 
 export function getPlanLimits(plan) {
+  // Демо-режим — максимальный тариф: ничто не блокируется лимитами.
+  // План реального аккаунта при этом не меняется.
+  if (isDemoMode()) return PLAN_LIMITS.individual;
   let key = plan;
   if (!key) {
     try {
