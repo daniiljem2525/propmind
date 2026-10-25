@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { BarChart3, Building2, House, Sparkles, Wrench } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/lib/i18n/LangContext";
 
 const FEATURES = {
@@ -56,7 +57,9 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
       </div>
 
       {/* Форма */}
-      <div className="flex w-full items-center justify-center bg-background px-4 py-10 lg:w-[56%]">
+      <div className="relative flex w-full items-center justify-center bg-background px-4 py-10 lg:w-[56%]">
+        {/* Переключатель темы: первый экран нового пользователя */}
+        <ThemeToggle className="absolute right-4 top-4" />
         <div className="w-full max-w-md">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <span className="brand-gradient flex h-10 w-10 items-center justify-center rounded-xl">

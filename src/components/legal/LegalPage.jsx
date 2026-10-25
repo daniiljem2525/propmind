@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, House } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { usePageMeta } from "@/lib/usePageMeta";
 
 export const H = ({ children }) => (
@@ -35,11 +36,14 @@ export default function LegalPage({ title, edition, path, children }) {
           <ArrowLeft className="h-4 w-4" /> На главную
         </Link>
 
-        <div className="mt-4 flex items-center gap-2.5">
-          <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
-            <House className="h-4 w-4 text-white" />
+        <div className="mt-4 flex items-center justify-between gap-2.5">
+          <span className="flex items-center gap-2.5">
+            <span className="brand-gradient flex h-8 w-8 items-center justify-center rounded-lg">
+              <House className="h-4 w-4 text-white" />
+            </span>
+            <span className="text-lg font-extrabold tracking-tight">Arendora</span>
           </span>
-          <span className="text-lg font-extrabold tracking-tight">Arendora</span>
+          <ThemeToggle />
         </div>
 
         <h1 className="mt-6 text-2xl font-extrabold tracking-tight">{title}</h1>

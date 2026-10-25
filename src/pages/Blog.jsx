@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/lib/i18n/LangContext";
 import { usePageMeta, usePageJsonLd } from "@/lib/usePageMeta";
 
@@ -76,10 +77,13 @@ export function Blog() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-5xl px-4 py-14 lg:px-8">
-        <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" />
-          Arendora
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            Arendora
+          </Link>
+          <ThemeToggle />
+        </div>
         <PageHeader title={t("blog.title")} subtitle={t("blog.subtitle")} />
 
         {posts.length === 0 ? (
@@ -157,6 +161,9 @@ export function BlogPost() {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-4 py-20 lg:px-8">
+          <div className="flex justify-end">
+            <ThemeToggle />
+          </div>
           <EmptyState icon={FileText} title={t("blog.notFound")} />
           <div className="mt-6 text-center">
             <Button asChild variant="outline">
@@ -174,10 +181,13 @@ export function BlogPost() {
   return (
     <div className="min-h-screen bg-background">
       <article className="mx-auto max-w-3xl px-4 py-14 lg:px-8">
-        <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="h-4 w-4" />
-          {t("blog.back")}
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/blog" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" />
+            {t("blog.back")}
+          </Link>
+          <ThemeToggle />
+        </div>
         <h1 className="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{post.title}</h1>
         <p className="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
           {updated && (
