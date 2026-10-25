@@ -65,7 +65,7 @@ function setSession(userId) {
   notifyAuth();
 }
 
-export async function signup({ full_name, email, password }) {
+export async function signup({ full_name, email, password, invite_code }) {
   const normalized = String(email || "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized)) throw new Error("EMAIL_INVALID");
   const users = readUsers();
@@ -76,7 +76,17 @@ export async function signup({ full_name, email, password }) {
   const password_hash = await hash(password);
   const otp_created = Date.now(); // код живёт 15 минут
   if (existing) {
-    Object.assign(existing, { full_name, password_hash, status: "pending", otp, otp_created, otp_fails: 0 });
+    Object.assign(existing, {
+      full_name,
+      password_hash,
+      status: "pending",
+      otp,
+      otp_created,
+      otp_fails: 0,
+      // Приглашённый (email создан владельцем) сохраняет свою роль;
+      // остальным код приглашения пригодится при активации
+      invite_code: existing.invite_code || invite_code || null,
+    });
     writeUsers(users);
   } else {
     users.push({
@@ -88,6 +98,7 @@ export async function signup({ full_name, email, password }) {
       status: "pending",
       otp,
       otp_created,
+      invite_code: invite_code || null,
       created_date: new Date().toISOString(),
     });
     writeUsers(users);
@@ -118,6 +129,15 @@ export function verifyOtp(email, otp) {
   user.otp = null;
   user.otp_created = null;
   user.otp_fails = 0;
+  // Роль по приглашению: код совпал с кодом воркспейса — жилец;
+  // приглашённые записи уже имеют свою роль; остальные — владелец.
+  if (!["tenant", "contractor"].includes(user.role)) {
+    let ownerCode = null;
+    try {
+      ownerCode = localStorage.getItem("arendora:inviteCode");
+    } catch {}
+    user.role = user.invite_code && ownerCode && user.invite_code === ownerCode ? "tenant" : "owner";
+  }
   writeUsers(users);
   setSession(user.id);
   return publicUser(user);

@@ -40,16 +40,20 @@ const STATUS_OPTIONS = ["pending", "paid", "overdue", "partial", "cancelled"];
 const METHOD_OPTIONS = ["", "cash", "bank", "card", "stripe"];
 
 // ——— Форма платежа: выбор арендатора автозаполняет объект и сумму ———
+// При редактировании спрашивает область применения: один платёж или
+// все будущие платежи этого жильца и объекта (смена ставки аренды).
 function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
   const { t, lang } = useLang();
   const toast = useToast();
   const [form, setForm] = useState({});
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [pendingScope, setPendingScope] = useState(null); // payload, ждущий выбора области
 
   useEffect(() => {
     if (open) {
       setError("");
+      setPendingScope(null);
       setForm({
         tenant_id: editing?.tenant_id || "",
         property_id: editing?.property_id || "",
@@ -63,6 +67,28 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
     }
   }, [open, editing]);
 
+  // Жилец в старых платежах мог храниться только именем (tenant_id был
+  // пуст у записей без аккаунта) — как только список жильцов доступен,
+  // подбираем по id, затем по имени, чтобы связь не терялась при
+  // редактировании. Только пока пользователь сам не выбрал жильца.
+  useEffect(() => {
+    if (!open || form.tenant_id) return;
+    const matched =
+      tenants.find((x) => x.id === editing?.tenant_id) ||
+      tenants.find((x) => editing?.tenant_name && x.full_name === editing.tenant_name);
+    if (matched) {
+      const property = properties.find((p) => p.id === matched.property_id);
+      setForm((f) => ({
+        ...f,
+        tenant_id: matched.id,
+        ...(property && !f.property_id
+          ? { property_id: property.id, amount: property.rent_amount, currency: property.currency || "RUB" }
+          : {}),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, tenants]);
+
   const onTenantChange = (value) => {
     const tenant = tenants.find((x) => x.id === value);
     const property = properties.find((p) => p.id === tenant?.property_id);
@@ -75,36 +101,57 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
     }));
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!form.property_id || !form.amount) return setError(t("payments.required"));
+  const buildPayload = () => {
+    const property = properties.find((p) => p.id === form.property_id);
+    const tenant = tenants.find((x) => x.id === form.tenant_id);
+    const d = new Date(form.due_date);
+    return {
+      // Связь с жильцом пишется всегда — включая записи без аккаунта:
+      // tenant_id теперь uuid из таблицы tenants (FK на profiles снят).
+      tenant_id: tenant?.id || null,
+      tenant_name: tenant?.full_name || null,
+      property_id: property.id,
+      property_name: property.name,
+      amount: Number(form.amount) || 0,
+      currency: form.currency || property.currency || "RUB",
+      due_date: form.due_date,
+      status: form.status,
+      payment_method: form.payment_method || null,
+      paid_date: form.status === "paid" ? editing?.paid_date || todayISO() : null,
+      notes: form.notes || null,
+      period_month: d.getMonth() + 1,
+      period_year: d.getFullYear(),
+    };
+  };
+
+  // Применить сумму и валюту ко всем незакрытым платежам этого жильца
+  // и объекта — смена ставки аренды не должна правиться по одной карточке.
+  const applyToSeries = async (payload) => {
+    const siblings = (await Payment.list()).filter(
+      (p) =>
+        p.id !== editing.id &&
+        p.property_id === payload.property_id &&
+        !["paid", "cancelled"].includes(p.status) &&
+        ((payload.tenant_id && p.tenant_id === payload.tenant_id) ||
+          (!payload.tenant_id && payload.tenant_name && p.tenant_name === payload.tenant_name))
+    );
+    for (const s of siblings) {
+      await Payment.update(s.id, { amount: payload.amount, currency: payload.currency });
+    }
+    return siblings.length;
+  };
+
+  const doSave = async (payload, scope) => {
     setSaving(true);
     try {
-      const property = properties.find((p) => p.id === form.property_id);
-      const tenant = tenants.find((x) => x.id === form.tenant_id);
-      const d = new Date(form.due_date);
-      const payload = {
-        // Жилец без аккаунта: uuid-профиля нет, связь — строкой
-        tenant_id: tenant?.has_account === false ? null : tenant?.id || null,
-        tenant_name: tenant?.full_name || null,
-        property_id: property.id,
-        property_name: property.name,
-        amount: Number(form.amount) || 0,
-        currency: form.currency || property.currency || "RUB",
-        due_date: form.due_date,
-        status: form.status,
-        payment_method: form.payment_method || null,
-        paid_date: form.status === "paid" ? editing?.paid_date || todayISO() : null,
-        notes: form.notes || null,
-        period_month: d.getMonth() + 1,
-        period_year: d.getFullYear(),
-      };
       if (editing) {
         await Payment.update(editing.id, payload);
+        if (scope === "all") await applyToSeries(payload);
       } else {
         await Payment.create(payload);
       }
       toast.success(t("payments.saved"));
+      setPendingScope(null);
       onClose();
     } catch (err) {
       toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
@@ -113,22 +160,35 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
     }
   };
 
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.property_id || !form.amount) return setError(t("payments.required"));
+    const payload = buildPayload();
+    // Ставка изменилась у существующего платежа — спрашиваем область применения
+    if (editing && (Number(form.amount) !== Number(editing.amount) || form.currency !== (editing.currency || "RUB"))) {
+      setPendingScope(payload);
+      return;
+    }
+    await doSave(payload, "one");
+  };
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      title={editing ? t("payments.editPayment") : t("payments.addPayment")}
-      footer={
-        <>
-          <Button type="button" variant="outline" onClick={onClose}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" form="payment-form" loading={saving}>
-            {t("common.save")}
-          </Button>
-        </>
-      }
-    >
+    <>
+      <Dialog
+        open={open && !pendingScope}
+        onClose={onClose}
+        title={editing ? t("payments.editPayment") : t("payments.addPayment")}
+        footer={
+          <>
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t("common.cancel")}
+            </Button>
+            <Button type="submit" form="payment-form" loading={saving}>
+              {t("common.save")}
+            </Button>
+          </>
+        }
+      >
       <form id="payment-form" onSubmit={submit} className="space-y-4">
         <Field label={t("payments.tenant")} hint={t("payments.autofillHint")}>
           <Select value={form.tenant_id} onChange={(e) => onTenantChange(e.target.value)}>
@@ -188,6 +248,35 @@ function PaymentFormDialog({ open, onClose, editing, tenants, properties }) {
         )}
       </form>
     </Dialog>
+
+    {/* Выбор области применения изменений ставки */}
+    <Dialog
+      open={!!pendingScope}
+      onClose={() => setPendingScope(null)}
+      title={t("payments.scopeTitle")}
+      description={t("payments.scopeDesc")}
+      footer={
+        <>
+          <Button type="button" variant="outline" onClick={() => setPendingScope(null)}>
+            {t("common.cancel")}
+          </Button>
+          <Button type="button" variant="outline" loading={saving} onClick={() => doSave(pendingScope, "one")}>
+            {t("payments.scopeThis")}
+          </Button>
+          <Button type="button" loading={saving} onClick={() => doSave(pendingScope, "all")}>
+            {t("payments.scopeAll")}
+          </Button>
+        </>
+      }
+    >
+      <p className="text-sm text-muted-foreground">
+        {t("payments.scopeHint")}{" "}
+        <span className="font-semibold text-foreground">
+          {pendingScope ? formatMoney(pendingScope.amount, pendingScope.currency, lang) : ""}
+        </span>
+      </p>
+    </Dialog>
+    </>
   );
 }
 
@@ -254,25 +343,35 @@ export default function Payments() {
 
   // Владелец только фиксирует получение: онлайн-оплата — действие арендатора
   const markPaid = async (p) => {
-    await Payment.update(p.id, {
-      status: "paid",
-      paid_date: todayISO(),
-      payment_method: p.payment_method || "bank",
-    });
-    toast.success(t("payments.paid"));
-    pushNotification({
-      type: "payment_received",
-      title: "Платёж получен",
-      message: `${p.tenant_name || p.property_name} — ${formatMoney(p.amount, p.currency, lang)}`,
-      link: "/app/payments",
-      related_id: p.id,
-    });
+    try {
+      await Payment.update(p.id, {
+        status: "paid",
+        paid_date: todayISO(),
+        payment_method: p.payment_method || "bank",
+      });
+      toast.success(t("payments.paid"));
+      // Уведомление не должно ронять отметку об оплате (fail-safe внутри)
+      pushNotification({
+        type: "payment_received",
+        title: "Платёж получен",
+        message: `${p.tenant_name || p.property_name} — ${formatMoney(p.amount, p.currency, lang)}`,
+        link: "/app/payments",
+        related_id: p.id,
+      });
+    } catch (e) {
+      console.error("mark paid failed:", e);
+      toast.error(t("errors.generic"));
+    }
   };
 
   const confirmDelete = async () => {
     if (!deleting) return;
-    await Payment.delete(deleting.id);
-    toast.success(t("payments.deleted"));
+    try {
+      await Payment.delete(deleting.id);
+      toast.success(t("payments.deleted"));
+    } catch {
+      toast.error(t("errors.generic"));
+    }
     setDeleting(null);
   };
 
@@ -307,6 +406,9 @@ export default function Payments() {
       }
       toast.success(t("payments.selectedPaid").replace("{n}", selected.size));
       setSelected(new Set());
+    } catch (e) {
+      console.error("bulk paid failed:", e);
+      toast.error(t("errors.generic"));
     } finally {
       setBulkBusy(false);
     }

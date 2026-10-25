@@ -158,7 +158,10 @@ create table if not exists public.properties (
   floor       numeric,
   photo_url   text,
   description text,
-  tenant_id   uuid references public.profiles(id) on delete set null,
+  -- Без FK на profiles: жилец может быть виртуальной записью из таблицы
+  -- tenants (без аккаунта), а не только профилем. RLS сравнивает id с
+  -- auth.uid() — чужие id просто не совпадут.
+  tenant_id   uuid,
   tenant_name text,
   rental_type  text not null default 'longterm'
                 check (rental_type in ('longterm', 'shortterm')),
@@ -187,7 +190,9 @@ create table if not exists public.payments (
   owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
   property_id   uuid references public.properties(id) on delete cascade,
   property_name text,
-  tenant_id     uuid references public.profiles(id) on delete set null,
+  -- Без FK на profiles: виртуальный жилец (таблица tenants) тоже
+  -- должен привязываться к платежу.
+  tenant_id     uuid,
   tenant_name   text,
   amount        numeric not null default 0,
   currency      text not null default 'RUB',
@@ -1790,7 +1795,7 @@ create table if not exists public.tenants (
   phone        text,
   notes        text,
   status       text not null default 'active'
-               check (status in ('active', 'inactive')),
+               check (status in ('active', 'inactive', 'pending')),
   property_id  uuid references public.properties(id) on delete set null,
   property_name text,
   move_in_date date,

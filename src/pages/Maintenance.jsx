@@ -2,13 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Building2,
   CalendarClock,
-  CheckCircle2,
   Pencil,
   Plus,
   Search,
   Trash2,
   User,
-  UserPlus,
   Wrench,
   XCircle,
 } from "lucide-react";
@@ -37,7 +35,6 @@ import {
   MAINTENANCE_STATUS_CONFIG,
   URGENCY_CONFIG,
 } from "@/lib/config/statuses";
-import { listProfiles } from "@/lib/supabase/entities";
 import { MAINTENANCE_SOURCE_CONFIG } from "@/lib/config/misc";
 import { formatDate, formatMoney } from "@/lib/utils";
 
@@ -218,106 +215,6 @@ function RequestFormDialog({ open, onClose, editing, properties }) {
   );
 }
 
-// ——— Назначение исполнителя через RPC assign_request ———
-function AssignDialog({ request, onClose }) {
-  const { t } = useLang();
-  const toast = useToast();
-  const [contractors, setContractors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [contractorId, setContractorId] = useState("");
-  const [scheduled, setScheduled] = useState(request?.scheduled_at ? request.scheduled_at.slice(0, 16) : "");
-  const [estimate, setEstimate] = useState(request?.estimate_cost != null ? String(request.estimate_cost) : "");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    let alive = true;
-    listProfiles("contractor")
-      .then((rows) => alive && setContractors(rows || []))
-      .catch(() => {})
-      .finally(() => alive && setLoading(false));
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!request) return;
-    setContractorId("");
-    setScheduled(request.scheduled_at ? request.scheduled_at.slice(0, 16) : "");
-    setEstimate(request.estimate_cost != null ? String(request.estimate_cost) : "");
-  }, [request]);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!contractorId) return;
-    setSaving(true);
-    try {
-      const c = contractors.find((x) => x.id === contractorId);
-      const res = await MaintenanceRequest.assign(request.id, {
-        contractor_id: contractorId,
-        scheduled_at: scheduled ? new Date(scheduled).toISOString() : null,
-        estimate_cost: estimate === "" ? null : Number(estimate),
-      });
-      if (res.ok === false) {
-        toast.error(requestActionError(res, t));
-        return;
-      }
-      toast.success(t("maint.assignedToast").replace("{name}", c?.full_name || ""));
-      onClose(true);
-    } catch {
-      toast.error(t("req.err.generic"));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <Dialog
-      open={!!request}
-      onClose={() => onClose(false)}
-      title={t("maint.assignTitle")}
-      description={request?.property_name}
-      size="md"
-      footer={
-        <>
-          <Button variant="outline" onClick={() => onClose(false)}>
-            {t("common.cancel")}
-          </Button>
-          <Button type="submit" form="assign-form" loading={saving} disabled={loading || !contractorId}>
-            {t("maint.assign")}
-          </Button>
-        </>
-      }
-    >
-      <form id="assign-form" onSubmit={submit} className="space-y-4">
-        <Field label={t("maintenance.assignedTo")} required>
-          <Select value={contractorId} onChange={(e) => setContractorId(e.target.value)} disabled={loading}>
-            <option value="">{loading ? "…" : "—"}</option>
-            {contractors.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.full_name}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label={t("maintenance.scheduleField")}>
-            <Input type="datetime-local" value={scheduled} onChange={(e) => setScheduled(e.target.value)} />
-          </Field>
-          <Field label={t("maintenance.estimateField")}>
-            <Input type="number" min="0" value={estimate} onChange={(e) => setEstimate(e.target.value)} placeholder="0" />
-          </Field>
-        </div>
-        {contractors.length === 0 && !loading && (
-          <p className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-            {t("maint.noContractors")}
-          </p>
-        )}
-      </form>
-    </Dialog>
-  );
-}
-
 // ——— Отмена заявки с причиной ———
 function CancelDialog({ request, onClose }) {
   const { t } = useLang();
@@ -390,12 +287,9 @@ export default function Maintenance() {
   const openCreate = () => demoGate.guarded(() => setDialogOpen(true));
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
-  const [assignFor, setAssignFor] = useState(null);
   const [cancelling, setCancelling] = useState(null);
   const [detailsFor, setDetailsFor] = useState(null);
   useNewParam(openCreate);
-
-  const doneRequests = useMemo(() => requests.filter((r) => r.status === "done"), [requests]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -413,21 +307,6 @@ export default function Maintenance() {
       );
     });
   }, [requests, q, status, urgency]);
-
-  // Владелец принимает выполненную работу (RPC close_request)
-  const acceptWork = async (r) => {
-    try {
-      const res = await MaintenanceRequest.close(r.id);
-      if (res.ok === false) {
-        toast.error(requestActionError(res, t));
-        return;
-      }
-      toast.success(t("maint.acceptedWork"));
-      refresh();
-    } catch {
-      toast.error(t("req.err.generic"));
-    }
-  };
 
   const confirmDelete = async () => {
     if (!deleting) return;
@@ -611,18 +490,6 @@ export default function Maintenance() {
 
                 {actionable && (
                   <div className="flex flex-wrap gap-2 border-t p-4 pt-3" onClick={(e) => e.stopPropagation()}>
-                    {r.status === "new" && (
-                      <Button size="sm" variant="outline" onClick={() => setAssignFor(r)}>
-                        <UserPlus className="h-3.5 w-3.5" />
-                        {t("maint.assign")}
-                      </Button>
-                    )}
-                    {r.status === "done" && (
-                      <Button size="sm" onClick={() => acceptWork(r)}>
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        {t("maint.accept")}
-                      </Button>
-                    )}
                     {["new", "assigned", "in_progress"].includes(r.status) && (
                       <Button size="sm" variant="ghost" className="text-rose-600" onClick={() => setCancelling(r)}>
                         <XCircle className="h-3.5 w-3.5" />
@@ -637,39 +504,7 @@ export default function Maintenance() {
         </div>
       )}
 
-      {/* Выполнена исполнителем → владелец принимает */}
-      {doneRequests.length > 0 && (
-        <Card className="mt-6">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t("maint.awaitingAccept")}</CardTitle>
-          </CardHeader>
-          <CardContent className="divide-y">
-            {doneRequests.map((r) => (
-              <div key={r.id} className="flex flex-wrap items-center gap-3 py-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{r.title || r.description?.slice(0, 50)}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {r.property_name} · {r.contractor_name}
-                    {r.work_cost != null && ` · ${formatMoney(r.work_cost, "RUB", lang)}`}
-                  </p>
-                  {r.work_notes && <p className="mt-1 text-xs text-muted-foreground">{r.work_notes}</p>}
-                </div>
-                <Button size="sm" onClick={() => acceptWork(r)}>{t("maint.accept")}</Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      )}
-
       <RequestFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} editing={editing} properties={properties} />
-
-      <AssignDialog
-        request={assignFor}
-        onClose={(changed) => {
-          setAssignFor(null);
-          if (changed) refresh();
-        }}
-      />
 
       <CancelDialog
         request={cancelling}

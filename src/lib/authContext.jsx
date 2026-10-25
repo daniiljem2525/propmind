@@ -79,7 +79,22 @@ export function AuthProvider({ children }) {
     return u;
   };
 
-  const signup = async (data) => authApi.signup(data);
+  const signup = async (data) => {
+    const u = await authApi.signup(data);
+    // Облачный signup при авто-подтверждении сразу создаёт сессию нового
+    // аккаунта — состояние должно переключиться с кэша (возможно, прошлой
+    // сессии владельца) на реальный профиль, иначе роутинг уводит не туда.
+    if (u && u.id) setUser(u);
+    return u;
+  };
+
+  // Перечитать профиль из сессии: после соц-входа и других смен сессии
+  // извне (роль, имя могли измениться на сервере).
+  const refreshUser = async () => {
+    const u = await Promise.resolve(authApi.getCurrentUser());
+    setUser(u ?? null);
+    return u;
+  };
 
   const verifyOtp = (email, otp) =>
     Promise.resolve(authApi.verifyOtp(email, otp)).then((u) => {
@@ -105,6 +120,7 @@ export function AuthProvider({ children }) {
         login,
         signup,
         verifyOtp,
+        refreshUser,
         logout,
         updateProfile,
         requestPasswordReset: authApi.requestPasswordReset,

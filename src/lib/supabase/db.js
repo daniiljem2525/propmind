@@ -49,13 +49,11 @@ export function makeEntity(collection, defaults = {}) {
       // Новая запись наследует текущий режим: созданное в демо — демо.
       // Явный флаг в data (сид) переопределяет.
       const payload = { is_demo: isDemoMode(), ...defaults, ...clean(data) };
-      const { data: row, error } = await supabase
-        .from(collection)
-        .insert(payload)
-        .select()
-        .single();
+      // .select() массивом, без .single(): запись могла не вернуться из-за
+      // гонки realtime — нельзя показывать «ошибку», когда вставка прошла.
+      const { data: rows, error } = await supabase.from(collection).insert(payload).select();
       if (error) throw error;
-      return row;
+      return rows?.[0] ?? { ...payload };
     },
 
     async bulkCreate(items) {
@@ -64,20 +62,22 @@ export function makeEntity(collection, defaults = {}) {
         const defaults = await resolveDefaults();
         payload.push({ is_demo: isDemoMode(), ...defaults, ...clean(items[i]) });
       }
-      const { data, error } = await supabase.from(collection).insert(payload).select();
+      const { data: rows, error } = await supabase.from(collection).insert(payload).select();
       if (error) throw error;
-      return data || [];
+      return rows || payload;
     },
 
     async update(id, patch) {
-      const { data, error } = await supabase
+      // Массив вместо .single(): при 0 строк (RLS/удалена) ошибка понятнее,
+      // при гонке realtime не падает PGRST116 на успешном обновлении.
+      const { data: rows, error } = await supabase
         .from(collection)
         .update(clean(patch))
         .eq("id", id)
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      if (!rows || rows.length === 0) throw new Error("ROW_NOT_FOUND");
+      return rows[0];
     },
 
     async delete(id) {

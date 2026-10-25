@@ -69,7 +69,9 @@ export default function Register() {
     if (otp.length !== 6) return setError(t("auth.errors.wrongOtp"));
     setLoading(true);
     try {
-      verifyOtp(form.email, otp);
+      // Дожидаемся активации: verifyOtp обновляет пользователя в контексте,
+      // и RoleDashboard рендерит правильный кабинет (жилец/владелец)
+      await verifyOtp(form.email, otp);
       navigate("/app", { replace: true });
     } catch (err) {
       setError(mapAuthError(err, t));

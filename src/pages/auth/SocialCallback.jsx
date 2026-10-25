@@ -4,6 +4,7 @@ import { AlertCircle } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/config";
+import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 
 // Приёмник соц-входа (Яндекс / VK / Mail.ru): edge-функция oauth
@@ -11,6 +12,7 @@ import { useLang } from "@/lib/i18n/LangContext";
 // обычную сессию Supabase и попадаем в приложение.
 export default function SocialCallback() {
   const { t } = useLang();
+  const { refreshUser } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState("");
 
@@ -34,6 +36,9 @@ export default function SocialCallback() {
         setError(t("auth.socialFailed"));
         return;
       }
+      // Сессия сменилась извне — перечитываем профиль, иначе роутинг
+      // может показать кабинет из кэша прошлой сессии
+      await refreshUser();
       navigate("/app", { replace: true });
     })();
   }, [navigate, t]);

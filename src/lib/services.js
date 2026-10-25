@@ -11,10 +11,32 @@ import { buildMonthlySchedule } from "@/lib/schedule";
 // связи пишутся строками (tenant_name) и tenants.property_id
 const isVirtual = (tenant) => tenant?.has_account === false;
 
-// Автосвязывание: арендатор → объект (+ первый платёж)
+// Автосвязывание: арендатор → объект (+ первый платёж).
+// Бросает TENANT_ALREADY_SETTLED, если жилец уже живёт в другом объекте.
 export async function linkTenantToProperty(tenant, property, { firstPayment = true } = {}) {
+  // Запрет двойного заселения: жилец может жить только в одном объекте.
+  // Проверяем только жёсткую связь по id (properties.tenant_id и обратную
+  // ссылку tenants.property_id): имена совпадают у разных людей.
+  try {
+    const { Tenant } = await import("@/lib/api/entities");
+    const props = await Property.list();
+    const elsewhere = props.find((p) => p.id !== property.id && p.tenant_id === tenant.id);
+    const current = isVirtual(tenant) ? (await Tenant.getById(tenant.id))?.property_id : null;
+    if (elsewhere || (current && current !== property.id)) {
+      const err = new Error("TENANT_ALREADY_SETTLED");
+      err.code = "TENANT_ALREADY_SETTLED";
+      throw err;
+    }
+  } catch (e) {
+    if (e?.code === "TENANT_ALREADY_SETTLED") throw e;
+    // Сбой проверки (сеть и т.п.) не должен ломать связывание — оно идёт дальше
+    console.error("settle check failed:", e);
+  }
+
+  // Связь пишем всегда: после снятия FK виртуальные жильцы (таблица
+  // tenants) тоже хранят uuid в properties.tenant_id.
   await Property.update(property.id, {
-    tenant_id: isVirtual(tenant) ? null : tenant.id,
+    tenant_id: tenant.id || null,
     tenant_name: tenant.full_name,
     status: "rented",
   });
@@ -34,7 +56,7 @@ export async function linkTenantToProperty(tenant, property, { firstPayment = tr
     await Payment.create({
       property_id: property.id,
       property_name: property.name,
-      tenant_id: isVirtual(tenant) ? null : tenant.id,
+      tenant_id: tenant.id || null,
       tenant_name: tenant.full_name,
       amount: Number(property.rent_amount),
       currency: property.currency || "RUB",
@@ -48,7 +70,7 @@ export async function linkTenantToProperty(tenant, property, { firstPayment = tr
 
 export async function unlinkTenantFromProperty(property, tenant = null) {
   if (!property) return;
-  if (!property.tenant_id && !isVirtual(tenant)) return;
+  if (!property.tenant_id && !property.tenant_name && !isVirtual(tenant)) return;
   await Property.update(property.id, {
     tenant_id: null,
     tenant_name: null,
@@ -67,9 +89,9 @@ export async function unlinkTenantFromProperty(property, tenant = null) {
 // График платежей на 12 месяцев вперёд, без дублей по периоду
 export async function createMonthlySchedule(tenant, property, months = 12) {
   const existing = await Payment.list();
-  // Виртуальному жильцу uuid-профиля не пишем (FK на profiles)
-  const scheduleTenant = isVirtual(tenant) ? { ...tenant, id: null } : tenant;
-  const items = buildMonthlySchedule({ tenant: scheduleTenant, property, months, existing });
+  // tenant_id пишем и виртуальным жильцам — дедупликация периодов
+  // в buildMonthlySchedule сравнивает по нему.
+  const items = buildMonthlySchedule({ tenant, property, months, existing });
 
   if (items.length) {
     await Payment.bulkCreate(items);
@@ -91,10 +113,16 @@ export async function createMonthlySchedule(tenant, property, months = 12) {
   return items.length;
 }
 
-export async function pushNotification({ type, title, message, link, related_id }) {
-  const user = getCurrentUser();
-  if (!user) return;
-  await NotificationEntity.create({ type, title, message, link, related_id, user_id: user.id });
+// Уведомление — вспомогательное действие: его сбой (сеть, RLS, offline)
+// не должен превращать успешное действие пользователя в «ошибку».
+export async function pushNotification(payload) {
+  try {
+    const user = getCurrentUser();
+    if (!user) return;
+    await NotificationEntity.create({ ...payload, user_id: user.id });
+  } catch (e) {
+    console.error("pushNotification failed:", e);
+  }
 }
 
 // Человекочитаемая ошибка RPC-перехода заявки ({ ok, error }) —

@@ -69,15 +69,20 @@ function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
       };
 
       if (editing) {
-        await Tenant.update(editing.id, payload);
+        // Старый объект отвязываем всегда, когда жилец переезжает:
+        // связь может быть и по tenant_id, и по имени записи без аккаунта
         const oldProp = properties.find((p) => p.id === editing.property_id);
-        if (oldProp && oldProp.tenant_id === editing.id && oldProp.id !== property?.id) {
-          await unlinkTenantFromProperty(oldProp);
+        if (oldProp && oldProp.id !== property?.id) {
+          await unlinkTenantFromProperty(oldProp, { ...editing, ...payload });
         }
-        if (property && property.tenant_id !== editing.id) {
+        if (property) {
+          await Tenant.update(editing.id, payload);
+          // Автосвязывание: объект → rented; бросит TENANT_ALREADY_SETTLED,
+          // если жилец уже заселён в другой объект
           await linkTenantToProperty({ ...editing, ...payload }, property, { firstPayment: false });
           toast.success(t("tenants.relinked"));
         } else {
+          await Tenant.update(editing.id, payload);
           toast.success(t("tenants.saved"));
         }
       } else {
@@ -101,7 +106,11 @@ function TenantFormDialog({ open, onClose, editing, properties, onSaved }) {
       // успевает сам, но не полагаемся на него для действий пользователя
       try { onSaved?.(); } catch {}
     } catch (err) {
-      toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
+      if (err?.code === "TENANT_ALREADY_SETTLED") {
+        setError(t("tenants.alreadySettled"));
+      } else {
+        toast.error(err.message === "QUOTA_EXCEEDED" ? t("errors.quota") : t("errors.generic"));
+      }
     } finally {
       setSaving(false);
     }
