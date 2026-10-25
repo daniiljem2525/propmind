@@ -5,7 +5,11 @@
      При добавлении статьи в content/blog/ добавить её URL сюда же. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>__SITE_URL__</loc><lastmod>2026-10-24</lastmod></url>
-  <url><loc>__SITE_URL__blog</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__blog</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/chto-delat-esli-kvartirant-ne-platit</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/kak-vyselit-kvartiranta-zakonno</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/kak-proverit-kvartiranta-pered-sdachey</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/nalogi-so-sdachi-kvartiry</loc><lastmod>2026-10-25</lastmod></url>
   <url><loc>__SITE_URL__blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
   <url><loc>__SITE_URL__blog/programma-dlya-upravleniya-arendoy</loc><lastmod>2026-10-17</lastmod></url>
   <url><loc>__SITE_URL__blog/uchet-arendy-v-excel</loc><lastmod>2026-10-10</lastmod></url>
