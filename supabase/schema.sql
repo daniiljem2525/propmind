@@ -975,10 +975,10 @@ as $$
 begin
   begin
     perform net.http_post(
-      url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
+      url := 'http://functions:9000/send-push',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'x-push-secret', 'PASTE_PUSH_WEBHOOK_SECRET'
+        'x-push-secret', '__PUSH_WEBHOOK_SECRET__'
       ),
       body := jsonb_build_object(
         'notification', jsonb_build_object(
@@ -1184,7 +1184,7 @@ begin
       '0 9 * * 1',
       $cmd$
       select net.http_post(
-        url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/send-email',
+        url := 'http://functions:9000/send-email',
         headers := jsonb_build_object(
           'Content-Type', 'application/json',
           -- платформа Edge Functions требует JWT (publishable-ключ)
@@ -1712,7 +1712,9 @@ begin
     );
 
 
-  -- Ближайшие платежи: за 3 дня — жильцу (тоже только долгосрок)
+  -- Ближайшие платежи: за 3 дня — жильцу (тоже только долгосрок;
+  -- exists по profiles отсекает виртуальных жильцов без аккаунта —
+  -- иначе FK-нарушение роняет весь INSERT)
   insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
   select p.tenant_id, 'payment_upcoming', 'Скоро платёж',
          'Аренда ' || coalesce(p.property_name, '') || ' — ' ||
@@ -1722,11 +1724,46 @@ begin
   from public.payments p
   left join public.properties pr on pr.id = p.property_id
   where p.tenant_id is not null
+    and exists (select 1 from public.profiles pf where pf.id = p.tenant_id)
     and p.status in ('pending', 'partial') and p.due_date = current_date + 3
     and coalesce(pr.rental_type, 'longterm') = 'longterm'
     and not exists (
       select 1 from public.notifications n
       where n.type = 'payment_upcoming' and n.related_id = p.id and n.user_id = p.tenant_id
+    );
+
+  -- День оплаты: уведомление владельцу (только долгосрок)
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select p.owner_id, 'payment_due_today', 'Платёж сегодня',
+         coalesce(p.tenant_name, p.property_name, 'Платёж') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id, p.is_demo
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.status in ('pending', 'partial') and p.due_date = current_date
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_due_today' and n.related_id = p.id and n.user_id = p.owner_id
+    );
+
+  -- День оплаты: и жильцу с аккаунтом (виртуальные отсечены exists по profiles)
+  insert into public.notifications(user_id, type, title, message, link, related_id, is_demo)
+  select p.tenant_id, 'payment_due_today', 'Платёж сегодня',
+         'Аренда ' || coalesce(p.property_name, '') || ' — ' ||
+           to_char(p.due_date, 'DD.MM.YYYY') || ', ' ||
+           to_char(p.amount, 'FM999999990') || ' ' || coalesce(p.currency, 'RUB'),
+         '/app/payments', p.id, p.is_demo
+  from public.payments p
+  left join public.properties pr on pr.id = p.property_id
+  where p.tenant_id is not null
+    and exists (select 1 from public.profiles pf where pf.id = p.tenant_id)
+    and p.status in ('pending', 'partial') and p.due_date = current_date
+    and coalesce(pr.rental_type, 'longterm') = 'longterm'
+    and not exists (
+      select 1 from public.notifications n
+      where n.type = 'payment_due_today' and n.related_id = p.id and n.user_id = p.tenant_id
     );
 
   -- Договоры, истекающие в ближайшие 30 дней (не про посуточных)
@@ -1759,10 +1796,10 @@ begin
   end if;
   begin
     perform net.http_post(
-      url := 'https://bhxwpkplqjzhfqwckine.supabase.co/functions/v1/bright-processor',
+      url := 'http://functions:9000/send-push',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
-        'x-push-secret', 'PASTE_PUSH_WEBHOOK_SECRET'
+        'x-push-secret', '__PUSH_WEBHOOK_SECRET__'
       ),
       body := jsonb_build_object(
         'notification', jsonb_build_object(

@@ -93,7 +93,7 @@ export async function testPush() {
     data: { session },
   } = await supabase.auth.getSession();
   if (!session) throw new Error("NOT_AUTHENTICATED");
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/bright-processor`, {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/send-push`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
