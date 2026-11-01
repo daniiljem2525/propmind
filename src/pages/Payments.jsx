@@ -2,10 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Banknote,
   CalendarDays,
+  CalendarRange,
   Check,
   Copy,
   CreditCard,
   Download,
+  List,
   Mail,
   Pencil,
   Plus,
@@ -16,6 +18,8 @@ import {
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
+import PaymentsMonthly from "@/components/PaymentsMonthly";
+import PaymentReminderBadge from "@/components/PaymentReminderBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";
@@ -291,6 +295,21 @@ export default function Payments() {
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
+  // Вид раздела: помесячный график (по умолчанию) или привычный список.
+  // Выбор живёт в localStorage: вернулся — увидел тот же режим.
+  const [view, setView] = useState(() => {
+    try {
+      return localStorage.getItem("arendora:paymentsView") === "list" ? "list" : "months";
+    } catch {
+      return "months";
+    }
+  });
+  const switchView = (v) => {
+    setView(v);
+    try {
+      localStorage.setItem("arendora:paymentsView", v);
+    } catch {}
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
   const demoGate = useDemoExitGate();
   // В демо-режиме — сначала выход из демо (с удалением демо-данных)
@@ -531,6 +550,7 @@ export default function Payments() {
                   <p className="truncate text-xs text-muted-foreground">
                     {t("portal.dueUntil")}: {formatDate(p.due_date, lang)}
                   </p>
+                  <PaymentReminderBadge payment={p} lang={lang} className="mt-1" />
                 </div>
                 <span
                   className={`shrink-0 text-sm font-semibold ${
@@ -584,18 +604,45 @@ export default function Payments() {
       />
 
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("common.searchPlaceholder")} className="pl-9" />
+        {/* Переключатель вида: помесячный график / список */}
+        <div className="flex shrink-0 rounded-lg border p-0.5">
+          <Button
+            size="sm"
+            variant={view === "months" ? "secondary" : "ghost"}
+            onClick={() => switchView("months")}
+            title={t("payments.viewMonthsTitle")}
+            className="gap-1.5"
+          >
+            <CalendarRange className="h-4 w-4" />
+            {t("payments.viewMonths")}
+          </Button>
+          <Button
+            size="sm"
+            variant={view === "list" ? "secondary" : "ghost"}
+            onClick={() => switchView("list")}
+            title={t("payments.viewListTitle")}
+            className="gap-1.5"
+          >
+            <List className="h-4 w-4" />
+            {t("payments.viewList")}
+          </Button>
         </div>
-        <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:w-52">
-          <option value="all">{t("common.status")}: {t("common.all")}</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {PAYMENT_STATUS_CONFIG[s][lang === "ru" ? "label_ru" : "label_en"]}
-            </option>
-          ))}
-        </Select>
+        {view === "list" && (
+          <>
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("common.searchPlaceholder")} className="pl-9" />
+            </div>
+            <Select value={status} onChange={(e) => setStatus(e.target.value)} className="sm:w-52">
+              <option value="all">{t("common.status")}: {t("common.all")}</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {PAYMENT_STATUS_CONFIG[s][lang === "ru" ? "label_ru" : "label_en"]}
+                </option>
+              ))}
+            </Select>
+          </>
+        )}
       </div>
 
       {/* Панель массовых действий */}
@@ -637,6 +684,9 @@ export default function Payments() {
             </div>
           }
         />
+      ) : view === "months" ? (
+        /* Помесячный график: месяц целиком, платежи по датам, навигация */
+        <PaymentsMonthly payments={payments} />
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Search}
@@ -697,6 +747,12 @@ export default function Payments() {
                       <CalendarDays className="h-3.5 w-3.5" />
                       {p.due_date}
                     </span>
+                    {p.status === "paid" && p.paid_date && (
+                      <span className="mt-0.5 block text-xs text-emerald-600 dark:text-emerald-400">
+                        {t("payments.paidOn").replace("{date}", formatDate(p.paid_date, lang))}
+                      </span>
+                    )}
+                    <PaymentReminderBadge payment={p} lang={lang} className="mt-1" />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{periodLabel(p)}</td>
                   <td className="px-4 py-3">
@@ -722,7 +778,10 @@ export default function Payments() {
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {p.property_name} · {p.due_date} · {periodLabel(p)}
                   </p>
-                  <p className="mt-1 font-semibold">{formatMoney(p.amount, p.currency, lang)}</p>
+                  <p className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
+                    <PaymentReminderBadge payment={p} lang={lang} />
+                  </p>
                 </div>
                 {actionButtons(p)}
               </div>
