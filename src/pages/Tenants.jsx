@@ -17,13 +17,15 @@ import { getOrCreateInviteCode } from "@/lib/api/auth";
 import { sendInviteEmail } from "@/lib/email";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { isDemoSeen } from "@/lib/demo";
-import { Tenant, Property } from "@/lib/api/entities";
+import { Tenant, Property, Payment } from "@/lib/api/entities";
+import PaymentReminderBadge from "@/components/PaymentReminderBadge";
+import { paymentSummary } from "@/lib/reminders";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { linkTenantToProperty, unlinkTenantFromProperty, createMonthlySchedule } from "@/lib/services";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { TENANT_STATUS_CONFIG, PROPERTY_STATUS_CONFIG } from "@/lib/config/statuses";
-import { cn, initials, todayISO } from "@/lib/utils";
+import { cn, initials, todayISO, formatDate, formatMoney } from "@/lib/utils";
 
 const STATUS_OPTIONS = ["active", "inactive", "pending"];
 
@@ -202,6 +204,8 @@ export default function Tenants() {
   const demo = useDemoSeed();
   const { data: tenants, loading, refresh } = useCollection(Tenant);
   const { data: properties } = useCollection(Property);
+  // Платежи — для дат «следующий платёж / последняя оплата» у каждого жильца
+  const { data: payments } = useCollection(Payment);
 
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
@@ -424,6 +428,8 @@ export default function Tenants() {
             {filtered.map((x) => {
               const property = propertyById[x.property_id];
               const canSchedule = property && Number(property.rent_amount) > 0;
+              // Даты платежей жильца: следующий незакрытый и последняя оплата
+              const payInfo = paymentSummary(payments, { tenantId: x.id });
               return (
                 <div key={x.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center">
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-500/10 text-sm font-bold text-indigo-600 dark:text-indigo-400">
@@ -446,6 +452,26 @@ export default function Tenants() {
                         </span>
                       )}
                     </div>
+                    {/* Даты платежей: следующий платёж и последняя оплата */}
+                    {(payInfo.next || payInfo.last) && (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                        {payInfo.next && (
+                          <span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-foreground">
+                            {t("tenants.nextPayment")}:
+                            {" "}{formatDate(payInfo.next.due_date, lang)}
+                            {" "}{formatMoney(payInfo.next.amount, payInfo.next.currency || "RUB", lang)}
+                            <PaymentReminderBadge payment={payInfo.next} lang={lang} />
+                          </span>
+                        )}
+                        {payInfo.last && (
+                          <span className="text-muted-foreground">
+                            {t("tenants.lastPaid")}:
+                            {" "}{formatDate(payInfo.last.paid_date, lang)}
+                            {" "}{formatMoney(payInfo.last.amount, payInfo.last.currency || "RUB", lang)}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2 sm:w-56">

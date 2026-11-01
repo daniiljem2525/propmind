@@ -14,7 +14,9 @@ import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { isDemoSeen } from "@/lib/demo";
-import { Property } from "@/lib/api/entities";
+import { Property, Payment } from "@/lib/api/entities";
+import PaymentReminderBadge from "@/components/PaymentReminderBadge";
+import { paymentSummary } from "@/lib/reminders";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPE_CONFIG } from "@/lib/config/statuses";
@@ -24,7 +26,7 @@ import UpsellDialog from "@/components/UpsellDialog";
 import CleaningDialog from "@/components/CleaningDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
-import { addMonthsISO, cn, formatMoney, todayISO } from "@/lib/utils";
+import { addMonthsISO, cn, formatDate, formatMoney, todayISO } from "@/lib/utils";
 
 const TYPE_OPTIONS = Object.keys(PROPERTY_TYPE_CONFIG);
 const STATUS_OPTIONS = ["vacant", "rented", "maintenance", "inactive"];
@@ -247,10 +249,13 @@ function PropertyFormDialog({ open, onClose, property }) {
 }
 
 // ——— Карточка объекта ———
-function PropertyCard({ property, onEdit, onDelete, onClean }) {
+function PropertyCard({ property, payments = [], onEdit, onDelete, onClean }) {
   const { t, lang } = useLang();
   const type = PROPERTY_TYPE_CONFIG[property.type] || PROPERTY_TYPE_CONFIG.other;
   const TypeIcon = type.icon;
+  // Даты платежей по объекту: посуточные без напоминаний — как и в БД-скане
+  const longterm = property.rental_type !== "shortterm";
+  const payInfo = longterm ? paymentSummary(payments, { propertyId: property.id }) : null;
   const meta = [
     property.area_sqm ? `${property.area_sqm} м²` : null,
     property.rooms ? `${property.rooms} ${lang === "ru" ? "комн." : "rooms"}` : null,
@@ -322,6 +327,26 @@ function PropertyCard({ property, onEdit, onDelete, onClean }) {
           </Badge>
         </div>
 
+        {/* Даты платежей: следующий платёж и последняя оплата (долгосрок) */}
+        {payInfo && (payInfo.next || payInfo.last) && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            {payInfo.next && (
+              <span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-foreground">
+                {t("properties.nextPayment")}:
+                {" "}{formatDate(payInfo.next.due_date, lang)}
+                {" "}{formatMoney(payInfo.next.amount, payInfo.next.currency || property.currency || "RUB", lang)}
+                <PaymentReminderBadge payment={payInfo.next} lang={lang} />
+              </span>
+            )}
+            {payInfo.last && (
+              <span className="text-muted-foreground">
+                {t("properties.lastPaid")}:
+                {" "}{formatDate(payInfo.last.paid_date, lang)}
+              </span>
+            )}
+          </div>
+        )}
+
         <div className="mt-3 flex items-center justify-between gap-2 border-t pt-3 text-xs text-muted-foreground">
           <span className="flex min-w-0 items-center gap-1.5">
             <User className="h-3.5 w-3.5 shrink-0" />
@@ -347,6 +372,8 @@ export default function Properties() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [upsellOpen, setUpsellOpen] = useState(false);
   const { data: properties, loading } = useCollection(Property);
+  // Платежи — для дат «следующий платёж / последняя оплата» на карточке объекта
+  const { data: payments } = useCollection(Payment);
   const planLimits = getPlanLimits(user?.plan);
   const demoGate = useDemoExitGate();
 
@@ -556,6 +583,7 @@ export default function Properties() {
             <PropertyCard
               key={p.id}
               property={p}
+              payments={payments}
               onEdit={() => {
                 setEditing(p);
                 setDialogOpen(true);

@@ -53,9 +53,9 @@ export function addDaysISO(iso, days) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export function daysUntil(iso) {
+export function daysUntil(iso, from = todayISO()) {
   if (!iso) return null;
-  const now = new Date(todayISO());
+  const now = new Date(from);
   const then = new Date(iso);
   return Math.round((then - now) / 86400000);
 }

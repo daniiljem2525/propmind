@@ -24,10 +24,11 @@ import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useTheme } from "@/lib/theme";
 import { useCollection } from "@/hooks/useCollection";
-import { NotificationEntity, Property, Tenant } from "@/lib/api/entities";
+import { NotificationEntity, Payment, Property, Tenant } from "@/lib/api/entities";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { isDemoMode, subscribeDemoMode } from "@/lib/demoMode";
+import { reminderState } from "@/lib/reminders";
 import { cn, initials } from "@/lib/utils";
 
 export default function Header({ onOpenMobile }) {
@@ -43,7 +44,21 @@ export default function Header({ onOpenMobile }) {
   const { data: notifications } = useCollection(NotificationEntity);
   const { data: properties } = useCollection(Property);
   const { data: tenants } = useCollection(Tenant);
+  const { data: payments } = useCollection(Payment);
   const unread = notifications.filter((n) => !n.is_read).length;
+
+  // Напоминание о платежах — прямо в шапке, видно из любого раздела:
+  // сколько просрочено и сколько платежей в ближайшие дни.
+  const payReminders = payments.reduce(
+    (acc, p) => {
+      const s = reminderState(p);
+      if (s?.kind === "overdue") acc.overdue++;
+      else if (s) acc.soon++;
+      return acc;
+    },
+    { overdue: 0, soon: 0 }
+  );
+  const showPayChip = ["owner", "admin"].includes(user?.role) && (payReminders.overdue > 0 || payReminders.soon > 0);
 
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -150,6 +165,28 @@ export default function Header({ onOpenMobile }) {
             <Sparkles className="h-3.5 w-3.5" />
             {t("header.demoMode")}
           </span>
+        )}
+
+        {/* Чип напоминаний о платежах: просрочки и ближайшие дни */}
+        {showPayChip && (
+          <Link
+            to="/app/payments"
+            title={t("payments.headerChipTitle")}
+            className="hidden items-center gap-1.5 rounded-full border border-rose-500/40 bg-rose-500/10 px-2.5 py-1 text-xs font-semibold text-rose-600 sm:flex dark:text-rose-400"
+          >
+            <Bell className="h-3.5 w-3.5" />
+            {payReminders.overdue > 0 && (
+              <span>
+                {t("payments.chipOverdue").replace("{n}", payReminders.overdue)}
+              </span>
+            )}
+            {payReminders.overdue > 0 && payReminders.soon > 0 && <span className="text-muted-foreground">·</span>}
+            {payReminders.soon > 0 && (
+              <span className="text-amber-600 dark:text-amber-400">
+                {t("payments.chipSoon").replace("{n}", payReminders.soon)}
+              </span>
+            )}
+          </Link>
         )}
 
         {/* Быстрое создание */}

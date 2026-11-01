@@ -15,6 +15,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import StatusBadge from "@/components/StatusBadge";
+import PaymentReminderBadge from "@/components/PaymentReminderBadge";
 import EmptyState from "@/components/EmptyState";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,6 +28,7 @@ import { ConfirmDialog } from "@/components/ui/dialog";
 import { renewLease } from "@/lib/services";
 import { PAYMENT_STATUS_CONFIG, MAINTENANCE_STATUS_CONFIG } from "@/lib/config/statuses";
 import { daysUntil, formatDate, formatMoney, localeOf } from "@/lib/utils";
+import { reminderState, reminderLabel } from "@/lib/reminders";
 import { cn } from "@/lib/utils";
 
 export default function Dashboard() {
@@ -63,6 +65,8 @@ export default function Dashboard() {
     .filter((p) => ["pending", "overdue", "partial"].includes(p.status) && p.due_date)
     .sort((a, b) => (a.due_date || "").localeCompare(b.due_date || ""));
   const nearest = unpaid[0];
+  // Напоминание по ближайшему платежу: «просрочен/сегодня/через N дней»
+  const nearestRem = nearest ? reminderState(nearest) : null;
   const openRequests = requests.filter((r) => r.status === "new" || r.status === "in_progress").length;
 
   const recentPayments = payments.slice(0, 5);
@@ -146,7 +150,8 @@ export default function Dashboard() {
             nearest
               ? `${nearest.tenant_name || nearest.property_name || ""} · ${lang === "ru" ? "до" : "due"} ${new Date(
                   nearest.due_date + "T00:00:00",
-                ).toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" })}`
+                ).toLocaleDateString(localeOf(lang), { day: "numeric", month: "short" })}` +
+                (nearestRem ? ` · ${reminderLabel(nearestRem, lang)}` : "")
               : lang === "ru"
                 ? "все платежи получены"
                 : "all payments received"
@@ -176,6 +181,7 @@ export default function Dashboard() {
                   <p className="truncate text-xs text-muted-foreground">{p.property_name}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold">{formatMoney(p.amount, p.currency, lang)}</span>
+                <PaymentReminderBadge payment={p} lang={lang} />
                 <StatusBadge config={PAYMENT_STATUS_CONFIG} value={p.status} />
               </div>
             ))}
