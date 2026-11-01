@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Статус ответа — 404 (handle_errors в Caddyfile); noindex — страховка -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0F766E">
+<title>404 — страница не найдена | Arendora</title>
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+       min-height:100vh;display:flex;align-items:center;justify-content:center;
+       background:#F8FAFC;color:#0F172A;padding:24px}
+  .card{max-width:520px;width:100%;background:#fff;border:1px solid #E2E8F0;border-radius:16px;
+        padding:40px 32px;text-align:center;box-shadow:0 8px 24px rgba(15,23,42,.06)}
+  .code{font-size:56px;font-weight:800;color:#0F766E;letter-spacing:-.02em}
+  h1{font-size:22px;font-weight:700;margin:8px 0}
+  p{font-size:15px;line-height:1.6;color:#475569;margin-bottom:24px}
+  .links{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px}
+  .btn{display:inline-block;padding:10px 18px;border-radius:10px;font-size:14px;font-weight:600;
+       text-decoration:none}
+  .btn-primary{background:#0F766E;color:#fff}
+  .btn-ghost{background:#F1F5F9;color:#0F766E;border:1px solid #E2E8F0}
+  form{display:flex;gap:8px;max-width:420px;margin:0 auto}
+  input{flex:1;padding:10px 14px;border:1px solid #CBD5E1;border-radius:10px;font-size:14px}
+  button{padding:10px 16px;border:0;border-radius:10px;background:#0F766E;color:#fff;
+         font-size:14px;font-weight:600;cursor:pointer}
+  small{display:block;margin-top:24px;color:#94A3B8;font-size:12px}
+</style>
+</head>
+<body>
+<main class="card">
+  <div class="code">404</div>
+  <h1>Страница не найдена</h1>
+  <p>Такого адреса нет на Arendora. Возможно, ссылка устарела или в адресе опечатка.</p>
+  <nav class="links">
+    <a class="btn btn-primary" href="/">На главную</a>
+    <a class="btn btn-ghost" href="/blog">Полезные материалы</a>
+  </nav>
+  <form onsubmit="var q=document.getElementById('q').value.trim();if(q){location.href='https://yandex.ru/search/?text='+encodeURIComponent('site:arendora.ru '+q)}return false">
+    <input id="q" type="search" placeholder="Поиск по сайту, например: договор найма" aria-label="Поиск по сайту">
+    <button type="submit">Найти</button>
+  </form>
+  <small>Arendora — управление недвижимостью без таблиц и хаоса. Бесплатно до 3 объектов.</small>
+</main>
+</body>
+</html>

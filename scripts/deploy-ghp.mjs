@@ -15,6 +15,7 @@ const repoName = (remote.match(/github\.com[:/][^/]+\/([^/.]+?)(?:\.git)?$/) || 
 const user = (remote.match(/github\.com[:/]([^/]+)\//) || [])[1] || "daniiljem2525";
 const BASE = `/${repoName}/`;
 
+run("node scripts/generate-sitemap.mjs", { env: { ...process.env, VITE_BASE: BASE } });
 run("npx vite build", { env: { ...process.env, VITE_BASE: BASE } });
 
 // Инлайн JS и CSS в index.html: одна самодостаточная страница —
@@ -31,7 +32,11 @@ html = html.replace(
   (_, p) => `<style>${readFileSync("dist" + p.replace(BASE, "/"), "utf8")}</style>`
 );
 writeFileSync("dist/index.html", html);
-copyFileSync("dist/index.html", "dist/404.html");
+// 404.html: брендированная серверная 404-страница идёт из public/404.html
+// (входит в сборку с 01.11, решение NT-013/NT-020 — не удалять и не
+// перезаписывать копией index.html). Копия index ставится только если
+// 404.html в сборке не оказалось вовсе (SPA-фолбэк для GitHub Pages).
+if (!existsSync("dist/404.html")) copyFileSync("dist/index.html", "dist/404.html");
 
 if (!existsSync("dist/.git")) {
   run("git init -b gh-pages", { cwd: "dist" });

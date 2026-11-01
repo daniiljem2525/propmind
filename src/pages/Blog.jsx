@@ -226,6 +226,13 @@ export function BlogPost() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
+          {/* S1.7 ТЗ-2: из каждой статьи — обычная ссылка на /tariffs
+              (контекст «сравнить тарифы», без цифр лимитов, без UTM) */}
+          <p className="mt-3 text-sm text-muted-foreground">
+            <a href="/tariffs" className="text-primary hover:underline">
+              {t("blog.ctaCompare")}
+            </a>
+          </p>
         </div>
 
         {related.length > 0 && (

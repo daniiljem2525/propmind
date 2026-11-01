@@ -77,10 +77,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Arendora" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <link
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E"
     />
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+         читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
   </head>
   <body>
     <div id="root">
@@ -143,25 +147,41 @@
       } catch (e) {}
     </script>
     <script>
-      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
-      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока она не
-      // задана, счётчик не подключается вовсе — ноль лишних запросов.
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм
+      // счётчика (решение NT-001 Р4 от 2026-11-01, вариант B: статических
+      // тегов tag.js в шаблоне нет и быть не должно). ID подставляется на
+      // этапе сборки из переменной окружения VITE_YANDEX_METRICA_ID (см.
+      // vite.config.js); пока он не задан, счётчик не подключается вовсе:
+      // ни очереди ym, ни запросов к mc.yandex.ru (важно для dev и e2e).
+      // При отказе от cookie в баннере счётчик не подключается со
+      // следующего посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
       (function () {
         var id = "__METRICA_ID__".replace(/[^0-9]/g, "");
         if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
         var s = document.createElement("script");
         s.async = true;
-        s.src = "https://mc.yandex.ru/metrika/tag.js";
-        s.onload = function () {
-          if (!window.ym) return;
-          window.ym(id, "init", {
-            clickmap: true,
-            trackLinks: true,
-            accurateTrackBounce: true,
-            webvisor: true,
-          });
-        };
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
         document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
       })();
     </script>
     <script type="module" src="/src/main.jsx"></script>

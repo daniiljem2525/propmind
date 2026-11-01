@@ -16,6 +16,8 @@ import {
   Quote,
   ShieldCheck,
   Sparkles,
+  Server,
+  BookOpen,
   Sun,
   Timer,
   Users,
@@ -40,6 +42,18 @@ const FEATURES = [
 ];
 
 const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4"];
+
+// S1.7 (ТЗ seo/sprint1/07, состав утверждён NT-001 2026-11-01): блок
+// «Полезные материалы» на главной — после FAQ, перед финальным CTA.
+// Анкоры — сокращения реальных H1; без UTM; лимит Free числом и
+// EN-тематики в анкорах нет. Прямые <Link>/<a> — обычные ссылки.
+const USEFUL_LINKS = [
+  { to: "/blog/arendora-vs-google-tablicy", key: "land.useful1" },
+  { to: "/blog/uchet-arendy-v-excel", key: "land.useful2" },
+  { to: "/blog/programma-dlya-upravleniya-arendoy", key: "land.useful3" },
+  { to: "/blog/sdat-kvartiru-v-arendu-cheklist", key: "land.useful4" },
+  { to: "/blog/nalogi-so-sdachi-kvartiry", key: "land.useful5" },
+];
 
 export default function Landing() {
   const { t, lang, setLang } = useLang();
@@ -159,6 +173,7 @@ export default function Landing() {
               { icon: CreditCard, key: "land.guarantee1" },
               { icon: Timer, key: "land.guarantee2" },
               { icon: ShieldCheck, key: "land.guarantee3" },
+              { icon: Server, key: "land.guarantee4" },
             ].map((g) => (
               <span key={g.key} className="inline-flex items-center gap-1.5">
                 <g.icon className="h-4 w-4 text-primary" />
@@ -376,6 +391,25 @@ export default function Landing() {
                 </summary>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t(`${k}.a`)}</p>
               </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Полезные материалы (S1.7): после FAQ, перед финальным CTA */}
+      <section id="useful" className="border-t bg-card/50 py-20">
+        <div className="mx-auto max-w-3xl px-4 lg:px-8">
+          <h2 className="text-center text-3xl font-extrabold tracking-tight">{t("land.usefulTitle")}</h2>
+          <div className="mt-8 grid gap-3">
+            {USEFUL_LINKS.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="group flex items-center justify-between gap-4 rounded-lg border bg-card px-5 py-4 shadow-card transition-shadow hover:shadow-card-hover"
+              >
+                <span className="font-medium leading-snug">{t(l.key)}</span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </Link>
             ))}
           </div>
         </div>
