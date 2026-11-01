@@ -197,7 +197,11 @@ export function BlogPost() {
             </span>
           )}
           <span>
-            {Math.max(1, Math.round(post.words / 200))} {t("blog.minRead")} · Arendora
+            {Math.max(1, Math.round(post.words / 200))} {t("blog.minRead")} ·{" "}
+            {/* S1.7: брендовый анкор на главную из байлайна статьи (как на проде с 01.11) */}
+            <Link to="/" className="transition-colors hover:text-foreground">
+              Arendora
+            </Link>
           </span>
         </p>
         <div className="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&_a]:text-primary [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-bold [&_li]:ml-5 [&_li]:list-disc [&_strong]:font-bold">
