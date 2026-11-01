@@ -390,7 +390,7 @@ export const en = {
   "land.guarantee1": "No card to start",
   "land.guarantee2": "Set up in 15 minutes",
   "land.guarantee3": "Cancel anytime",
-  "land.guarantee4": "Servers in Russia · 152-FZ",
+  "land.guarantee4": "Data stored in Russia under 152-FZ",
   // S1.7: "Useful materials" block on the landing (list approved by NT-001)
   "land.usefulTitle": "Useful materials",
   "land.useful1": "Arendora or Google Sheets: choosing your rent tracking tool",
