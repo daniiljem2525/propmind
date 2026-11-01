@@ -290,6 +290,7 @@ export const en = {
   "dashboard.recentRequests": "Recent requests",
   "dashboard.expiringLeases": "Expiring leases",
   "dashboard.expiringEmpty": "No leases expire within 60 days",
+  "dashboard.expiringDocsHint": "Open contracts in the Documents section",
   "dashboard.demoTitle": "Start in 15 minutes",
   "dashboard.demoSubtitle": "Load demo data to see the platform in action — properties, tenants, payments and requests in one click",
   "dashboard.loadDemo": "Load demo data",

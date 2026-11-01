@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Building2, Download, FileText, Pencil, Plus, Search, Trash2, UploadCloud, X, FileStack } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
@@ -192,7 +193,21 @@ export default function Documents() {
   const { data: properties } = useCollection(Property);
 
   const [q, setQ] = useState("");
-  const [type, setType] = useState("all");
+  // Тип документа можно открыть ссылкой (?type=contract с дашборда —
+  // «договоры должны кидать на документы»): фильтр живёт в URL,
+  // смена вручную обновляет адрес, ссылка остаётся sharable.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlType = searchParams.get("type");
+  const [type, setTypeState] = useState(
+    urlType && TYPE_OPTIONS.includes(urlType) ? urlType : "all"
+  );
+  const setType = (value) => {
+    setTypeState(value);
+    const next = new URLSearchParams(searchParams);
+    if (value === "all") next.delete("type");
+    else next.set("type", value);
+    setSearchParams(next, { replace: true });
+  };
   const [dialogOpen, setDialogOpen] = useState(false);
   const demoGate = useDemoExitGate();
   // В демо-режиме — сначала выход из демо (с удалением демо-данных)

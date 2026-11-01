@@ -214,17 +214,27 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Истекающие договоры */}
+      {/* Истекающие договоры — клик ведёт в Документы с фильтром «Договор» */}
       <Card className="mt-6">
         <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
-          <div className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-orange-500" />
-            <div>
-              <CardTitle>{t("dashboard.expiringLeases")}</CardTitle>
+          <Link
+            to="/app/documents?type=contract"
+            title={t("dashboard.expiringDocsHint")}
+            className="flex min-w-0 items-center gap-2 rounded-md hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+          >
+            <CalendarClock className="h-5 w-5 shrink-0 text-orange-500" />
+            <div className="min-w-0">
+              <CardTitle>
+                {t("dashboard.expiringLeases")}
+              </CardTitle>
               <CardDescription className="mt-0.5">≤ 60 {t("common.days")}</CardDescription>
             </div>
-          </div>
-          <Link to="/app/properties" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          </Link>
+          <Link
+            to="/app/documents?type=contract"
+            title={t("dashboard.expiringDocsHint")}
+            className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-primary hover:underline"
+          >
             {t("common.viewAll")} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </CardHeader>

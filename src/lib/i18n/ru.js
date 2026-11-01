@@ -290,6 +290,7 @@ export const ru = {
   "dashboard.recentRequests": "Последние заявки",
   "dashboard.expiringLeases": "Истекающие договоры",
   "dashboard.expiringEmpty": "В ближайшие 60 дней договоры не истекают",
+  "dashboard.expiringDocsHint": "Открыть договоры в разделе «Документы»",
   "dashboard.demoTitle": "Начните за 15 минут",
   "dashboard.demoSubtitle": "Загрузите демо-данные, чтобы посмотреть платформу в действии — объекты, арендаторы, платежи и заявки появятся в один клик",
   "dashboard.loadDemo": "Загрузить демо-данные",
