@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Генерируется скриптом scripts/generate-sitemap.mjs при каждой сборке:
+     править руками не нужно. Новая статья попадает сюда сама — по
+     front-matter date из content/blog/. Токен https://arendora.ru/ заменяется
+     на этапе сборки (vite.config.js). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://arendora.ru/</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/register</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/tariffs</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/terms</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/privacy</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/agreement</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/consent</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/payments</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/usepolicy</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/cookies</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/blog</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/zalog-pri-sdache-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/sosed-zhaluetsya-na-kvartiranta</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/samozanyatost-sdacha-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/posutochno-ili-dolgosrok</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/obrazec-dogovora-naima-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/kto-dolzhen-delat-remont</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/kak-povysit-arendnuyu-platu</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/avtomatizaciya-sdachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/arendora-vs-google-tablicy</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/akt-priema-peredachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/nalogi-so-sdachi-kvartiry</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>https://arendora.ru/blog/kak-vyselit-kvartiranta-zakonno</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>https://arendora.ru/blog/kak-proverit-kvartiranta-pered-sdachey</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>https://arendora.ru/blog/chto-delat-esli-kvartirant-ne-platit</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>https://arendora.ru/blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>https://arendora.ru/blog/programma-dlya-upravleniya-arendoy</loc><lastmod>2026-10-17</lastmod></url>
+  <url><loc>https://arendora.ru/blog/uchet-arendy-v-excel</loc><lastmod>2026-10-10</lastmod></url>
+  <url><loc>https://arendora.ru/magnit-dogovor</loc><lastmod>2026-11-01</lastmod></url>
+  <url><loc>https://arendora.ru/magnit-kalkulyator</loc><lastmod>2026-11-01</lastmod></url>
+  <url><loc>https://arendora.ru/magnit-kurs</loc><lastmod>2026-11-01</lastmod></url>
+<url><loc>https://arendora.ru/blog/luchshie-servisy-dlya-arendodateley-2026</loc><lastmod>2026-11-01</lastmod></url><url><loc>https://arendora.ru/blog/servisy-upravleniya-arendoy-nedvizhimostyu</loc><lastmod>2026-11-01</lastmod></url><url><loc>https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir</loc><lastmod>2026-11-01</lastmod></url><url><loc>https://arendora.ru/blog/prilozhenie-dlya-arendodatelya</loc><lastmod>2026-11-01</lastmod></url><url><loc>https://arendora.ru/blog/kak-avtomatizirovat-sdachu-kvartiry</loc><lastmod>2026-11-01</lastmod></url><url><loc>https://arendora.ru/features/uchet-platezhey</loc><lastmod>2026-11-01</lastmod></url>
+</urlset>
