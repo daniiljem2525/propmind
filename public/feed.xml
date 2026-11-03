@@ -5,9 +5,9 @@
     <title>Блог Arendora</title>
     <link>https://arendora.ru/blog</link>
     <atom:link href="https://arendora.ru/feed.xml" rel="self" type="application/rss+xml"/>
-    <description>Как сдавать квартиру спокойно: жильцы, платежи, договоры, налоги и сервисы для арендодателей. Обновляется 2026-10-30.</description>
+    <description>Как сдавать квартиру спокойно: жильцы, платежи, договоры, налоги и сервисы для арендодателей. Обновляется 2026-11-03.</description>
     <language>ru</language>
-    <lastBuildDate>Fri, 30 Oct 2026 15:15:05 GMT</lastBuildDate>
+    <lastBuildDate>Tue, 03 Nov 2026 20:44:26 GMT</lastBuildDate>
     <item>
       <title>Залог при сдаче квартиры: сколько брать, как оформить и когда возвращать</title>
       <link>https://arendora.ru/blog/zalog-pri-sdache-kvartiry</link>
@@ -126,6 +126,48 @@
       <guid>https://arendora.ru/blog/uchet-arendy-v-excel</guid>
       <pubDate>Sat, 10 Oct 2026 00:00:00 GMT</pubDate>
       <description>Во что обходится учёт аренды в Excel на портфеле 100+ объектов и пошаговый чек-лист, как перевести недвижимость в облако за 15 минут.</description>
+    </item>
+      <item>
+      <title>Учёт платежей квартирантов: график и напоминания — Arendora</title>
+      <link>https://arendora.ru/features/uchet-platezhey</link>
+      <guid>https://arendora.ru/features/uchet-platezhey</guid>
+      <pubDate>Sun, 01 Nov 2026 12:00:00 GMT</pubDate>
+      <description>График платежей на год, напоминания жильцам и статус «просрочено» — автоматически. Ведите учёт платежей квартирантов в Arendora: бесплатно и без карты.</description>
+    </item>
+    <item>
+      <title>Лучшие сервисы для арендодателей 2026: честный рейтинг — Arendora</title>
+      <link>https://arendora.ru/blog/luchshie-servisy-dlya-arendodateley-2026</link>
+      <guid>https://arendora.ru/blog/luchshie-servisy-dlya-arendodateley-2026</guid>
+      <pubDate>Fri, 30 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Честный рейтинг сервисов для арендодателей 2026: цены от 0 ₽ до 60 200 ₽/мес проверены по сайтам вендоров 30–31 октября. Выбор под свой сценарий сдачи.</description>
+    </item>
+    <item>
+      <title>Сервисы управления арендой недвижимости: виды и цены — Arendora</title>
+      <link>https://arendora.ru/blog/servisy-upravleniya-arendoy-nedvizhimostyu</link>
+      <guid>https://arendora.ru/blog/servisy-upravleniya-arendoy-nedvizhimostyu</guid>
+      <pubDate>Fri, 30 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Классы сервисов управления арендой недвижимости: облачные для жилой долгосрочки, коммерческие системы, PMS для посуточной. Цены вендоров с датами проверки.</description>
+    </item>
+    <item>
+      <title>Программа для учёта аренды квартир: как выбрать (2026) — Arendora</title>
+      <link>https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir</link>
+      <guid>https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir</guid>
+      <pubDate>Sat, 31 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Программа для учёта аренды квартир: лестница цен по числу объектов, чек-лист из 7 пунктов перед покупкой и перенос из Excel. Сравните на своём портфеле.</description>
+    </item>
+    <item>
+      <title>Приложение для арендодателя: что реально существует — Arendora</title>
+      <link>https://arendora.ru/blog/prilozhenie-dlya-arendodatelya</link>
+      <guid>https://arendora.ru/blog/prilozhenie-dlya-arendodatelya</guid>
+      <pubDate>Sat, 31 Oct 2026 12:00:00 GMT</pubDate>
+      <description>Какие приложения для арендодателя реально существуют в 2026 году: проверенные цены 31 октября, честные ограничения списка и выбор под свой сценарий сдачи.</description>
+    </item>
+    <item>
+      <title>Автоматизация сдачи квартиры: какие задачи и чем — Arendora</title>
+      <link>https://arendora.ru/blog/kak-avtomatizirovat-sdachu-kvartiry</link>
+      <guid>https://arendora.ru/blog/kak-avtomatizirovat-sdachu-kvartiry</guid>
+      <pubDate>Sun, 01 Nov 2026 12:00:00 GMT</pubDate>
+      <description>Что автоматизируется при сдаче квартиры: напоминания и просрочки, документы, заявки, аналитика — по подтверждённым функциям вендоров. С чего начать: три шага.</description>
     </item>
   </channel>
 </rss>
