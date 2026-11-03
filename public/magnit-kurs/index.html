@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5 ошибок арендодателя за 5 писем: мини-курс — Arendora</title>
+<meta name="description" content="Пять писем о пяти ошибках: устный найм, залог без правил, размытая оплата, учёт в голове, документы в переписке. В каждом — шаг, который можно сделать сразу.">
+<!--
+  Лид-магнит 3: email-курс «5 ошибок арендодателя за 5 писем»
+  Посадочная страница курса. NT-013 (Глеб Строев), спринт запуска 2026-10-30, Release 1.
+  Источник — company/departments/marketing/shift-2026-10-30/email-course-5-mistakes.md
+  (Марина Соболева, NT-006); структура, ошибки, ритм и шаги перенесены БЕЗ выдумываний.
+
+  ПОМЕТКА О ДОПУЩЕНИИ (UTM): в исходнике курса UTM задан только для писем
+  (utm_medium=email, utm_campaign=course-5-mistakes); для посадочной страницы
+  канцелярия приняла utm_medium=leadmagnet по аналогии с магнитами 1–2.
+  Единственный CTA страницы:
+  https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=course-5-mistakes
+
+  ФОРМ ПОДПИСКИ И СБОРА EMAIL НА СТРАНИЦЕ НЕТ: email-сервиса ещё нет, а по правилу
+  файла курса «блоки подписки на курс не публикуются, набор в базу — только через
+  register-CTA». На странице нет ни одного тега form и input.
+
+  Автономная страница: inline CSS, без внешних запросов (CDN, шрифты по сети, картинки
+  по URL и внешние JS/CSS запрещены); единственная внешняя ссылка — register-CTA.
+  Счётчик Яндекс.Метрики — consent-aware inline-загрузчик в конце <body>, дословная
+  копия из company/departments/seo/shift-2026-10-30/pages/p02.html (строки 135–168,
+  закрывающий </script> — строка 169).
+  Запреты CEO соблюдены: лимит тарифа Free числом не упоминается, EN-версия не
+  упоминается; формулы тарифа — только «бесплатный старт без карты» и
+  «отмена в любой момент».
+-->
+<style>
+  :root{--dark:#141413;--light:#faf9f5;--gray:#e8e6dc;--accent:#d97757;--muted:#6b6a63;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--light);color:var(--dark);line-height:1.5}
+  .wrap{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  header{margin-bottom:8px}
+  .brand{font-family:Poppins,Arial,sans-serif;font-weight:600;letter-spacing:.5px;font-size:13px;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:Poppins,Arial,sans-serif;font-size:30px;line-height:1.2;margin:10px 0 6px}
+  .sub{color:var(--muted);margin-bottom:24px}
+  .card{background:#fff;border:1px solid var(--gray);border-radius:12px;padding:22px;margin-bottom:18px}
+  .card h2{font-family:Poppins,Arial,sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;color:var(--muted)}
+  ol.mist{margin-left:20px}
+  ol.mist li{margin:10px 0;font-size:15px}
+  ol.mist b{font-weight:600}
+  ol.mist span{display:block;color:var(--muted);font-size:14px;margin-top:2px}
+  .params{list-style:none;margin-left:0}
+  .params li{margin:8px 0;font-size:15px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{border:1px solid var(--gray);padding:8px 10px;text-align:left;vertical-align:top}
+  th{font-family:Poppins,Arial,sans-serif;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--light)}
+  td:first-child{white-space:nowrap}
+  .cta{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-family:Poppins,Arial,sans-serif;font-weight:600;padding:14px;border-radius:10px;margin-top:16px;font-size:16px}
+  .cta:hover{filter:brightness(.95)}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+  @media(max-width:520px){h1{font-size:25px}.wrap{padding:24px 14px 56px}th,td{padding:7px 8px;font-size:13.5px}}
+</style>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Arendora</div>
+    <h1>5 ошибок арендодателя за 5 писем</h1>
+    <p class="sub">Мини-курс для собственника: одна ошибка — одно письмо, в каждом письме один короткий шаг, который можно сделать сразу.</p>
+  </header>
+
+  <div class="card">
+    <h2>Чему научит</h2>
+    <ol class="mist">
+      <li><b>Устная договорённость вместо договора.</b> <span>«Мы договорились по-человечески» — пока всё хорошо, разницы нет; в первый спорный момент устный найм превращает каждый вопрос в переговоры без правил. Письменный договор — правила, записанные до конфликта, а не во время него.</span></li>
+      <li><b>Залог без правил.</b> <span>Жилец уверен, что залог — это «последний месяц», собственник — что страховка от дыр в стене. В договоре должно быть записано: что залог покрывает, что не покрывает и когда возвращается.</span></li>
+      <li><b>«Оплата до 10-го числа» без времени и реквизитов.</b> <span>Самая скользкая формулировка в найме. Рабочая: «Оплата до 20:00 10-го числа текущего месяца, реквизиты — в приложении к договору».</span></li>
+      <li><b>Учёт «в голове» и разрозненных таблицах.</b> <span>Память не переживает даже мелкий стресс, а таблицы в трёх файлах на двух устройствах — та же память, только медленнее. Учёт должен отвечать на три вопроса за один взгляд: кто платит, когда и сколько.</span></li>
+      <li><b>Документы в переписке.</b> <span>Документ, который нельзя найти за минуту, не работает. Правило: у каждого объекта — договор, акт приёма-передачи и опись имущества.</span></li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Формат</h2>
+    <ul class="params">
+      <li>Одно письмо раз в 2 дня, без ежедневного потока.</li>
+      <li>Путь курса: день 0 (welcome) → письма 1–5 (дни 2, 4, 6, 8, 10) → день 12 (финальный оффер). Всего день 0–12.</li>
+      <li>В каждом письме — один шаг, привязанный к сервису: добавить объект, поселить жильца, запланировать платёж, проверить статус. С аккаунтом шаги можно делать по ходу чтения.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>План курса по дням</h2>
+    <table>
+      <thead>
+        <tr><th>День</th><th>Ошибка</th><th>Шаг</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>0</td><td>— (welcome)</td><td>Выбрать одну квартиру для практики (+ регистрация, если аккаунта нет)</td></tr>
+        <tr><td>2</td><td>Устная договорённость вместо договора</td><td>Добавить объект</td></tr>
+        <tr><td>4</td><td>Залог без правил</td><td>Поселить жильца</td></tr>
+        <tr><td>6</td><td>«Оплата до 10-го числа» без времени и реквизитов</td><td>Запланировать платёж</td></tr>
+        <tr><td>8</td><td>Учёт «в голове» и разрозненных таблицах</td><td>Открыть аккаунт и проверить статус платежа</td></tr>
+        <tr><td>10</td><td>Документы живут в переписке</td><td>Контрольная точка: объект + жилец + платёж на месте</td></tr>
+        <tr><td>12</td><td>— (финальный оффер)</td><td>Зарегистрироваться / войти и завершить активацию</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Для кого</h2>
+    <p style="font-size:15.5px">Для арендодателя, который сдаёт квартиру и пока ведёт дело «по-простому» — под честное слово, по памяти и через чаты, — и ещё не зарегистрирован в Arendora. Тон курса — «опытный знакомый арендодатель»: полезно, по-человечески, без канцелярита.</p>
+  </div>
+
+  <div class="card">
+    <h2>Начать применять шаги</h2>
+    <p style="font-size:15.5px">Шаги писем привязаны к сервису: с аккаунтом Arendora их можно делать по ходу чтения — объект, жилец и платёж окажутся в одном окне.</p>
+    <a class="cta" href="https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=course-5-mistakes">Завести бесплатный аккаунт Arendora</a>
+    <p class="note">Бесплатный старт без карты · Отмена в любой момент</p>
+  </div>
+</div>
+
+<!-- Счётчик Яндекс.Метрики 113900461 (consent-aware загрузчик сайта). Допущение канцелярии для измеримости CTA: если платформа сама вставляет счётчик на этой странице — удалить этот блок, чтобы счётчик не задвоился -->
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока он не
+      // задан, счётчик не подключается вовсе: ни очереди ym, ни запросов
+      // к mc.yandex.ru (важно для dev и e2e-тестов). При отказе от cookie
+      // в баннере счётчик не подключается со следующего посещения.
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Шаблон договора найма квартиры: 12 защищающих пунктов — Arendora</title>
+<meta name="description" content="Готовый текст договора найма квартиры: 12 пунктов — предмет, срок, плата, залог, выезд, акт. Заполняемые поля и таблица типичных ошибок арендодателя.">
+<!--
+  Лид-магнит 1: «Шаблон договора найма квартиры — 12 пунктов, которые защищают»
+  Посадочная страница магнита. NT-013 (Глеб Строев), спринт запуска 2026-10-30, Release 1.
+  Источник текста — company/departments/marketing/sprint1/leadmagnet-contract-template.md;
+  текст шаблона, таблица и дисклеймер перенесены БЕЗ изменения фактов и формулировок.
+  Автономная страница: inline CSS, без внешних статических ресурсов (CDN, шрифты
+  по сети, картинки по URL и внешние JS/CSS запрещены) и без форм; единственная
+  внешняя ссылка — register-CTA с UTM из артефакта точь-в-точь (исключение по
+  заданию — consent-aware счётчик Метрики в конце body, см. ниже):
+  https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=contract
+  Стиль — в тон leadmagnet-profit-calculator.html (светлая тема, акцент #d97757,
+  стеки Georgia / Poppins,Arial без загрузки внешних шрифтов).
+  Счётчик Яндекс.Метрики — consent-aware inline-загрузчик в конце <body>, дословная
+  копия из company/departments/seo/shift-2026-10-30/pages/p02.html (строки 135–168,
+  закрывающий </script> — строка 169).
+  Запреты CEO соблюдены: лимит тарифа Free числом не упоминается, EN-версия не упоминается.
+-->
+<style>
+  :root{--dark:#141413;--light:#faf9f5;--gray:#e8e6dc;--accent:#d97757;--muted:#6b6a63;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--light);color:var(--dark);line-height:1.5}
+  .wrap{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  header{margin-bottom:8px}
+  .brand{font-family:Poppins,Arial,sans-serif;font-weight:600;letter-spacing:.5px;font-size:13px;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:Poppins,Arial,sans-serif;font-size:30px;line-height:1.2;margin:10px 0 6px}
+  .sub{color:var(--muted);margin-bottom:24px}
+  .card{background:#fff;border:1px solid var(--gray);border-radius:12px;padding:22px;margin-bottom:18px}
+  .card h2{font-family:Poppins,Arial,sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;color:var(--muted)}
+  .doc-title{font-family:Poppins,Arial,sans-serif;font-weight:600;font-size:17px;text-align:center;margin-bottom:4px}
+  .doc-line{text-align:center;color:var(--muted);margin-bottom:14px}
+  .party{margin:6px 0}
+  .clause{margin:14px 0}
+  .clause b{font-weight:600}
+  .why{display:block;font-style:italic;color:var(--muted);margin-top:4px;font-size:14.5px}
+  table{width:100%;border-collapse:collapse;font-size:14.5px}
+  th,td{border:1px solid var(--gray);padding:8px 10px;text-align:left;vertical-align:top}
+  th{font-family:Poppins,Arial,sans-serif;font-size:12.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);background:var(--light)}
+  .cta{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-family:Poppins,Arial,sans-serif;font-weight:600;padding:14px;border-radius:10px;margin-top:16px;font-size:16px}
+  .cta:hover{filter:brightness(.95)}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+  .disclaimer{font-size:13px;color:var(--muted);border-top:1px solid var(--gray);padding-top:14px;margin-top:4px}
+  @media(max-width:520px){h1{font-size:25px}.wrap{padding:24px 14px 56px}th,td{padding:7px 8px;font-size:13.5px}}
+</style>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Arendora</div>
+    <h1>Шаблон договора найма квартиры — 12 пунктов, которые защищают</h1>
+    <p class="sub">Готовый текст договора с заполняемыми полями ____ и таблицей «пункт — почему важен — типичная ошибка». Шаблон работает прямо на странице — без форм и регистрации.</p>
+  </header>
+
+  <div class="card">
+    <h2>Текст шаблона</h2>
+    <p class="doc-title">ДОГОВОР НАЙМА ЖИЛОГО ПОМЕЩЕНИЯ</p>
+    <p class="doc-line">г. __________ «___» __________ 20___ г.</p>
+    <p class="party"><b>Наймодатель:</b> ФИО, паспорт, адрес регистрации — ____</p>
+    <p class="party"><b>Наниматель:</b> ФИО, паспорт, адрес регистрации — ____</p>
+    <p class="party"><b>Проживающие совместно:</b> ____</p>
+
+    <p class="clause"><b>1. Предмет.</b> Наймодатель передаёт во временное пользование квартиру по адресу ____ (кадастровый № ____), пригодную для проживания, вместе с имуществом по описи (Приложение № 1).</p>
+
+    <p class="clause"><b>2. Срок найма.</b> С «___» ____ 20__ по «___» ____ 20__ г. Стороны уведомляют друг друга о непродлении за ____ дней до окончания срока.</p>
+
+    <p class="clause"><b>3. Плата за наём.</b> ____ ₽ в месяц. Оплата — до 20:00 ____ числа текущего месяца, реквизиты — в Приложении № 2. Первый платёж включает залог: ____ ₽.
+      <em class="why">Почему важно: точное время и реквизиты снимают спор «я заплатил/не заплатил».</em></p>
+
+    <p class="clause"><b>4. Порядок расчётов.</b> Плата за наём и коммунальные услуги взыскивается раздельно: наймодатель оплачивает ____; наниматель оплачивает ____ (счётчики фиксируются в акте приёма-передачи).</p>
+
+    <p class="clause"><b>5. Залог (обеспечительный платёж).</b> ____ ₽. Покрывает: ущерб имуществу, задолженность по плате/коммуналке. Не засчитывается как оплата последнего месяца. Возврат — в течение ____ дней после выезда и подписания акта, при отсутствии претензий.
+      <em class="why">Типичная ошибка: устное «залог = последний месяц».</em></p>
+
+    <p class="clause"><b>6. Права и обязанности нанимателя.</b> Использовать квартиру только для проживания, не сдавать в субаренду без письменного согласия, не перепланировать, соблюдать тишину по правилам региона.</p>
+
+    <p class="clause"><b>7. Права и обязанности наймодателя.</b> Передать квартиру и имущество в состоянии, пригодном для проживания, не менять замки и не посещать квартиру без согласия нанимателя (кроме аварий), производить капитальный ремонт.</p>
+
+    <p class="clause"><b>8. Досрочное расторжение.</b> Наниматель — с уведомлением за ____ дней; при выезде до конца срока плата за ____ дней ____ (вариант: удерживается из залога / не удерживается). Наймодатель — с уведомлением за ____ дней. Одностороннее изменение условий не допускается.</p>
+
+    <p class="clause"><b>9. Ответственность.</b> За просрочку платы — пеня ____% за каждый день просрочки (вариант: фиксированный штраф за каждый полный день просрочки — по договорённости сторон). За порчу имущества — возмещение по описи с учётом износа.</p>
+
+    <p class="clause"><b>10. Акт приёма-передачи.</b> Квартира и имущество передаются по Приложению № 1 (опись + фото + показания счётчиков). Возврат — по акту. Отсутствие претензий в акте = отсутствие оснований для удержаний из залога.</p>
+
+    <p class="clause"><b>11. Изменение условий.</b> Размер платы за наём может изменяться по соглашению сторон не чаще 1 раза в год и не ранее чем через ____ месяцев проживания. Уведомление — письменно (месседжер/почта, указанная в Приложении № 2).</p>
+
+    <p class="clause"><b>12. Прочее.</b> Споры — переговоры, при недостижении согласия — суд по месту нахождения квартиры. Договор составлен в 2 экземплярах. Неотъемлемые приложения: № 1 опись имущества, № 2 реквизиты и контакты, № 3 акт приёма-передачи.</p>
+
+    <p class="clause"><b>Подписи сторон:</b> ____ / ____</p>
+  </div>
+
+  <div class="card">
+    <h2>Пункт — почему важен — типичная ошибка</h2>
+    <table>
+      <thead>
+        <tr><th>Пункт</th><th>Почему важен</th><th>Типичная ошибка</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>3. Плата</td><td>Снимает спор о дате/факте оплаты</td><td>«Оплата до 10-го» без времени и реквизитов</td></tr>
+        <tr><td>5. Залог</td><td>Правила возврата до конфликта</td><td>Устные договорённости о «последнем месяце»</td></tr>
+        <tr><td>6. Субаренда</td><td>Защита от «пересдачи» квартиры</td><td>Пункт отсутствует</td></tr>
+        <tr><td>8. Досрочный выезд</td><td>Понятные последствия съезда «с сегодня»</td><td>Срок уведомления не указан</td></tr>
+        <tr><td>10. Акт</td><td>Единственный аргумент по ущербу</td><td>Сдача «по-простому», без описи и фото</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <a class="cta" href="https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=contract">Ведите договоры, платежи и жильцов в одном окне — Arendora</a>
+    <p class="note">Бесплатный старт без карты · Отмена в любой момент</p>
+  </div>
+
+  <p class="disclaimer">Шаблон — заготовка для типовой сдачи жилья. Не является юридической консультацией; перед подписанием проверьте актуальность норм</p>
+</div>
+
+<!-- Счётчик Яндекс.Метрики 113900461 (consent-aware загрузчик сайта). Допущение канцелярии для измеримости CTA: если платформа сама вставляет счётчик на этой странице — удалить этот блок, чтобы счётчик не задвоился -->
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока он не
+      // задан, счётчик не подключается вовсе: ни очереди ym, ни запросов
+      // к mc.yandex.ru (важно для dev и e2e-тестов). При отказе от cookie
+      // в баннере счётчик не подключается со следующего посещения.
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+</body>
+</html>

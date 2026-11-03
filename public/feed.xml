@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Генерируется скриптом scripts/generate-sitemap.mjs; руками не править. -->
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Блог Arendora</title>
+    <link>https://arendora.ru/blog</link>
+    <atom:link href="https://arendora.ru/feed.xml" rel="self" type="application/rss+xml"/>
+    <description>Как сдавать квартиру спокойно: жильцы, платежи, договоры, налоги и сервисы для арендодателей. Обновляется 2026-10-30.</description>
+    <language>ru</language>
+    <lastBuildDate>Fri, 30 Oct 2026 15:15:05 GMT</lastBuildDate>
+    <item>
+      <title>Залог при сдаче квартиры: сколько брать, как оформить и когда возвращать</title>
+      <link>https://arendora.ru/blog/zalog-pri-sdache-kvartiry</link>
+      <guid>https://arendora.ru/blog/zalog-pri-sdache-kvartiry</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Сколько брать залог при сдаче квартиры, как оформить обеспечительный платёж в договоре и когда его возвращать жильцу — с расчётами на цифрах и чек-листом.</description>
+    </item>
+    <item>
+      <title>Соседи жалуются на квартирантов: план действий для собственника</title>
+      <link>https://arendora.ru/blog/sosed-zhaluetsya-na-kvartiranta</link>
+      <guid>https://arendora.ru/blog/sosed-zhaluetsya-na-kvartiranta</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Соседи жалуются на квартирантов: план действий для собственника — разговор с жильцом, эскалация, пункт договора о тишине и профилактика конфликтов.</description>
+    </item>
+    <item>
+      <title>Самозанятость при сдаче квартиры: пошаговая инструкция на 2026 год</title>
+      <link>https://arendora.ru/blog/samozanyatost-sdacha-kvartiry</link>
+      <guid>https://arendora.ru/blog/samozanyatost-sdacha-kvartiry</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Как сдавать квартиру легально самозанятому: регистрация в «Мой налог», чеки на аренду, лимит 2,4 млн ₽, ставки 4% и 6%, когда выгоднее ИП на УСН или патент.</description>
+    </item>
+    <item>
+      <title>Посуточная аренда или долгосрочная: считаем экономику на реальных цифрах</title>
+      <link>https://arendora.ru/blog/posutochno-ili-dolgosrok</link>
+      <guid>https://arendora.ru/blog/posutochno-ili-dolgosrok</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Что выгоднее — посуточная аренда или долгосрочная: расчёт на условных цифрах, скрытые расходы, таблица сравнения, гибридная схема и нюансы налогов.</description>
+    </item>
+    <item>
+      <title>Договор найма квартиры: структура и 12 пунктов, из-за которых ссорятся</title>
+      <link>https://arendora.ru/blog/obrazec-dogovora-naima-kvartiry</link>
+      <guid>https://arendora.ru/blog/obrazec-dogovora-naima-kvartiry</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Договор найма квартиры между физлицами: структура и 12 пунктов — залог, коммуналка, доступ, индексация, расторжение. Формулировки и типичные ошибки 2026.</description>
+    </item>
+    <item>
+      <title>Кто должен делать ремонт в съёмной квартире: собственник или квартирант</title>
+      <link>https://arendora.ru/blog/kto-dolzhen-delat-remont</link>
+      <guid>https://arendora.ru/blog/kto-dolzhen-delat-remont</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Кто платит за ремонт в съёмной квартире — собственник или квартирант: нормы ГК РФ, техника, затопленные соседи, формулировки для договора и фиксация поломок.</description>
+    </item>
+    <item>
+      <title>Как поднять арендную плату и не потерять жильца</title>
+      <link>https://arendora.ru/blog/kak-povysit-arendnuyu-platu</link>
+      <guid>https://arendora.ru/blog/kak-povysit-arendnuyu-platu</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Как поднять арендную плату квартиранту и не потерять жильца — индексация в договоре, разговор по цифрам и расчёт, когда повышение невыгодно.</description>
+    </item>
+    <item>
+      <title>Автоматизация сдачи квартиры: что отдать сервису, а что оставить себе</title>
+      <link>https://arendora.ru/blog/avtomatizaciya-sdachi-kvartiry</link>
+      <guid>https://arendora.ru/blog/avtomatizaciya-sdachi-kvartiry</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Что автоматизировать в сдаче квартиры — график платежей, напоминания, заявки жильцов — а что оставить человеку: показы, выбор квартиранта, разговор о долге.</description>
+    </item>
+    <item>
+      <title>Arendora или Google Таблицы: что выбрать для учёта аренды квартир</title>
+      <link>https://arendora.ru/blog/arendora-vs-google-tablicy</link>
+      <guid>https://arendora.ru/blog/arendora-vs-google-tablicy</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Arendora или Google Таблицы: сравнение для арендодателя по задачам, цена пропущенного платежа и как переехать из таблиц за один вечер.</description>
+    </item>
+    <item>
+      <title>Акт приёма-передачи квартиры: зачем он нужен и что в него вписать</title>
+      <link>https://arendora.ru/blog/akt-priema-peredachi-kvartiry</link>
+      <guid>https://arendora.ru/blog/akt-priema-peredachi-kvartiry</guid>
+      <pubDate>Thu, 29 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Зачем нужен акт приёма-передачи квартиры при найме: показания счётчиков, ключи, техника, опись имущества, фотопротокол и порядок возврата залога.</description>
+    </item>
+    <item>
+      <title>Налоги со сдачи квартиры в 2026 году: самозанятый, ИП или физлицо</title>
+      <link>https://arendora.ru/blog/nalogi-so-sdachi-kvartiry</link>
+      <guid>https://arendora.ru/blog/nalogi-so-sdachi-kvartiry</guid>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Налоги со сдачи квартиры в 2026 году: самозанятый (4–6%), НДФЛ (13–22%), ИП на УСН (6% + взносы). Как считать доход и выдавать чеки.</description>
+    </item>
+    <item>
+      <title>Как выселить квартиранта законно: с договором и без — инструкция собственника</title>
+      <link>https://arendora.ru/blog/kak-vyselit-kvartiranta-zakonno</link>
+      <guid>https://arendora.ru/blog/kak-vyselit-kvartiranta-zakonno</guid>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Как законно выселить квартиранта: с договором найма и без него, через суд и без суда. Что говорит ГК РФ, чего нельзя делать собственнику и как защититься заранее.</description>
+    </item>
+    <item>
+      <title>Как проверить квартиранта перед сдачей квартиры: чек-лист за 20 минут без платных сервисов</title>
+      <link>https://arendora.ru/blog/kak-proverit-kvartiranta-pered-sdachey</link>
+      <guid>https://arendora.ru/blog/kak-proverit-kvartiranta-pered-sdachey</guid>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Как проверить квартиранта перед сдачей: паспорт МВД, долги ФССП, банкротство ЕФРСБ, суды. Бесплатный чек-лист проверки за 20 минут.</description>
+    </item>
+    <item>
+      <title>Квартирант не платит аренду: что делать собственнику — пошаговый план от разговора до суда</title>
+      <link>https://arendora.ru/blog/chto-delat-esli-kvartirant-ne-platit</link>
+      <guid>https://arendora.ru/blog/chto-delat-esli-kvartirant-ne-platit</guid>
+      <pubDate>Sun, 25 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Квартирант не платит аренду: пошаговый план собственника — разговор, претензия, расторжение, выселение. Что фиксировать и чего делать нельзя.</description>
+    </item>
+    <item>
+      <title>Как сдать квартиру в аренду: чек-лист собственника от подготовки до съезда жильца</title>
+      <link>https://arendora.ru/blog/sdat-kvartiru-v-arendu-cheklist</link>
+      <guid>https://arendora.ru/blog/sdat-kvartiru-v-arendu-cheklist</guid>
+      <pubDate>Sat, 24 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Чек-лист собственника: как сдать квартиру в аренду — подготовка, цена, показы, договор найма, залог, платежи и приём квартиры при съезде жильца.</description>
+    </item>
+    <item>
+      <title>Как выбрать программу для управления арендой недвижимости: варианты, критерии, чек-лист</title>
+      <link>https://arendora.ru/blog/programma-dlya-upravleniya-arendoy</link>
+      <guid>https://arendora.ru/blog/programma-dlya-upravleniya-arendoy</guid>
+      <pubDate>Sat, 17 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Как выбрать программу для управления арендой недвижимости: честное сравнение Excel, тетрадей, enterprise-систем и облачных сервисов плюс чек-лист из 10 критериев.</description>
+    </item>
+    <item>
+      <title>Учёт аренды в Excel и бумажном журнале: сколько это стоит собственнику и как перевести портфель в облако за 15 минут</title>
+      <link>https://arendora.ru/blog/uchet-arendy-v-excel</link>
+      <guid>https://arendora.ru/blog/uchet-arendy-v-excel</guid>
+      <pubDate>Sat, 10 Oct 2026 00:00:00 GMT</pubDate>
+      <description>Во что обходится учёт аренды в Excel на портфеле 100+ объектов и пошаговый чек-лист, как перевести недвижимость в облако за 15 минут.</description>
+    </item>
+  </channel>
+</rss>

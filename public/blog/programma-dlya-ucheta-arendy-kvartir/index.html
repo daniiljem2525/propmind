@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<!--
+  Release 2 — страница-ответ GEO «Программа для учёта аренды квартир» (слаг-проект).
+  NT-013 Глеб Строев (Инфраструктура), 2026-11-01. Бюджет 0 ₽.
+  Источник контента — company/departments/geo/sprint2/page-programma-ucheta-arendy-draft.md.
+  Единственная текстовая правка приёмки 2026-11-01 (acceptance-checklist-v2.md, «ПРАВКИ:
+  1 пункт») ВНЕСЕНА при вёрстке: п. 6 чек-листа — «минимальным платежом 3900 ₽/мес» →
+  «минимальным платежом 3900 ₽ и минимальным сроком оплаты 3 месяца» (в фактчеке
+  factcheck-rating-vendors.md:14,49 периодичность минимума не проставлена).
+  Служебные блоки («Пассажи», «Рекомендации по JSON-LD», «Зона SEO», «Служебная пометка»)
+  удалены при вёрстке. Вёрстка по замечаниям приёмки: добавлены ссылки на рейтинг
+  «Лучшие сервисы 2026» и статью «Учёт аренды в Excel» (перелинковка).
+  Оболочка — 1:1 по живому шаблону статьи блога (снапшот p27.html, деплой Release 1), отличия:
+    (1) статических тегов Метрики в <head> НЕТ — единый механизм счётчика = consent-aware
+        загрузчик в конце <body> (решение NT-001 Р4 от 2026-11-01; прецедент — магниты Release 1);
+    (2) скрипт приложения /assets/index-*.js НЕ подключается: новых слагов нет в роутере SPA,
+        при монтировании React заменил бы статический контент экраном «не найдено»;
+    (3) tag_phono.js (дубль на живых SPA-страницах, гигиена Р7.2 от 2026-11-01) не подключается;
+    (4) внутренние ссылки — без UTM (задание NT-013); CTA на https://arendora.ru/register — 1 на страницу;
+    (5) добавлен локальный стиль таблиц (в шаблоне статьи таблицы без рамок).
+  Слаг/URL — ПРОЕКТ до утверждения SEO (NT-001): https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir
+  Плейсхолдеры ПЕРЕД выкладкой (04-deploy-checklist.md, шаг 2):
+    2026-11-01 / 2026-11-01 — дата деплоя (видимый текст — «N ноября 2026 г.», JSON-LD — YYYY-MM-DD);
+    https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir/ в Article.mainEntityOfPage — финальный URL страницы.
+-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Программа для учёта аренды квартир: лестница цен по числу объектов, чек-лист из 7 пунктов перед покупкой и перенос из Excel. Сравните на своём портфеле.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js);
+          /  — коды подтверждения
+         Яндекс.Вебмастера и Search Console (пустые, пока не заданы в env). -->
+    <meta name="yandex-verification" content="">
+    <meta name="google-site-verification" content="">
+    <link rel="canonical" href="https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir">
+    <meta property="og:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Arendora: квартиры, платежи, жильцы — в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Программа для учёта аренды квартир: как выбрать (2026) — Arendora">
+    <meta property="og:description" content="Программа для учёта аренды квартир: лестница цен по числу объектов, чек-лист из 7 пунктов перед покупкой и перенос из Excel. Сравните на своём портфеле.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Arendora — управление недвижимостью без таблиц и хаоса">
+    <meta name="twitter:description" content="Запуск за 15 минут. Автосвязывание объектов, арендаторов и платежей. Бесплатно до 3 объектов.">
+    <title>Программа для учёта аренды квартир: как выбрать (2026) — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. Страницы Release 2 несут ровно
+         один Article и один FAQPage (задание релиза; правило S1.3 SEO: в разметке
+         только видимый на странице текст — FAQPage дословно совпадает с видимым FAQ).
+         Google отключил FAQ rich-результаты в мае 2026 — финальное решение по
+         FAQPage за SEO (NT-001); блок снимается одной строкой (скрипт
+         data-page-json-ld="2") без правки контента.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "logo": "https://arendora.ru/icon-512.png",
+          "email": "",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатно до 3 объектов и 3 арендаторов"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
+    <!-- Локальный стиль таблиц Release 2: рамки и отступы для читаемости сводных
+         таблиц (в шаблоне статьи таблицы оформлены не были). Цвета нейтральные —
+         читаемы в светлой и тёмной теме. -->
+    <style>
+      .r2-wrap{overflow-x:auto;margin-top:1rem}
+      .r2-wrap table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+      .r2-wrap th,.r2-wrap td{border:1px solid rgb(113 113 122 / .4);padding:8px 10px;text-align:left;vertical-align:top}
+      .r2-wrap th{font-weight:700;background:rgb(113 113 122 / .08)}
+      .r2-code{background:rgb(113 113 122 / .12);padding:2px 6px;border-radius:6px;white-space:nowrap}
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+          читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="stylesheet" crossorigin="" href="/assets/index-B7Bnr4t4.css">
+  <script type="application/ld+json" data-page-json-ld="1">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Программа для учёта аренды квартир: как выбрать под своё число объектов (2026)","description":"Программа для учёта аренды квартир: лестница цен по числу объектов, чек-лист из 7 пунктов перед покупкой и перенос из Excel. Сравните на своём портфеле.","datePublished":"2026-11-01","dateModified":"2026-11-01","inLanguage":"ru","mainEntityOfPage":"https://arendora.ru/blog/programma-dlya-ucheta-arendy-kvartir/","author":{"@type":"Organization","name":"Arendora","url":"https://arendora.ru/"},"publisher":{"@type":"Organization","name":"Arendora"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Arendora","item":"https://arendora.ru/"},{"@type":"ListItem","position":2,"name":"Блог Arendora","item":"https://arendora.ru/blog"},{"@type":"ListItem","position":3,"name":"Программа для учёта аренды квартир: как выбрать под своё число объектов (2026)"}]}]}</script><script type="application/ld+json" data-page-json-ld="2">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Сколько стоит программа для учёта аренды квартир?","acceptedAnswer":{"@type":"Answer","text":"По проверенным ценам 30–31.10.2026: от 0 ₽ (Excel; Arendora Free до 3 объектов и 3 арендаторов; Landlordy free-версия до 1 объекта) до 7 990 ₽/мес на портфеле 10–14 квартир (Arendora Business; АрендаSoft «до 50» — те же 7 990 ₽/мес); коммерческие системы дороже (Pro.rent — от 150 000 ₽/год)."}},{"@type":"Question","name":"Какая программа лучше для 1–2 квартир?","acceptedAnswer":{"@type":"Answer","text":"Если готовы напоминать себе о платежах сами — Excel, он бесплатен. Если нужны автоматические напоминания жильцам и подсветка просрочек — бесплатный тариф: Arendora Free (0 ₽, до 3 объектов и 3 арендаторов) или Landlordy free (1 объект, EN) (мнение редакции)."}},{"@type":"Question","name":"А на 10+ квартир?","acceptedAnswer":{"@type":"Answer","text":"Arendora Business — 7 990 ₽/мес до 14 объектов (проверено 31.10.2026); АрендаSoft — до 50 объектов за 7 990 ₽/мес, но её профиль — коммерческие объекты. 15+ жилых квартир: у Arendora проверенного тарифа нет («Индивидуальный» — по запросу)."}},{"@type":"Question","name":"Чем программа для жилой долгосрочки отличается от коммерческой?","acceptedAnswer":{"@type":"Answer","text":"Жилая: платежи жильцов, напоминания, просрочки, документы, заявки. Коммерческая: площади и ставки, коммуналка, пени-претензии, экспорт в 1С. Выбор «не того класса» — самая частая ошибка: коммерческие системы дороже и избыточны для частника."}},{"@type":"Question","name":"Что проверить про 152-ФЗ?","acceptedAnswer":{"@type":"Answer","text":"Заявляет ли вендор хранение персональных данных в РФ. Arendora заявляет; Landlordy хранит данные локально на устройстве; Stessa и Hemlane привязаны к банковской системе США и 152-ФЗ не заявляют — уточнять у вендора."}},{"@type":"Question","name":"Можно ли перенести учёт из Excel?","acceptedAnswer":{"@type":"Answer","text":"У Arendora заявлены CSV-импорт и демо-данные со стартом за 15 минут; у остальных проверенных вендоров импорт из Excel на проверенных страницах не подтверждён — уточняйте до покупки."}},{"@type":"Question","name":"Есть ли бесплатные программы?","acceptedAnswer":{"@type":"Answer","text":"Да: Excel (если лицензия уже есть), Arendora Free (0 ₽, до 3 объектов и 3 арендаторов), Landlordy free-версия (1 объект). «Демо» и «триал» бесплатным тарифом не считаются: у MaxiBooking триал 15 дней, у Bnovo демо-кабинет — это временный доступ."}}]}</script><link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/blog" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Ко всем материалам</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Программа для учёта аренды квартир: как выбрать под своё число объектов (2026)</h1><p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground"><span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days h-4 w-4"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Обновлено 2026-11-01</span><span>Arendora</span></p><div class="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&amp;_a]:text-primary [&amp;_h2]:mt-8 [&amp;_h2]:text-2xl [&amp;_h2]:font-bold [&amp;_h3]:mt-6 [&amp;_h3]:text-xl [&amp;_h3]:font-bold [&amp;_li]:ml-5 [&amp;_li]:list-disc [&amp;_strong]:font-bold"><p>Опубликовано: 2026-10-31 · Обновлено: 2026-10-31 · Цены и лимиты проверены по сайтам вендоров: 30–31 октября 2026</p>
+<h2>Короткий ответ</h2>
+<p>Программа для учёта аренды квартир выбирается по двум параметрам — <strong>типу аренды</strong> и <strong>числу объектов</strong>. На проверенных ценах (30–31.10.2026) честная лестница выглядит так:</p>
+<ul>
+<li><strong>1–3 квартиры:</strong> <a href="https://arendora.ru/blog/uchet-arendy-v-excel">Excel</a> (0 ₽, но всё вручную) или бесплатный тариф — Arendora Free (0 ₽, до 3 объектов и 3 арендаторов, напоминания жильцам и подсветка просрочек); из проверенных EN-альтернатив — Landlordy free-версия (1 объект, данные локально на устройстве).</li>
+<li><strong>4–8 квартир:</strong> Arendora Start — 990 ₽/мес (до 4 объектов) или Pro — 2 990 ₽/мес (до 8).</li>
+<li><strong>9–14 квартир:</strong> Arendora Business — 7 990 ₽/мес (до 14) или АрендаSoft «до 10 объектов» — 1 990 ₽/мес; честно: АрендаSoft дешевле, но её функциональность заявлена для коммерческих объектов (склады, торговые площади), а не жилой долгосрочки.</li>
+<li><strong>15+ квартир:</strong> у Arendora проверенного тарифа нет (тариф «Индивидуальный» — цена по запросу, не проверена); у АрендаSoft — до 50 объектов за 7 990 ₽/мес (3 пользователя).</li>
+</ul>
+<p>Единственный специализированный вариант для жилой долгосрочки в проверенном списке — Arendora; остальные проверенные системы либо про коммерцию (АрендаSoft, EasyRent, Pro.rent, ODIN), либо EN-продукты для рынка США (Landlordy, Stessa, Hemlane), либо ручной Excel.</p>
+<h2>Чек-лист выбора: 7 пунктов перед покупкой</h2>
+<ol>
+<li><strong>Тип аренды.</strong> Долгосрочка, посуточная и коммерция — три разных класса ПО. Программы для долгосрока считают платежи и просрочки; PMS для посуточной — бронирования и синхронизацию с площадками; коммерческие системы — площади, ставки, дебиторку и 1С.</li>
+<li><strong>Число объектов сейчас и через год.</strong> Смотрите лимиты тарифа, а не «от»: у Arendora — 3/4/8/14 объектов по тарифам (проверено 31.10.2026), у АрендаSoft — 10/50/300. Если портфель растёт, проверяйте цену следующего лимита заранее.</li>
+<li><strong>Напоминания и просрочки — автоматические или вручную.</strong> В проверенных формулировках: Arendora — «Напоминания жильцам, автопросрочки и график на год»; АрендаSoft — «Автоматические уведомления о задолженностях по SMS, E-mail и с помощью автообзвона»; Landlordy — track rent payments.</li>
+<li><strong>Импорт существующей таблицы.</strong> У Arendora заявлен CSV-импорт и старт с демо-данными за 15 минут; у остальных проверенных вендоров импорт из Excel на проверенных страницах не подтверждён — уточняйте у вендора до покупки.</li>
+<li><strong>Где хранятся данные.</strong> Для РФ актуально соответствие 152-ФЗ (персональные данные граждан РФ хранятся в РФ): Arendora заявляет хранение в РФ; зарубежные сервисы (Landlordy, Stessa, Hemlane) 152-ФЗ не заявляют — данные Landlordy вообще хранятся локально на устройстве.</li>
+<li><strong>Полная стоимость портфеля, а не «цена от».</strong> Пример из проверенных цен: у Bnovo тариф «300 ₽/номер/мес» идёт с минимальным платежом 3900 ₽ и минимальным сроком оплаты 3 месяца — «от» без минимума обманчиво. Считайте цену на весь портфель.</li>
+<li><strong>Поддержка и срок ответа.</strong> Arendora: , ответ 1–2 рабочих дня (заявлено); по остальным вендорам проверенные страницы условий поддержки не раскрывают — уточняйте.</li>
+</ol>
+<h2>Сводная таблица вариантов (проверено 30–31.10.2026)</h2>
+<div class="r2-wrap"><table>
+  <thead>
+    <tr><th>Вариант</th><th>Класс / для кого</th><th>Цена и лимиты (проверено)</th><th>Статус проверки</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Arendora</strong> (наш продукт)</td><td>Жилая долгосрочка, частники и малые УК</td><td>Free — 0 ₽ (до 3 объектов и 3 арендаторов); Start — 990 ₽/мес (до 4 объектов); Pro — 2 990 ₽/мес (до 8); Business — 7 990 ₽/мес (до 14); годовая −17%; «Индивидуальный» — по запросу (цена не проверена). Функции: автосвязи «объект ↔ жилец ↔ платёж», годовой график, просрочки и напоминания, заявки, документы, аналитика; 152-ФЗ; RU/EN; CSV-импорт, старт 15 минут; веб + PWA (нативного приложения нет)</td><td>ПОДТВЕРЖДЕНО (тарифы 2026-10-30; лимиты 2026-10-31)</td></tr>
+    <tr><td>Excel / Google Sheets</td><td>Ручной учёт, любой масштаб</td><td>Бесплатно (при имеющейся лицензии); лимиты — ваши же</td><td>Характеристика класса</td></tr>
+    <tr><td>АрендаSoft</td><td>Коммерческие объекты (офисы, склады, торговые площади); для жилой долгосрочки не позиционируется</td><td>До 10 объектов — 1990 ₽/мес (1 польз.); до 50 — 7990 ₽/мес (3); до 300 — 12 990 ₽/мес (5); скидки годовых периодов −10/−15/−20%; бесплатного тарифа нет</td><td>ПОДТВЕРЖДЕНО (2026-10-30)</td></tr>
+    <tr><td>EasyRent (EasySoftware)</td><td>ТЦ, бизнес-центры, склады; агентства</td><td>Базовая версия — 14 900 ₽ разово + 300 ₽/мес за пользователя; лимиты объектов базовой версии не проверены</td><td>ПОДТВЕРЖДЕНО (2026-10-30)</td></tr>
+    <tr><td>Landlordy (EN)</td><td>Малые портфели, самостоятельные арендодатели (EN-рынок)</td><td>Free-версия: 1 объект/1 договор; Premium Mini/Plus/Pro — цены только внутри приложения (зависят от страны); iOS 16.4+/Android 10+; данные локально</td><td>ПОДТВЕРЖДЕНО (2026-10-31)</td></tr>
+    <tr><td>Планировщик Аренды (Rental Planner)</td><td>Универсальное (объекты «от недвижимости до яхт»), короткие и длинные сроки</td><td>Free + встроенные покупки: Premium 5,99 $/мес … 39,99 $/год; Business 34,99 $/мес, 199,99 $/год; iOS</td><td>ПОДТВЕРЖДЕНО (2026-10-31)</td></tr>
+    <tr><td>Pro.rent</td><td>Коммерческая недвижимость</td><td>Годовые пакеты 150 000 / 350 000 / 500 000 ₽; коробка 1 600 000 ₽; без НДС 5%</td><td>ПОДТВЕРЖДЕНО (2026-10-30)</td></tr>
+  </tbody>
+</table></div>
+<p>Не включены: посуточные PMS (RealtyCalendar, Bnovo, MaxiBooking — другой класс, см. <a href="https://arendora.ru/blog/luchshie-servisy-dlya-arendodateley-2026">наш рейтинг сервисов</a>), ODIN и EstateCRM (enterprise-коммерция), Stessa и Hemlane (рынок США), «Мой Арендатор» и «СчётЧек» (первоисточники не подтверждены — по ним утверждений не делаем).</p>
+<h2>Excel или программа: как посчитать на себе</h2>
+<p>Честно: публичных измерений, сколько времени занимает ручной учёт одной квартиры в месяц, нет — мы не будем называть выдуманные часы. Арифметику можно сделать на своих данных за 10 минут:</p>
+<p><code class="r2-code">цена вашего часа × (минуты на учёт 1 квартиры в месяц ÷ 60) × число квартир</code> — это стоимость ручного учёта. Сравните с ценой подписки, покрывающей портфель. Логика из нашей внутренней расчётной модели (допущения открыты, публикация — после фактических замеров): <strong>порог окупаемости подписки снижается обратно пропорционально числу квартир</strong> — при 1 квартире платный сервис по чистой арифметике времени окупается редко, при 10+ — почти всегда; бесплатный тариф снимает денежный вопрос при малом портфеле.</p>
+<h2>FAQ: частые вопросы</h2>
+<h3>Сколько стоит программа для учёта аренды квартир?</h3>
+<p>По проверенным ценам 30–31.10.2026: от 0 ₽ (Excel; Arendora Free до 3 объектов и 3 арендаторов; Landlordy free-версия до 1 объекта) до 7 990 ₽/мес на портфеле 10–14 квартир (Arendora Business; АрендаSoft «до 50» — те же 7 990 ₽/мес); коммерческие системы дороже (Pro.rent — от 150 000 ₽/год).</p>
+<h3>Какая программа лучше для 1–2 квартир?</h3>
+<p>Если готовы напоминать себе о платежах сами — Excel, он бесплатен. Если нужны автоматические напоминания жильцам и подсветка просрочек — бесплатный тариф: Arendora Free (0 ₽, до 3 объектов и 3 арендаторов) или Landlordy free (1 объект, EN) (мнение редакции).</p>
+<h3>А на 10+ квартир?</h3>
+<p>Arendora Business — 7 990 ₽/мес до 14 объектов (проверено 31.10.2026); АрендаSoft — до 50 объектов за 7 990 ₽/мес, но её профиль — коммерческие объекты. 15+ жилых квартир: у Arendora проверенного тарифа нет («Индивидуальный» — по запросу).</p>
+<h3>Чем программа для жилой долгосрочки отличается от коммерческой?</h3>
+<p>Жилая: платежи жильцов, напоминания, просрочки, документы, заявки. Коммерческая: площади и ставки, коммуналка, пени-претензии, экспорт в 1С. Выбор «не того класса» — самая частая ошибка: коммерческие системы дороже и избыточны для частника.</p>
+<h3>Что проверить про 152-ФЗ?</h3>
+<p>Заявляет ли вендор хранение персональных данных в РФ. Arendora заявляет; Landlordy хранит данные локально на устройстве; Stessa и Hemlane привязаны к банковской системе США и 152-ФЗ не заявляют — уточнять у вендора.</p>
+<h3>Можно ли перенести учёт из Excel?</h3>
+<p>У Arendora заявлены CSV-импорт и демо-данные со стартом за 15 минут; у остальных проверенных вендоров импорт из Excel на проверенных страницах не подтверждён — уточняйте до покупки.</p>
+<h3>Есть ли бесплатные программы?</h3>
+<p>Да: Excel (если лицензия уже есть), Arendora Free (0 ₽, до 3 объектов и 3 арендаторов), Landlordy free-версия (1 объект). «Демо» и «триал» бесплатным тарифом не считаются: у MaxiBooking триал 15 дней, у Bnovo демо-кабинет — это временный доступ.</p>
+<p>Платных размещений нет (бюджет 0 ₽); при ошибке — , поправим с датой обновления.</p>
+<p><strong>Автор: редакция Arendora (GEO-отдел)</strong></p></div><div class="mt-12 rounded-lg border bg-card p-6"><p class="font-bold">Попробуйте Arendora бесплатно</p><p class="mt-1 text-sm text-muted-foreground">До 3 объектов — бесплатно и навсегда. Демо-данные в один клик.</p><button class="inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 brand-gradient text-white shadow-sm hover:opacity-90 h-10 px-4 py-2 mt-4"><a href="https://arendora.ru/register" data-discover="true">Попробовать бесплатно<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></button></div><div class="mt-10"><h2 class="text-lg font-bold">Другие материалы</h2><div class="mt-4 grid gap-4 sm:grid-cols-2"><a href="/blog/obrazec-dogovora-naima-kvartiry" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Договор найма квартиры: структура и 12 пунктов, из-за которых ссорятся</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Договор найма квартиры между физлицами: структура и 12 пунктов — залог, коммуналка, доступ, индексация. Формулировки и типичные ошибки 2026.</p></div></a><a href="/blog/posutochno-ili-dolgosrok" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Посуточная аренда или долгосрочная: считаем экономику на реальных цифрах</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Что выгоднее — посуточная аренда или долгосрочная: расчёт на условных цифрах, скрытые расходы, таблица сравнения, гибридная схема и нюансы налогов.</p></div></a></div></div></article></div><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Необходимые cookie хранят вход в аккаунт и настройки; обезличенная статистика посещений собирается Яндекс.Метрикой. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      window.addEventListener("error", (e) => {
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм счётчика
+      // на этой странице (решение NT-001 Р4 от 2026-11-01: один механизм загрузки
+      // tag.js на весь сайт; статических тегов в <head> нет). Копия загрузчика —
+      // из живого шаблона статьи блога (снапшот p27.html, деплой Release 1).
+      // При отказе от cookie в баннере счётчик не подключается со следующего
+      // посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+
+
+</body></html>
