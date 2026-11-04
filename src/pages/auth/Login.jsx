@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import SocialAuth from "@/components/auth/SocialAuth";
-import ConsentCheckbox from "@/components/auth/ConsentCheckbox";
 import { mapAuthError } from "@/components/auth/mapAuthError";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
@@ -55,7 +54,6 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
 
@@ -81,7 +79,8 @@ export default function Login() {
     e.preventDefault();
     setError("");
     if (!email || !password) return setError(t("auth.errors.required"));
-    if (!consent) return setError(t("auth.errors.consentRequired"));
+    // Согласие на обработку ПДн берётся один раз при регистрации (152-ФЗ),
+    // поэтому на входе существующего пользователя галка не требуется — замечание CEO 04.11.
     setLoading(true);
     try {
       await login(email, password);
@@ -161,8 +160,6 @@ export default function Login() {
             </button>
           </div>
         </Field>
-
-        <ConsentCheckbox checked={consent} onChange={setConsent} />
 
         {error && <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">{error}</p>}
 

@@ -146,7 +146,6 @@ export default function TenantPortal() {
     }
   };
 
-  // Просрочки сверху, затем ожидающие, затем история
   const [payingId, setPayingId] = useState(null);
 
   // Онлайн-оплата жильцом: RPC проверяет платёж, ставит «оплачен»
@@ -164,13 +163,11 @@ export default function TenantPortal() {
     }
   };
 
-  const sortedPayments = useMemo(() => {
-    const rank = (s) => (s === "overdue" ? 0 : s === "pending" ? 1 : s === "partial" ? 2 : 3);
-    return [...myPayments].sort((a, b) => {
-      if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
-      return (b.due_date || "").localeCompare(a.due_date || "");
-    });
-  }, [myPayments]);
+  // Хронология по дате платежа: старейшие (просрочки) сверху, будущие по порядку — замечание CEO 04.11
+  const sortedPayments = useMemo(
+    () => [...myPayments].sort((a, b) => (a.due_date || "").localeCompare(b.due_date || "")),
+    [myPayments]
+  );
 
   // Подключение к арендодателю по его персональному коду
   const [code, setCode] = useState("");

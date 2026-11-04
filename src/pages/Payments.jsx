@@ -333,13 +333,17 @@ export default function Payments() {
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
-    return payments.filter((p) => {
-      const matchesQ =
-        !query ||
-        (p.tenant_name || "").toLowerCase().includes(query) ||
-        (p.property_name || "").toLowerCase().includes(query);
-      return matchesQ && (status === "all" || p.status === status);
-    });
+    return payments
+      .filter((p) => {
+        const matchesQ =
+          !query ||
+          (p.tenant_name || "").toLowerCase().includes(query) ||
+          (p.property_name || "").toLowerCase().includes(query);
+        return matchesQ && (status === "all" || p.status === status);
+      })
+      // Хронология по дате платежа: просрочки (старейшие) сверху, будущие по порядку —
+      // замечание CEO 04.11 (БД отдавала строки по дате создания, даты шли вразброс)
+      .sort((a, b) => (a.due_date || "").localeCompare(b.due_date || ""));
   }, [payments, q, status]);
 
   const periodLabel = (p) =>
@@ -526,11 +530,8 @@ export default function Payments() {
 
   // Жилец: только свои платежи, без кнопок управления
   if (user?.role === "tenant") {
-    const rank = (s) => (s === "overdue" ? 0 : s === "pending" ? 1 : s === "partial" ? 2 : 3);
-    const own = [...payments].sort((a, b) => {
-      if (rank(a.status) !== rank(b.status)) return rank(a.status) - rank(b.status);
-      return (b.due_date || "").localeCompare(a.due_date || "");
-    });
+    // Хронология по дате платежа: старейшие (просрочки) сверху, будущие по порядку — замечание CEO 04.11
+    const own = [...payments].sort((a, b) => (a.due_date || "").localeCompare(b.due_date || ""));
     return (
       <div className="animate-fade-in">
         <PageHeader title={t("nav.payments")} subtitle={t("portal.paymentsSub")} />
