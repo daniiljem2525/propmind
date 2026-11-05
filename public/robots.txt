@@ -1,8 +1,40 @@
 # __BASE__ и __SITE_URL__ заменяются на этапе сборки (vite.config.js):
 # для GitHub Pages это /propmind/ и https://daniiljem2525.github.io/propmind/
+
+# --- ИИ-ассистенты и answer-движки: доступ явно разрешён -------------------
+# ChatGPT/Perplexity/Claude и другие нейросети собирают ответы по своим
+# краулерам. Гарантированный доступ — необходимое условие, чтобы сервис
+# упоминался и цитировался в ответах («программа для управления арендой»).
+# Отдельные группы не наследуют правила «User-agent: *».
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-User
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: Google-Extended
+User-agent: Applebot
+User-agent: Applebot-Extended
+User-agent: Meta-ExternalAgent
+User-agent: Meta-ExternalFetcher
+User-agent: MistralAI-User
+User-agent: YouBot
+User-agent: Amazonbot
+User-agent: Diffbot
+User-agent: cohere-ai
+User-agent: Bytespider
+Allow: /
+
+# --- Все остальные роботы, включая Googlebot и Яндекс-ботов ---------------
 User-agent: *
 Allow: /
 Disallow: __BASE__app
+
+# Машинно-читаемая сводка о продукте для языковых моделей.
+# See: https://llmstxt.org
+# __SITE_URL__llms.txt
 
 # Яндекс: не склеивать страницы по рекламным/трекинговым меткам.
 # Google директиву игнорирует — безвредно.

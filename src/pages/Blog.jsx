@@ -124,8 +124,11 @@ export function BlogPost() {
   const { t, lang } = useLang();
   const { slug } = useParams();
   const post = useMemo(() => getPosts().find((p) => p.slug === slug), [slug]);
+  // Per-article OG-картинка /img/og/<slug>.jpg — синхронно с правкой прода
+  // 05.11 (вместо общего og-cover.jpg); файлы лежат в public/img/og/ на проде.
+  const ogImage = post ? absUrl(`/img/og/${post.slug}.jpg`) : null;
   // Хук до условного возврата: правила хуков не зависят от того, найден ли пост
-  usePageMeta(post ? `${post.title} — Arendora` : null, post?.excerpt, post ? `/blog/${post.slug}` : null);
+  usePageMeta(post ? `${post.title} — Arendora` : null, post?.excerpt, post ? `/blog/${post.slug}` : null, ogImage);
 
   // Article — расширенный сниппет в Google; Яндекс его игнорирует, но не
   // наказывает. BreadcrumbList поддерживают оба поисковика.
@@ -138,11 +141,14 @@ export function BlogPost() {
               "@type": "Article",
               headline: post.title,
               description: post.excerpt,
+              image: ogImage,
               datePublished: post.date || undefined,
               dateModified: post.date || undefined,
               inLanguage: lang,
               author: { "@type": "Organization", name: SITE_NAME, url: absUrl("/") },
-              publisher: { "@type": "Organization", name: SITE_NAME },
+              // Логотип publisher обязателен для расширенного сниппета Article
+              // (фикс прода 05.11: был невалидный JSON без Organization-обёртки)
+              publisher: { "@type": "Organization", name: SITE_NAME, logo: absUrl("/icon-192.png") },
             },
             {
               "@type": "BreadcrumbList",

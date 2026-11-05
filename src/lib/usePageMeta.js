@@ -37,7 +37,10 @@ function setCanonical(href) {
   el.setAttribute("href", href);
 }
 
-export function usePageMeta(title, description, path) {
+// Четвёртый аргумент — per-page og:image/twitter:image (синхронно с правкой
+// прода 05.11: у каждой статьи блога своя картинка /img/og/<slug>.jpg вместо
+// общего og-cover.jpg). Без аргумента остаются дефолтные меты из index.html.
+export function usePageMeta(title, description, path, image) {
   useEffect(() => {
     if (title) {
       document.title = title;
@@ -58,7 +61,11 @@ export function usePageMeta(title, description, path) {
       setCanonical(url);
       setMeta("property", "og:url", url);
     }
-  }, [title, description, path]);
+    if (image) {
+      setMeta("property", "og:image", image);
+      setMeta("name", "twitter:image", image);
+    }
+  }, [title, description, path, image]);
 }
 
 // JSON-LD для конкретной страницы (Article, BreadcrumbList и т.п.):
