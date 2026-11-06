@@ -498,19 +498,10 @@ export default function Landing() {
   );
 }
 
-// ——— Видео работы всей системы (плавные кроссфейды) + живая лента событий ———
+// ——— Видео работы всей системы ———
+// «Прямой эфир платформы» удалён решением CEO 2026-11-04: события были
+// демонстрационными, подлинность данных не подтверждена.
 function HeroVideo() {
-  const { t } = useLang();
-  const [feedIdx, setFeedIdx] = useState(0);
-
-  const events = [t("land.feed1"), t("land.feed2"), t("land.feed3"), t("land.feed4"), t("land.feed5")];
-
-  useEffect(() => {
-    const timer = setInterval(() => setFeedIdx((v) => (v + 1) % events.length), 2600);
-    return () => clearInterval(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <div className="relative mx-auto mt-14 max-w-4xl text-left">
       <div className="rounded-lg border bg-card p-3 shadow-card-hover sm:p-4">
@@ -529,20 +520,6 @@ function HeroVideo() {
           poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg?v=2`}
           src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4?v=2`}
         />
-      </div>
-
-      <div className="mt-3 flex items-center gap-3 rounded-lg border bg-card px-4 py-3 shadow-card">
-        <span className="relative flex h-2.5 w-2.5 shrink-0">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-        </span>
-        <span className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("land.feedTitle")}
-        </span>
-        <span key={feedIdx} className="min-w-0 flex-1 animate-fade-in truncate text-sm">
-          {events[feedIdx]}
-        </span>
-        <span className="shrink-0 text-[11px] text-muted-foreground">{t("land.feedJustNow")}</span>
       </div>
     </div>
   );

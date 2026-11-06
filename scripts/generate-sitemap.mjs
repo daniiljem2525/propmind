@@ -42,12 +42,14 @@ const EXTRA_PAGES = [
   { loc: "magnit-dogovor", lastmod: "2026-11-01" },
   { loc: "magnit-kalkulyator", lastmod: "2026-11-01" },
   { loc: "magnit-kurs", lastmod: "2026-11-01" },
-  { loc: "blog/luchshie-servisy-dlya-arendodateley-2026", lastmod: "2026-11-01" },
-  { loc: "blog/servisy-upravleniya-arendoy-nedvizhimostyu", lastmod: "2026-11-01" },
+  // lastmod 2026-11-05: retargeting заголовков + FAQ «арендор» (синхронно с правкой прода 05.11)
+  { loc: "blog/luchshie-servisy-dlya-arendodateley-2026", lastmod: "2026-11-05" },
+  { loc: "blog/servisy-upravleniya-arendoy-nedvizhimostyu", lastmod: "2026-11-05" },
   { loc: "blog/programma-dlya-ucheta-arendy-kvartir", lastmod: "2026-11-01" },
   { loc: "blog/prilozhenie-dlya-arendodatelya", lastmod: "2026-11-01" },
   { loc: "blog/kak-avtomatizirovat-sdachu-kvartiry", lastmod: "2026-11-01" },
   { loc: "features/uchet-platezhey", lastmod: "2026-11-01" },
+  { loc: "features/dlya-arendodatelya", lastmod: "2026-11-05" },
 ];
 
 function frontMatterDate(md) {
@@ -80,7 +82,7 @@ const LIVE_ONLY_BLOG = [
   { loc: "blog/kto-dolzhen-delat-remont", lastmod: "2026-10-29" },
   { loc: "blog/kak-povysit-arendnuyu-platu", lastmod: "2026-10-29" },
   { loc: "blog/avtomatizaciya-sdachi-kvartiry", lastmod: "2026-10-29" },
-  { loc: "blog/arendora-vs-google-tablicy", lastmod: "2026-10-29" },
+  { loc: "blog/arendora-vs-google-tablicy", lastmod: "2026-11-06" },
   { loc: "blog/akt-priema-peredachi-kvartiry", lastmod: "2026-10-29" },
 ];
 
