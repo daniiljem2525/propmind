@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { todayISO, addDaysISO } from "@/lib/utils";
 import {
   reminderState,
   nextOpenPayment,
@@ -8,6 +9,8 @@ import {
 } from "@/lib/reminders";
 
 const TODAY = "2026-11-01";
+// Реальное «сегодня» для тестов paymentSummary: он берёт дату из системы
+const TODAY_REAL = todayISO();
 
 const pay = (over = {}) => ({
   id: "p1",
@@ -54,11 +57,12 @@ describe("reminderState — бейдж напоминания", () => {
 });
 
 describe("nextOpenPayment / lastPaidPayment — даты у жильцов и объектов", () => {
+  // Даты относительные: тест не должен «протухать» с наступлением календарного дня
   const list = [
-    pay({ id: "a", due_date: "2026-12-01" }),
-    pay({ id: "b", due_date: "2026-11-05", tenant_id: "t2" }),
-    pay({ id: "c", due_date: "2026-11-03", status: "paid", paid_date: "2026-11-02" }),
-    pay({ id: "d", due_date: "2026-10-20", status: "overdue" }),
+    pay({ id: "a", due_date: addDaysISO(TODAY_REAL, 30) }),
+    pay({ id: "b", due_date: addDaysISO(TODAY_REAL, 2), tenant_id: "t2" }),
+    pay({ id: "c", due_date: addDaysISO(TODAY_REAL, -2), status: "paid", paid_date: addDaysISO(TODAY_REAL, -3) }),
+    pay({ id: "d", due_date: addDaysISO(TODAY_REAL, -12), status: "overdue" }),
   ];
 
   it("следующий незакрытый платёж — с минимальной датой среди открытых", () => {
@@ -68,7 +72,7 @@ describe("nextOpenPayment / lastPaidPayment — даты у жильцов и о
   });
 
   it("последняя оплата — максимум paid_date", () => {
-    expect(lastPaidPayment(list)).toMatchObject({ id: "c", paid_date: "2026-11-02" });
+    expect(lastPaidPayment(list)).toMatchObject({ id: "c", paid_date: addDaysISO(TODAY_REAL, -3) });
     expect(lastPaidPayment(list, { tenantId: "t2" })).toBeNull();
   });
 

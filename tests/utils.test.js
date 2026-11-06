@@ -7,6 +7,7 @@ import {
   addDaysISO,
   daysUntil,
   initials,
+  nightsBetween,
 } from "@/lib/utils";
 
 describe("uid", () => {
@@ -66,5 +67,23 @@ describe("initials", () => {
 
   it("без имени — заглушка", () => {
     expect(initials("")).toBe("?");
+  });
+});
+
+describe("nightsBetween", () => {
+  it("считает ночи между заездом и выездом", () => {
+    expect(nightsBetween("2026-11-06", "2026-11-09")).toBe(3);
+    expect(nightsBetween("2026-11-06", "2026-11-07")).toBe(1);
+  });
+
+  it("выезд раньше заезда или в тот же день — 0 (валидация на форме)", () => {
+    expect(nightsBetween("2026-11-09", "2026-11-06")).toBe(0);
+    expect(nightsBetween("2026-11-06", "2026-11-06")).toBe(0);
+  });
+
+  it("пустые даты — 0", () => {
+    expect(nightsBetween("", "2026-11-09")).toBe(0);
+    expect(nightsBetween("2026-11-06", "")).toBe(0);
+    expect(nightsBetween(null, null)).toBe(0);
   });
 });

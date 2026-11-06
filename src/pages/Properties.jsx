@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Building2, ChevronDown, FileUp, MapPin, Pencil, Plus, Search, Sparkles, Trash2, User } from "lucide-react";
+import { Building2, CalendarDays, ChevronDown, FileUp, MapPin, Pencil, Plus, Search, Sparkles, Trash2, User } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import EmptyState from "@/components/EmptyState";
 import StatusBadge from "@/components/StatusBadge";
@@ -14,7 +14,7 @@ import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoExitGate } from "@/hooks/useDemoExitGate";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { isDemoSeen } from "@/lib/demo";
-import { Property, Payment } from "@/lib/api/entities";
+import { Property, Payment, Booking } from "@/lib/api/entities";
 import PaymentReminderBadge from "@/components/PaymentReminderBadge";
 import { paymentSummary } from "@/lib/reminders";
 import { useLang } from "@/lib/i18n/LangContext";
@@ -24,9 +24,10 @@ import { CURRENCIES } from "@/lib/config/misc";
 import { parseCSV } from "@/lib/csv";
 import UpsellDialog from "@/components/UpsellDialog";
 import CleaningDialog from "@/components/CleaningDialog";
+import BookingsDialog from "@/components/BookingsDialog";
 import { useAuth } from "@/lib/authContext";
 import { getPlanLimits } from "@/lib/config/misc";
-import { addMonthsISO, cn, formatDate, formatMoney, todayISO } from "@/lib/utils";
+import { addMonthsISO, cn, formatDate, formatMoney, nightsBetween, todayISO } from "@/lib/utils";
 
 const TYPE_OPTIONS = Object.keys(PROPERTY_TYPE_CONFIG);
 const STATUS_OPTIONS = ["vacant", "rented", "maintenance", "inactive"];
@@ -156,8 +157,18 @@ function PropertyFormDialog({ open, onClose, property }) {
           <Field label={t("properties.address")} required>
             <Input value={form.address} onChange={set("address")} placeholder={lang === "ru" ? "Москва, ул. Павла Корчагина, 12" : "12 Main St, Springfield"} />
           </Field>
+          {/* Тип сдачи — третий по счёту: от него зависит смысл суммы и раздел «Договор» */}
+          <Field label={t("properties.rentType")}>
+            <Select value={form.rental_type} onChange={set("rental_type")}>
+              <option value="longterm">{t("properties.rentTypeLong")}</option>
+              <option value="shortterm">{t("properties.rentTypeShort")}</option>
+            </Select>
+          </Field>
+          {form.rental_type === "shortterm" && (
+            <p className="-mt-2 text-xs text-muted-foreground">{t("properties.rentTypeShortHint")}</p>
+          )}
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("properties.rentAmount")} required>
+            <Field label={form.rental_type === "shortterm" ? t("properties.nightlyPrice") : t("properties.rentAmount")} required>
               <Input type="number" min="0" step="100" value={form.rent_amount} onChange={set("rent_amount")} />
             </Field>
             <Field label={t("common.currency")}>
@@ -207,23 +218,19 @@ function PropertyFormDialog({ open, onClose, property }) {
           </div>
         </Disclosure>
 
-        {/* Договор */}
-        <Disclosure title={t("properties.groupLease")} defaultOpen={!!property}>
-          <Field label={lang === 'ru' ? 'Тип сдачи' : 'Rental type'}>
-            <Select value={form.rental_type} onChange={set('rental_type')}>
-              <option value='longterm'>{lang === 'ru' ? 'Долгосрок' : 'Long-term'}</option>
-              <option value='shortterm'>{lang === 'ru' ? 'Посуточно (без напоминаний о платежах)' : 'Short-term (no payment reminders)'}</option>
-            </Select>
-          </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label={t("properties.leaseStart")}>
-              <Input type="date" value={form.lease_start} onChange={set("lease_start")} />
-            </Field>
-            <Field label={t("properties.leaseEnd")}>
-              <Input type="date" value={form.lease_end} onChange={set("lease_end")} />
-            </Field>
-          </div>
-        </Disclosure>
+        {/* Договор — только для долгосрока: посуточная сдача живёт по заездам */}
+        {form.rental_type !== "shortterm" && (
+          <Disclosure title={t("properties.groupLease")} defaultOpen={!!property}>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={t("properties.leaseStart")}>
+                <Input type="date" value={form.lease_start} onChange={set("lease_start")} />
+              </Field>
+              <Field label={t("properties.leaseEnd")}>
+                <Input type="date" value={form.lease_end} onChange={set("lease_end")} />
+              </Field>
+            </div>
+          </Disclosure>
+        )}
 
         {/* Фото */}
         <Disclosure title={t("properties.groupPhoto")} defaultOpen={!!property?.photo_url}>
@@ -249,13 +256,19 @@ function PropertyFormDialog({ open, onClose, property }) {
 }
 
 // ——— Карточка объекта ———
-function PropertyCard({ property, payments = [], onEdit, onDelete, onClean }) {
+function PropertyCard({ property, payments = [], bookings = [], onEdit, onDelete, onClean, onBookings }) {
   const { t, lang } = useLang();
   const type = PROPERTY_TYPE_CONFIG[property.type] || PROPERTY_TYPE_CONFIG.other;
   const TypeIcon = type.icon;
   // Даты платежей по объекту: посуточные без напоминаний — как и в БД-скане
   const longterm = property.rental_type !== "shortterm";
   const payInfo = longterm ? paymentSummary(payments, { propertyId: property.id }) : null;
+  // Ближайший (или текущий) заезд посуточного объекта — вместо дат платежей
+  const nextBooking = longterm
+    ? null
+    : bookings
+        .filter((b) => b.property_id === property.id && (b.check_out || "") >= todayISO())
+        .sort((a, b) => (a.check_in || "").localeCompare(b.check_in || ""))[0] || null;
   const meta = [
     property.area_sqm ? `${property.area_sqm} м²` : null,
     property.rooms ? `${property.rooms} ${lang === "ru" ? "комн." : "rooms"}` : null,
@@ -285,6 +298,15 @@ function PropertyCard({ property, payments = [], onEdit, onDelete, onClean }) {
           )}
         </div>
         <div className="absolute right-2 top-2 flex gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+          {!longterm && (
+            <button
+              onClick={onBookings}
+              title={t("bookings.title")}
+              className="rounded-md bg-white/90 p-1.5 text-primary shadow-sm backdrop-blur transition-colors hover:bg-white"
+            >
+              <CalendarDays className="h-3.5 w-3.5" />
+            </button>
+          )}
           <button
             onClick={onClean}
             title="Вызвать клининг"
@@ -319,7 +341,7 @@ function PropertyCard({ property, payments = [], onEdit, onDelete, onClean }) {
         <div className="mt-3 flex items-end justify-between gap-2">
           <p className="text-lg font-bold text-primary">
             {formatMoney(property.rent_amount, property.currency, lang)}
-            <span className="text-xs font-normal text-muted-foreground">{t("plans.perMonth")}</span>
+            <span className="text-xs font-normal text-muted-foreground">{t(longterm ? "plans.perMonth" : "plans.perNight")}</span>
           </p>
           <Badge className="bg-muted text-muted-foreground">
             <TypeIcon className="h-3 w-3" />
@@ -343,6 +365,26 @@ function PropertyCard({ property, payments = [], onEdit, onDelete, onClean }) {
                 {t("properties.lastPaid")}:
                 {" "}{formatDate(payInfo.last.paid_date, lang)}
               </span>
+            )}
+          </div>
+        )}
+
+        {/* Посуточно: ближайший заезд вместо дат платежей */}
+        {!longterm && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+            {nextBooking ? (
+              <span className="inline-flex flex-wrap items-center gap-1.5 font-medium text-foreground">
+                {t("properties.nextCheckin")}:
+                {" "}{formatDate(nextBooking.check_in, lang)}
+                {" "}{formatMoney(nextBooking.nightly_price, nextBooking.currency || property.currency || "RUB", lang)}
+                {nightsBetween(nextBooking.check_in, nextBooking.check_out) > 0 && (
+                  <span className="text-muted-foreground">
+                    · {nightsBetween(nextBooking.check_in, nextBooking.check_out)} {lang === "ru" ? "ноч." : "nights"}
+                  </span>
+                )}
+              </span>
+            ) : (
+              <span className="text-muted-foreground">{t("bookings.none")}</span>
             )}
           </div>
         )}
@@ -374,6 +416,8 @@ export default function Properties() {
   const { data: properties, loading } = useCollection(Property);
   // Платежи — для дат «следующий платёж / последняя оплата» на карточке объекта
   const { data: payments } = useCollection(Payment);
+  // Заезды — для «ближайший заезд» на посуточных объектах
+  const { data: bookings } = useCollection(Booking);
   const planLimits = getPlanLimits(user?.plan);
   const demoGate = useDemoExitGate();
 
@@ -393,6 +437,7 @@ export default function Properties() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [cleaningFor, setCleaningFor] = useState(null);
+  const [bookingsFor, setBookingsFor] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Счётчик лимита для карточки тарифа
@@ -584,12 +629,14 @@ export default function Properties() {
               key={p.id}
               property={p}
               payments={payments}
+              bookings={bookings || []}
               onEdit={() => {
                 setEditing(p);
                 setDialogOpen(true);
               }}
               onDelete={() => setDeleting(p)}
               onClean={() => setCleaningFor(p)}
+              onBookings={() => setBookingsFor(p)}
             />
           ))}
         </div>
@@ -598,6 +645,8 @@ export default function Properties() {
       <PropertyFormDialog open={dialogOpen} onClose={() => setDialogOpen(false)} property={editing} />
 
       <CleaningDialog property={cleaningFor} open={!!cleaningFor} onClose={() => setCleaningFor(null)} />
+
+      <BookingsDialog property={bookingsFor} open={!!bookingsFor} onClose={() => setBookingsFor(null)} />
 
       <ConfirmDialog
         open={!!deleting}

@@ -220,6 +220,34 @@ create policy "payments: жилец видит свои"
   using (tenant_id = auth.uid());
 
 -- ============================================================
+-- 3а. Заезды (посуточная сдача)
+-- ============================================================
+-- Долгосрок живёт в payments (график, напоминания); посуточно — здесь:
+-- гость, даты заезда/выезда, цена за ночь. Напоминания о платежах на
+-- shortterm-объекты не приходят (см. scan_reminders).
+create table if not exists public.bookings (
+  id            uuid primary key default gen_random_uuid(),
+  owner_id      uuid not null default auth.uid() references public.profiles(id) on delete cascade,
+  property_id   uuid references public.properties(id) on delete cascade,
+  property_name text,
+  guest_name    text not null default '',
+  check_in      date,
+  check_out     date,
+  nightly_price numeric not null default 0,
+  currency      text not null default 'RUB',
+  notes         text,
+  is_demo       boolean not null default false,
+  created_date  timestamptz not null default now()
+);
+alter table public.bookings enable row level security;
+
+drop policy if exists "bookings: владелец — полные права" on public.bookings;
+create policy "bookings: владелец — полные права"
+  on public.bookings for all
+  using (owner_id = auth.uid())
+  with check (owner_id = auth.uid());
+
+-- ============================================================
 -- 4. Приглашения (коды для жильцов и исполнителей)
 -- ============================================================
 create table if not exists public.invites (

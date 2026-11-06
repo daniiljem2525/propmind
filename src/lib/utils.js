@@ -60,6 +60,14 @@ export function daysUntil(iso, from = todayISO()) {
   return Math.round((then - now) / 86400000);
 }
 
+// Ночей в заезде (посуточная сдача): разница дат, неполные/обратные
+// интервалы считаются нулём — валидация дат остаётся на форме.
+export function nightsBetween(checkIn, checkOut) {
+  if (!checkIn || !checkOut) return 0;
+  const n = Math.round((new Date(checkOut) - new Date(checkIn)) / 86400000);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 export function monthShort(monthIndex, lang = "ru") {
   return new Date(2024, monthIndex, 1).toLocaleDateString(localeOf(lang), { month: "short" });
 }

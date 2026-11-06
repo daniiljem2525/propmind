@@ -1,7 +1,7 @@
 // Демо-данные в один клик: объекты, арендаторы, история платежей,
 // заявки, документы и уведомления для текущего пользователя.
 
-import { Property, Tenant, Payment, MaintenanceRequest, RequestComment, RequestEvent, Document, NotificationEntity } from "@/lib/api/entities";
+import { Property, Tenant, Payment, Booking, MaintenanceRequest, RequestComment, RequestEvent, Document, NotificationEntity } from "@/lib/api/entities";
 import { getCurrentUser } from "@/lib/api/auth";
 import { isDemoMode, setDemoMode } from "@/lib/demoMode";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -173,7 +173,7 @@ export async function clearAllData() {
 
   // Порядок важен: сначала то, что ссылается на объекты (FK).
   // listAll, а не list: list скрывает записи по демо-режиму.
-  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
+  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Booking, Tenant, Property, NotificationEntity];
   let deleted = 0;
   for (const entity of collections) {
     const rows = await (entity.listAll ? entity.listAll() : entity.list());
@@ -195,7 +195,7 @@ export async function clearAllData() {
 // Удаление только демо-данных: реальные объекты, платежи и заявки
 // владельца не затрагиваются. Режим не переключает — см. clearDemoData.
 async function deleteDemoRows() {
-  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Tenant, Property, NotificationEntity];
+  const collections = [RequestComment, RequestEvent, MaintenanceRequest, Document, Payment, Booking, Tenant, Property, NotificationEntity];
   let deleted = 0;
   for (const entity of collections) {
     const rows = await (entity.listAll ? entity.listAll() : entity.list());

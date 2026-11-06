@@ -149,6 +149,11 @@ export const Payment = makeEntity("payments", {
   status: "pending",
 });
 
+// Заезды посуточной сдачи: гость, даты, цена за ночь (долгосрок — в payments)
+export const Booking = makeEntity("bookings", {
+  currency: "RUB",
+});
+
 // Очередь заказов для внешних площадок — читает фоновый воркер automation/.
 export const AutomationOrder = makeEntity("automation_orders", {
   platform: "profi",
