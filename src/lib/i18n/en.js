@@ -20,7 +20,6 @@ export const en = {
   "nav.properties": "Properties",
   "nav.tenants": "Tenants",
   "nav.payments": "Payments",
-  "nav.services": "Services",
   "nav.maintenance": "Maintenance",
   "nav.documents": "Documents",
   "nav.analytics": "Analytics",

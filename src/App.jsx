@@ -35,7 +35,6 @@ import Properties from "@/pages/Properties";
 import Tenants from "@/pages/Tenants";
 import Payments from "@/pages/Payments";
 import Maintenance from "@/pages/Maintenance";
-import Services from "@/pages/Services";
 import Documents from "@/pages/Documents";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
@@ -91,7 +90,6 @@ export default function App() {
                     <Route path="properties" element={<Properties />} />
                     <Route path="tenants" element={<Tenants />} />
                     <Route path="payments" element={<Payments />} />
-                    <Route path="services" element={<Services />} />
                     <Route path="maintenance" element={<Maintenance />} />
                     <Route path="documents" element={<Documents />} />
                     <Route path="analytics" element={<Analytics />} />
