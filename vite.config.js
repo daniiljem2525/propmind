@@ -3,6 +3,18 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 
+// Vite оценивает vite.config.js ДО загрузки .env-файлов: в коде приложения
+// import.meta.env работает, а process.env в этом конфиге — нет (инцидент
+// 06–07.11: сборка без окружения дала canonical=localhost и счётчик без id).
+// Догружаем .env.production вручную; переменные окружения приоритетнее —
+// внешний конвейер может переопределять.
+if (existsSync(".env.production")) {
+  for (const line of readFileSync(".env.production", "utf8").split(/\r?\n/)) {
+    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2].trim();
+  }
+}
+
 // Адрес сайта для canonical / og: / JSON-LD / robots.txt / sitemap.xml:
 // в index.html, public/robots.txt и public/sitemap.xml стоят токены
 // __SITE_URL__ и __BASE__, плагин ниже заменяет их на этапе сборки.
