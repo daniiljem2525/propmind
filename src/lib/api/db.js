@@ -1,15 +1,23 @@
 // Фасад подписок и сырого чтения: localStorage или Supabase realtime.
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { subscribeSupabase, subscribeAuth } from "@/lib/supabase/db";
+import { subscribeCollection } from "@/lib/data/events";
 import * as local from "@/lib/data/localDb";
 
-// Событие "auth" в облачном режиме — это onAuthStateChange, а не таблица
-export const subscribe = (name, cb) =>
-  isSupabaseConfigured
-    ? name === "auth"
-      ? subscribeAuth(cb)
-      : subscribeSupabase(name, cb)
-    : local.subscribe(name, cb);
+// Облачный режим: realtime + локальная шина мутаций этой вкладки.
+// Realtime может молчать (таблица вне публикации, канал не успел
+// подключиться) — свои же изменения должны отражаться всегда, поэтому
+// дублируем подписку на шину (двойной load() безвреден: чтение идемпотентно).
+export const subscribe = (name, cb) => {
+  if (!isSupabaseConfigured) return local.subscribe(name, cb);
+  if (name === "auth") return subscribeAuth(cb); // "auth" — не таблица
+  const unCloud = subscribeSupabase(name, cb);
+  const unLocal = subscribeCollection(name, cb);
+  return () => {
+    unCloud();
+    unLocal();
+  };
+};
 
 // Синхронное raw-чтение — только для localStorage-режима.
 // В облачном режиме используй async-версию readCollectionAsync.

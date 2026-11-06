@@ -1,11 +1,14 @@
 import { supabase } from "./config";
 import { makeEntity } from "./db";
+import { notifyCollection } from "@/lib/data/events";
 import { isDemoMode } from "@/lib/demoMode";
 
-// RPC-вызов смены статуса заявки: возвращает { ok, error? } из БД
+// RPC-вызов смены статуса заявки: возвращает { ok, error? } из БД.
+// Все вызовы — действия над заявками, уведомляем их коллекцию сразу.
 async function rpcAction(fn, args) {
   const { data, error } = await supabase.rpc(fn, args);
   if (error) throw error;
+  notifyCollection("maintenance_requests");
   return data || { ok: false, error: "no_result" };
 }
 
@@ -134,12 +137,16 @@ export async function getLandlordContact(propertyId, userId) {
 export async function payPayment(paymentId) {
   const { error } = await supabase.rpc("pay_payment", { p_payment_id: paymentId });
   if (error) throw error;
+  notifyCollection("payments");
 }
 
 // Подключение жильца к арендодателю по его персональному коду
 export async function claimInvite(code) {
   const { data, error } = await supabase.rpc("claim_invite", { p_code: code });
   if (error) throw error;
+  // RPC меняет tenants/properties (привязка, статус объекта) — обновляем обе
+  notifyCollection("tenants");
+  notifyCollection("properties");
   return data || { ok: false, error: "no_result" };
 }
 
@@ -257,6 +264,7 @@ export const Tenant = {
     delete profilePatch.property_id;
     delete profilePatch.property_name;
     await supabase.from("profiles").update(cleanLite(profilePatch)).eq("id", id);
+    notifyCollection("tenants");
     return { id, ...patch, has_account: true };
   },
 
@@ -275,6 +283,8 @@ export const Tenant = {
           .eq("id", existing.property_id);
       }
       await supabase.from("tenants").delete().eq("id", id);
+      notifyCollection("tenants");
+      notifyCollection("properties");
       return true;
     }
     // Платформенный: снять привязку с объектов
@@ -282,6 +292,8 @@ export const Tenant = {
       .from("properties")
       .update({ tenant_id: null, tenant_name: null, status: "vacant" })
       .eq("tenant_id", id);
+    notifyCollection("tenants");
+    notifyCollection("properties");
     return true;
   },
 

@@ -1,5 +1,6 @@
 import { supabase } from "./config";
 import { isDemoMode } from "@/lib/demoMode";
+import { notifyCollection } from "@/lib/data/events";
 
 // Supabase-реализация сущностей: тот же интерфейс, что у localStorage-версии.
 // owner_id проставляется на стороне БД (default auth.uid()), RLS — граница доступа.
@@ -53,6 +54,7 @@ export function makeEntity(collection, defaults = {}) {
       // гонки realtime — нельзя показывать «ошибку», когда вставка прошла.
       const { data: rows, error } = await supabase.from(collection).insert(payload).select();
       if (error) throw error;
+      notifyCollection(collection); // свой список обновляем сразу, без ожидания realtime
       return rows?.[0] ?? { ...payload };
     },
 
@@ -64,6 +66,7 @@ export function makeEntity(collection, defaults = {}) {
       }
       const { data: rows, error } = await supabase.from(collection).insert(payload).select();
       if (error) throw error;
+      notifyCollection(collection);
       return rows || payload;
     },
 
@@ -77,12 +80,14 @@ export function makeEntity(collection, defaults = {}) {
         .select();
       if (error) throw error;
       if (!rows || rows.length === 0) throw new Error("ROW_NOT_FOUND");
+      notifyCollection(collection);
       return rows[0];
     },
 
     async delete(id) {
       const { error } = await supabase.from(collection).delete().eq("id", id);
       if (error) throw error;
+      notifyCollection(collection);
       return true;
     },
   };
