@@ -47,6 +47,7 @@ import Register from "@/pages/auth/Register";
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import SocialCallback from "@/pages/auth/SocialCallback";
+import AuthCallback from "@/pages/auth/AuthCallback";
 
 // Весь код в одном бандле: деплой инлайнит его в index.html, оболочка
 // самодостаточна — кэшированная оболочка никогда не ссылается на чанки,
@@ -68,6 +69,8 @@ export default function App() {
                   <Route path="/register" element={<Register />} />
                   {/* Возврат из соц-входа (Яндекс/VK/Mail.ru): обмен token_hash на сессию */}
                   <Route path="/auth/social" element={<SocialCallback />} />
+                  {/* Ссылка подтверждения почты: автологин — сразу в /app */}
+                  <Route path="/auth/confirm" element={<AuthCallback />} />
                 </Route>
 
                 <Route path="/blog" element={<Blog />} />

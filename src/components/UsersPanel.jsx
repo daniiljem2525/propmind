@@ -17,6 +17,13 @@ const ROLE_OPTIONS = isSupabaseConfigured
   : ["user", "admin"];
 const PLAN_OPTIONS = ["free", "start", "pro", "business", "individual"];
 
+// Атрибуция рекламного трафика (utm из metadata аккаунта, пишется при
+// регистрации): «yandex · search-bofu-product», нет данных — прочерк
+function formatUtm(utm) {
+  if (!utm) return "—";
+  return [utm.source, utm.campaign].filter(Boolean).join(" · ") || "—";
+}
+
 // Управление пользователями — используется в Настройках и Админ-панели (только admin)
 export default function UsersPanel() {
   const { t, lang } = useLang();
@@ -97,6 +104,9 @@ export default function UsersPanel() {
               <p className="flex items-center gap-1 truncate text-xs text-muted-foreground">
                 <Mail className="h-3 w-3" />
                 {u.email}
+              </p>
+              <p className="truncate text-xs text-muted-foreground" title={formatUtm(u.utm)}>
+                {t("admin.utmLabel")}: {formatUtm(u.utm)}
               </p>
             </div>
             <span

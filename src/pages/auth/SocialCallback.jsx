@@ -4,6 +4,7 @@ import { AlertCircle } from "lucide-react";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { Button } from "@/components/ui/button";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase/config";
+import { attachUtmToSession } from "@/lib/utm";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 
@@ -36,6 +37,10 @@ export default function SocialCallback() {
         setError(t("auth.socialFailed"));
         return;
       }
+      // Соц-регистрация не несёт UTM (аккаунт создаёт edge-функция oauth):
+      // переносим сохранённые при первом визите метки в аккаунт —
+      // metadata (биллинг) + profiles.utm (админка), затем чистим localStorage
+      await attachUtmToSession();
       // Сессия сменилась извне — перечитываем профиль, иначе роутинг
       // может показать кабинет из кэша прошлой сессии
       await refreshUser();

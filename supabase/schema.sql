@@ -55,6 +55,14 @@ alter table public.profiles add column if not exists invite_code text;
 create unique index if not exists profiles_invite_code_idx
   on public.profiles(invite_code) where invite_code is not null;
 
+-- UTM-атрибуция (задача NT-020 от 07.11, P0 ревью NT-027): рекламная
+-- кампания, из которой пришла регистрация. При signUp метки едут в
+-- raw_user_meta_data.utm, триггер handle_new_user переносит их сюда;
+-- соц-вход дописывает колонку сам (право выдано в §1а). Формат:
+-- {"source":"yandex","medium":"cpc","campaign":"search-bofu-product",
+--  "captured_at":"...","first_touch":{...}} — читают админка и биллинг.
+alter table public.profiles add column if not exists utm jsonb;
+
 alter table public.profiles enable row level security;
 
 drop policy if exists "profiles: читаю свой" on public.profiles;
@@ -99,14 +107,16 @@ create policy "invites: участник видит своё приглашен�
   using (used_by = auth.uid());
 
 -- ============================================================
--- 1а. Безопасность профилей: пользователь обновляет только имя/телефон.
+-- 1а. Безопасность профилей: пользователь обновляет только имя/телефон/utm.
 --     Роль, тариф и флаг админа через прямой UPDATE менять нельзя
 --     (PATCH своего профиля = эскалация привилегий). Админ меняет их
 --     через RPC set_user_role / set_user_plan с проверкой is_platform_owner().
+--     utm разрешён: после соц-входа приложение дописывает в СВОЙ профиль
+--     атрибуцию визита (jsonb без логики доступа — эскалации не даёт).
 -- ============================================================
 revoke update on public.profiles from authenticated;
 revoke update on public.profiles from anon;
-grant update (full_name, phone) on public.profiles to authenticated;
+grant update (full_name, phone, utm) on public.profiles to authenticated;
 
 create or replace function public.set_user_role(p_user uuid, p_role text)
 returns void
@@ -1293,6 +1303,7 @@ declare
   v_role text := coalesce(new.raw_user_meta_data->>'role', 'tenant');
   v_invite text := new.raw_user_meta_data->>'invite_code';
   v_name text := coalesce(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));
+  v_utm jsonb := new.raw_user_meta_data->'utm';
 begin
   -- Регистрация без приглашения = новый владелец своего воркспейса.
   -- По приглашению роль (tenant/contractor) назначит RPC claim_invite,
@@ -1301,8 +1312,8 @@ begin
     v_role := 'tenant';
   end if;
 
-  insert into public.profiles (id, full_name, email, role)
-  values (new.id, v_name, new.email, v_role);
+  insert into public.profiles (id, full_name, email, role, utm)
+  values (new.id, v_name, new.email, v_role, v_utm);
   return new;
 end;
 $$;

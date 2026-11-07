@@ -1,6 +1,7 @@
 import { readCollection, writeCollection, notifyAuth } from "./localDb";
 import { registerCurrentUserFn } from "./localEntities";
 import { uid } from "@/lib/utils";
+import { utmSignupPayload, clearUtm } from "@/lib/utm";
 
 const NAME = "users";
 const SESSION_KEY = "arendora:session";
@@ -39,6 +40,7 @@ const publicUser = (u) =>
     email: u.email,
     role: u.role,
     plan: u.plan || "free",
+    utm: u.utm || null,
     status: u.status,
     created_date: u.created_date,
   };
@@ -75,6 +77,8 @@ export async function signup({ full_name, email, password, invite_code }) {
   const otp = String(Math.floor(100000 + Math.random() * 900000));
   const password_hash = await hash(password);
   const otp_created = Date.now(); // код живёт 15 минут
+  // Атрибуция рекламного визита пишется в запись аккаунта при создании
+  const utm = utmSignupPayload();
   if (existing) {
     Object.assign(existing, {
       full_name,
@@ -86,6 +90,7 @@ export async function signup({ full_name, email, password, invite_code }) {
       // Приглашённый (email создан владельцем) сохраняет свою роль;
       // остальным код приглашения пригодится при активации
       invite_code: existing.invite_code || invite_code || null,
+      utm: utm || existing.utm || null,
     });
     writeUsers(users);
   } else {
@@ -99,10 +104,13 @@ export async function signup({ full_name, email, password, invite_code }) {
       otp,
       otp_created,
       invite_code: invite_code || null,
+      utm: utm || null,
       created_date: new Date().toISOString(),
     });
     writeUsers(users);
   }
+  // Атрибуция перенесена в запись аккаунта — локальное хранение чистим
+  clearUtm();
   return { email: normalized, otp };
 }
 

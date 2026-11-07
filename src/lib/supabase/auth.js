@@ -1,4 +1,5 @@
 import { supabase, SUPABASE_URL } from "./config";
+import { utmSignupPayload, clearUtm } from "@/lib/utm";
 
 // Supabase Auth: тот же интерфейс, что у localStorage-версии.
 // Роль и имя хранятся в profiles (создаются триггером при регистрации).
@@ -51,16 +52,26 @@ export async function login(email, password) {
 // Регистрация. invite_code (если есть) превращает аккаунт в жильца/исполнителя
 // и привязывает к объекту владельца — обработка в триггере БД (supabase/schema.sql).
 export async function signup({ full_name, email, password, invite_code }) {
+  // Атрибуция рекламного трафика: last-touch/first-touch из localStorage
+  // пишутся в raw_user_meta_data (их читают админка и биллинг-отчёты)
+  const utm = utmSignupPayload();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      // Если авто-подтверждение почты в GoTrue выключено (сейчас в проде
+      // включено — GOTRUE_MAILER_AUTOCONFIRM=true), ссылка из письма ведёт
+      // на /auth/confirm, который сразу логирует пользователя в /app
+      emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}auth/confirm`,
       data: {
         full_name,
         // Без приглашения человек регистрирует свой воркспейс — он владелец.
         // Роль по приглашению назначит RPC claim_invite после регистрации.
         role: invite_code ? undefined : "owner",
         invite_code: invite_code || undefined,
+        // UTM-метки визита, с которого пришла регистрация (ключ «utm»,
+        // триггер handle_new_user переносит их в profiles.utm для админки)
+        utm,
       },
     },
   });
@@ -70,6 +81,10 @@ export async function signup({ full_name, email, password, invite_code }) {
     console.error("signup failed:", error);
     throw new Error(error.message || "SIGNUP_FAILED");
   }
+  // Аккаунт создан (сразу с сессией или в ожидании подтверждения почты) —
+  // атрибуция уже записана в metadata, локальное хранение больше не нужно
+  clearUtm();
+
   // Если подтверждение email включено в Supabase — сессии не будет:
   // сообщаем интерфейсу показать экран «проверь почту»
   if (!data.session) return { needsConfirmation: true, email };
@@ -144,7 +159,7 @@ export async function createInvite(role, propertyId) {
 export async function listUsers() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, plan, created_date")
+    .select("id, full_name, email, role, plan, utm, created_date")
     .order("created_date");
   if (error) return [];
   return (data || []).map((p) => ({
@@ -153,6 +168,7 @@ export async function listUsers() {
     email: p.email,
     role: p.role,
     plan: p.plan || "free",
+    utm: p.utm || null,
     status: "active",
     created_date: p.created_date,
   }));

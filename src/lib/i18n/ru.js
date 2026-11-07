@@ -238,6 +238,9 @@ export const ru = {
   "auth.socialFailed": "Не удалось войти через соцсеть. Попробуйте ещё раз или войдите по email.",
   "auth.socialRetry": "Вернуться ко входу",
   "auth.socialBack": "Вернуться ко входу",
+  "auth.confirmTitle": "Подтверждаем почту",
+  "auth.confirmSubtitle": "Проверяем ссылку из письма и открываем приложение…",
+  "auth.confirmLoading": "Входим в аккаунт…",
   "auth.signIn": "Войти",
   "auth.signUp": "Зарегистрироваться",
   "auth.forgotPassword": "Забыли пароль?",
@@ -317,6 +320,7 @@ export const ru = {
   "admin.tabData": "Данные",
   "admin.dataDesc": "Резервная копия всех данных платформы в формате JSON",
   "admin.storage": "Занято хранилища",
+  "admin.utmLabel": "Кампания",
   "admin.backup": "Скачать бэкап",
 
   // ——— Улучшения платежей ———

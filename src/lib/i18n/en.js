@@ -238,6 +238,9 @@ export const en = {
   "auth.socialFailed": "Sign-in with the social network failed. Try again or use email.",
   "auth.socialRetry": "Back to sign in",
   "auth.socialBack": "Back to sign in",
+  "auth.confirmTitle": "Confirming your email",
+  "auth.confirmSubtitle": "Verifying the link from the email and opening the app…",
+  "auth.confirmLoading": "Signing you in…",
   "auth.signIn": "Sign in",
   "auth.signUp": "Sign up",
   "auth.forgotPassword": "Forgot password?",
@@ -317,6 +320,7 @@ export const en = {
   "admin.tabData": "Data",
   "admin.dataDesc": "Full JSON backup of all platform data",
   "admin.storage": "Storage used",
+  "admin.utmLabel": "Campaign",
   "admin.backup": "Download backup",
 
   // ——— Payment improvements ———
