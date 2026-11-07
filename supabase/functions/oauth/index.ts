@@ -179,10 +179,19 @@ async function fetchVk(accessToken: string, clientId: string): Promise<Profile> 
 }
 
 async function fetchMailru(accessToken: string): Promise<Profile> {
-  const res = await fetch(`https://oauth.mail.ru/userinfo?access_token=${encodeURIComponent(accessToken)}`);
+  // OIDC userinfo (VK ID): POST с Bearer; легаси GET /userinfo при новых скоупах не отвечает
+  const res = await fetch("https://oauth.mail.ru/api/v1/oidc/userinfo", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
   if (!res.ok) throw new Error(`mailru userinfo ${res.status}`);
   const d = await res.json();
-  const name = d.first_name && d.last_name ? `${d.first_name} ${d.last_name}` : d.nickname || d.first_name || "Пользователь";
+  const name =
+    d.name ||
+    (d.given_name && d.family_name ? `${d.given_name} ${d.family_name}` : "") ||
+    d.nickname ||
+    d.given_name ||
+    "Пользователь";
   return { email: d.email, full_name: name, syntheticEmail: !d.email };
 }
 
@@ -250,10 +259,10 @@ async function handleStart(req: Request, url: URL) {
     e: Date.now() + 10 * 60 * 1000,
   };
 
-  // PKCE для VK ID (OAuth 2.1 требует): challenge уйдёт в authorize-ссылку,
-  // verifier храним в подписанном state и отдаём при обмене кода
+  // PKCE для VK ID и Mail.ru (OAuth 2.1 требует): challenge уйдёт в
+  // authorize-ссылку, verifier храним в подписанном state и отдаём при обмене кода
   let vkChallenge = "";
-  if (provider === "vk") {
+  if (provider === "vk" || provider === "mailru") {
     const verifier = b64urlEncode(crypto.getRandomValues(new Uint8Array(48)));
     const digest = await crypto.subtle.digest("SHA-256", enc.encode(verifier));
     vkChallenge = b64urlEncode(new Uint8Array(digest));
@@ -288,12 +297,16 @@ async function handleStart(req: Request, url: URL) {
     });
     authorizeUrl = `https://id.vk.com/authorize?${q}`;
   } else {
+    // Mail.ru (VK ID) с 07.2025: только OIDC-скоупы, openid обязателен
+    // (легаси scope=userinfo даёт «bad client»); PKCE обязателен при обмене кода
     const q = new URLSearchParams({
       response_type: "code",
       client_id: conf.clientId,
       redirect_uri: callbackUrl(provider),
       state,
-      scope: "userinfo",
+      scope: "openid email profile",
+      code_challenge: vkChallenge,
+      code_challenge_method: "S256",
     });
     authorizeUrl = `https://oauth.mail.ru/login?${q}`;
   }
@@ -358,15 +371,19 @@ async function handleCallback(req: Request, url: URL) {
       accessToken = (await res.json()).access_token;
       if (!accessToken) throw new Error("vk: нет access_token");
     } else {
+      // Mail.ru (VK ID): OAuth 2.1 — базовая аутентификация приложения и
+      // обязательный code_verifier из state (PKCE)
       const res = await fetch("https://oauth.mail.ru/token", {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: `Basic ${btoa(`${conf.clientId}:${conf.clientSecret}`)}`,
+        },
         body: new URLSearchParams({
           grant_type: "authorization_code",
           code,
-          client_id: conf.clientId,
-          client_secret: conf.clientSecret,
           redirect_uri: callbackUrl(provider),
+          code_verifier: payload.v || "",
         }),
       });
       if (!res.ok) throw new Error(`mailru token ${res.status}: ${(await res.text()).slice(0, 200)}`);
