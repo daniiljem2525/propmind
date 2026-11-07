@@ -19,36 +19,37 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const TODAY = "2026-11-01";
+// Дата сборки: lastmod статических/EXTRA-страниц всегда актуален на выкат
+const TODAY = new Date().toISOString().slice(0, 10);
 
 // Статические канонические URL. Главная — всегда первый элемент.
 const STATIC_PAGES = [
   { loc: "", lastmod: TODAY }, // главная https://arendora.ru/
   { loc: "blog", lastmod: TODAY },
-  { loc: "register", lastmod: "2026-10-24" },
-  { loc: "tariffs", lastmod: "2026-10-24" },
-  { loc: "terms", lastmod: "2026-10-24" },
-  { loc: "privacy", lastmod: "2026-10-24" },
-  { loc: "agreement", lastmod: "2026-10-24" },
-  { loc: "consent", lastmod: "2026-10-24" },
-  { loc: "payments", lastmod: "2026-10-24" },
-  { loc: "usepolicy", lastmod: "2026-10-24" },
-  { loc: "cookies", lastmod: "2026-10-24" },
+  { loc: "register", lastmod: "2026-11-07" },
+  { loc: "tariffs", lastmod: "2026-11-07" },
+  { loc: "terms", lastmod: "2026-11-07" },
+  { loc: "privacy", lastmod: "2026-11-07" },
+  { loc: "agreement", lastmod: "2026-11-07" },
+  { loc: "consent", lastmod: "2026-11-07" },
+  { loc: "payments", lastmod: "2026-11-07" },
+  { loc: "usepolicy", lastmod: "2026-11-07" },
+  { loc: "cookies", lastmod: "2026-11-07" },
 ];
 
 // Страницы вне content/blog/: магниты (Р3), GEO-релиз 2 (5 страниц),
 // посадочная /features/uchet-platezhey (спринт 2).
 const EXTRA_PAGES = [
-  { loc: "magnit-dogovor", lastmod: "2026-11-01" },
-  { loc: "magnit-kalkulyator", lastmod: "2026-11-01" },
-  { loc: "magnit-kurs", lastmod: "2026-11-01" },
+  { loc: "magnit-dogovor", lastmod: "2026-11-07" },
+  { loc: "magnit-kalkulyator", lastmod: "2026-11-07" },
+  { loc: "magnit-kurs", lastmod: "2026-11-07" },
   // lastmod 2026-11-05: retargeting заголовков + FAQ «арендор» (синхронно с правкой прода 05.11)
   { loc: "blog/luchshie-servisy-dlya-arendodateley-2026", lastmod: "2026-11-05" },
   { loc: "blog/servisy-upravleniya-arendoy-nedvizhimostyu", lastmod: "2026-11-05" },
-  { loc: "blog/programma-dlya-ucheta-arendy-kvartir", lastmod: "2026-11-01" },
-  { loc: "blog/prilozhenie-dlya-arendodatelya", lastmod: "2026-11-01" },
-  { loc: "blog/kak-avtomatizirovat-sdachu-kvartiry", lastmod: "2026-11-01" },
-  { loc: "features/uchet-platezhey", lastmod: "2026-11-01" },
+  { loc: "blog/programma-dlya-ucheta-arendy-kvartir", lastmod: "2026-11-07" },
+  { loc: "blog/prilozhenie-dlya-arendodatelya", lastmod: "2026-11-07" },
+  { loc: "blog/kak-avtomatizirovat-sdachu-kvartiry", lastmod: "2026-11-07" },
+  { loc: "features/uchet-platezhey", lastmod: "2026-11-07" },
   { loc: "features/dlya-arendodatelya", lastmod: "2026-11-05" },
 ];
 

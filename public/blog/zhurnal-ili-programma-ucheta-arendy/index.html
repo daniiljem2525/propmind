@@ -1,0 +1,228 @@
+<!DOCTYPE html><html lang="ru"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Бумажный журнал учёта арендных платежей: кому подходит, как вести правильно, где ломается и как перенести учёт в программу. Сравнение журнала, Excel и сервиса.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js);
+          /  — коды подтверждения
+         Яндекс.Вебмастера и Search Console (пустые, пока не заданы в env). -->
+    <meta name="yandex-verification" content="">
+    <meta name="google-site-verification" content="">
+    <link rel="canonical" href="https://arendora.ru/blog/zhurnal-ili-programma-ucheta-arendy">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/blog/zhurnal-ili-programma-ucheta-arendy">
+    <meta property="og:image" content="https://arendora.ru/img/og/zhurnal-ili-programma-ucheta-arendy.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Arendora: квартиры, платежи, жильцы — в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og/zhurnal-ili-programma-ucheta-arendy.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Журнал или программа для учёта аренды: что выбрать арендодателю — Arendora">
+    <meta property="og:description" content="Бумажный журнал учёта арендных платежей: кому подходит, как вести правильно, где ломается и как перенести учёт в программу. Сравнение журнала, Excel и сервиса.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Arendora — управление недвижимостью без таблиц и хаоса">
+    <meta name="twitter:description" content="Бумажный журнал учёта арендных платежей: кому подходит, как вести правильно, где ломается и как перенести учёт в программу. Сравнение журнала, Excel и сервиса.">
+    <title>Журнал или программа для учёта аренды: что выбрать арендодателю — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. FAQPage и HowTo убраны: Google
+         полностью отключил их rich-результаты (FAQ — в мае 2026), пользы ноль,
+         а тексты дублировали лендинг и требовали синхронизации.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "logo": "https://arendora.ru/icon-512.png",
+          "email": "support@arendora.ru",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@arendora.ru",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатный старт без банковской карты"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+          читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <script type="module" crossorigin="" src="/assets/index-BWsfJtM6.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-Dd4gxM_m.css">
+<script type="application/ld+json" data-page-json-ld="1">{"@context": "https://schema.org", "@graph": [{"@type": "Article", "mainEntityOfPage": "https://arendora.ru/blog/zhurnal-ili-programma-ucheta-arendy", "headline": "Журнал или программа для учёта аренды: что выбрать арендодателю", "description": "Бумажный журнал учёта арендных платежей: кому подходит, как вести правильно, где ломается и как перенести учёт в программу. Сравнение журнала, Excel и сервиса.", "datePublished": "2026-11-05", "dateModified": "2026-11-05", "inLanguage": "ru", "author": {"@type": "Organization", "name": "Arendora", "url": "https://arendora.ru/"}, "publisher": {"@type": "Organization", "name": "Arendora", "logo": {"@type": "ImageObject", "url": "https://arendora.ru/icon-192.png"}}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Arendora", "item": "https://arendora.ru/"}, {"@type": "ListItem", "position": 2, "name": "Блог Arendora", "item": "https://arendora.ru/blog"}, {"@type": "ListItem", "position": 3, "name": "Журнал или программа для учёта аренды: что выбрать арендодателю", "item": "https://arendora.ru/blog/zhurnal-ili-programma-ucheta-arendy"}]}]}</script><link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/blog" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Ко всем материалам</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Журнал или программа для учёта аренды: что выбрать арендодателю</h1><p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground"><span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days h-4 w-4"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Обновлено 5 ноября 2026 г.</span><span>6 мин чтения · <a href="/" data-discover="true" class="transition-colors hover:text-foreground">Arendora</a></span></p><div class="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&amp;_a]:text-primary [&amp;_h2]:mt-8 [&amp;_h2]:text-2xl [&amp;_h2]:font-bold [&amp;_h3]:mt-6 [&amp;_h3]:text-xl [&amp;_h3]:font-bold [&amp;_li]:ml-5 [&amp;_li]:list-disc [&amp;_strong]:font-bold">
+
+<p>У большинства арендодателей учёт начинается одинаково: обычная тетрадь или журнал, где по каждой квартире записаны даты и суммы полученных платежей. Для одной квартиры этого хватает. Но журнал ничего не напоминает, не считает просрочки и не показывает доход за месяц — весь контроль держится на вашей памяти и аккуратности. Квартирант платит «где-то в начале месяца», а вы вспоминаете об оплате, когда деньги нужны на коммуналку.</p>
+<p>Разберём честно: кому бумажный журнал подходит, как вести его правильно, в какой момент он перестаёт справляться и что происходит при переезде в программу учёта. Excel и Google Таблицы — соседний способ: у таблиц свои сильные и слабые стороны, они разобраны отдельно в статье <a href="/blog/uchet-arendy-v-excel" data-discover="true">«Учёт аренды в Excel и бумажном журнале»</a>.</p>
+<h2>Что фиксировать в бумажном журнале</h2>
+<p>Если вы ведёте журнал — ведите его так, чтобы записи работали как документы. Минимальная структура журнала арендных платежей:</p>
+<table class="mt-6 w-full text-sm"><thead><tr class="border-b text-left"><th class="py-2 pr-4 font-semibold">Колонка</th><th class="py-2 font-semibold">Зачем</th></tr></thead><tbody><tr class="border-b"><td class="py-2 pr-4">Дата платежа</td><td class="py-2">Когда деньги фактически получены, а не когда должны были</td></tr><tr class="border-b"><td class="py-2 pr-4">Объект (адрес или название)</td><td class="py-2">При двух и больше квартирах записи без адреса путаются</td></tr><tr class="border-b"><td class="py-2 pr-4">Жилец (ФИО)</td><td class="py-2">Кому принадлежит платёж — пригодится при споре</td></tr><tr class="border-b"><td class="py-2 pr-4">Сумма цифрами</td><td class="py-2">Что именно передано</td></tr><tr class="border-b"><td class="py-2 pr-4">Период</td><td class="py-2">За какой месяц и за что: аренда, коммуналка, залог</td></tr><tr class="border-b"><td class="py-2 pr-4">Способ оплаты</td><td class="py-2">Наличные или перевод — при разборе расхождений</td></tr><tr class="border-b"><td class="py-2 pr-4">Отметка или подпись</td><td class="py-2">Подтверждение получения, для наличных — по сути расписка</td></tr><tr class="border-b"><td class="py-2 pr-4">Примечание</td><td class="py-2">Частичная оплата, задержка, договорённость «доплатит из зарплаты»</td></tr></tbody></table>
+<p>Форма журнала — на ваше усмотрение: это ваш рабочий документ, а не отчётность. Главное правило одно: запись делается в день получения денег, а не «когда будет время».</p>
+<h2>Пять сценариев, когда журнал подводит</h2>
+<p><strong>1. Напоминание держится на памяти.</strong> Большинство историй с неплатежами начинаются одинаково: платёж «где-то в начале месяца», напоминание по памяти, отсутствие фиксации. Журнал фиксирует то, что уже произошло, — но не напоминает о том, что должно произойти. Что делать, если платёж уже пропущен, — план в статье <a href="/blog/chto-delat-esli-kvartirant-ne-platit" data-discover="true">квартирант не платит: пошаговый план</a>.</p>
+<p><strong>2. Долг невидим, пока вы не открыли журнал.</strong> В тетради нет статуса «просрочено»: задолженность видна только после ручной сверки дат. Пока кто-то не открыл журнал и не сверил — долг остаётся невидимым, и каждая неделя такой невидимости — это деньги, которые зависли в чужих руках. Как устроен учёт, который видит просрочку сам, — разбор в материале <a href="/features/uchet-platezhey" data-discover="true">учёт платежей квартирантов</a>.</p>
+<p><strong>3. Журнал ведёт один человек — и он же точка отказа.</strong> Записи живут в одной тетради у одного человека. Отпуск, болезнь, «тетрадь осталась на квартире» — и учёт встаёт. В облачном сервисе данные доступны с любого устройства, а в таблице — хотя бы копируются; у журнала резервной копии нет, кроме сфотографированных страниц.</p>
+<p><strong>4. Документы живут отдельно от платежей.</strong> Договор — в ящике, журнал — на полке, переписка — в телефоне. При споре суд оценивает совокупность бумаг: в статье о неплатах сформулировано жёстко — «у кого аккуратнее бумаги, тот и выигрывает». В программе учёта история платежей по каждой квартире лежит рядом с договором — в карточке объекта.</p>
+<p><strong>5. Доход за месяц — «по ощущениям».</strong> Сколько принесли все квартиры за прошлый месяц? По журналу ответ — это вечер с калькулятором и пересчётом страниц. Пока суммы маленькие, это терпимо; с ростом портфеля ручные сводки перестают делаться вовсе — и решения принимаются по ощущениям.</p>
+<h2>Журнал, таблица или программа: сравнение по задачам</h2>
+<table class="mt-6 w-full text-sm"><thead><tr class="border-b text-left"><th class="py-2 pr-4 font-semibold">Задача</th><th class="py-2 pr-4 font-semibold">Бумажный журнал</th><th class="py-2 pr-4 font-semibold">Excel / Google Таблицы</th><th class="py-2 font-semibold">Arendora</th></tr></thead><tbody><tr class="border-b"><td class="py-2 pr-4">Напоминание жильцу</td><td class="py-2 pr-4">нет</td><td class="py-2 pr-4">нет — «Excel не напомнит о платеже»</td><td class="py-2">за 3 дня до платежа + письмом</td></tr><tr class="border-b"><td class="py-2 pr-4">Статус «просрочено»</td><td class="py-2 pr-4">видно только при ручной сверке</td><td class="py-2 pr-4">красить руками</td><td class="py-2">ставится автоматически</td></tr><tr class="border-b"><td class="py-2 pr-4">График платежей на год</td><td class="py-2 pr-4">переписывать вручную</td><td class="py-2 pr-4">формулами, настройка вручную</td><td class="py-2">одной кнопкой</td></tr><tr class="border-b"><td class="py-2 pr-4">История по жильцу</td><td class="py-2 pr-4">листать страницы</td><td class="py-2 pr-4">искать по строкам</td><td class="py-2">в карточке объекта</td></tr><tr class="border-b"><td class="py-2 pr-4">Доход за месяц</td><td class="py-2 pr-4">посчитать вручную</td><td class="py-2 pr-4">собрать формулами</td><td class="py-2">готовая аналитика</td></tr><tr class="border-b"><td class="py-2 pr-4">Копия данных</td><td class="py-2 pr-4">фото страниц</td><td class="py-2 pr-4">файл можно скопировать</td><td class="py-2">данные в облаке, экспорт в CSV</td></tr></tbody></table>
+<p>Колонки Excel и Arendora — дословные формулировки статей сайта об автоматизации, миграции и сравнении с таблицами; колонка журнала — практика редакции, помечаем как мнение.</p>
+<p>Отдельный сценарий, где таблицы ещё справляются, разобран в статье <a href="/blog/programma-dlya-upravleniya-arendoy" data-discover="true">как выбрать программу для управления арендой</a>: если объектов до трёх и вручную справляться удобно, честный вариант — таблица; она бесплатна, но не напомнит о просрочке сама. Журнал — та же логика на шаг раньше: ещё меньше требований, ещё меньше автоматизации.</p>
+<h2>Сколько стоит переход из журнала в программу</h2>
+<p>Переезд не требует «внедрения». Замер из статьи о миграции: регистрация — 2 минуты, импорт объектов из CSV — 5, добавление арендаторов с автосвязыванием — 5, график платежей — 1–2. Итого 13–14 минут активного времени, без обучения.</p>
+<p>Как это выглядит:</p>
+<ol>
+<li>Регистрация — email и пароль, без банковской карты; бесплатный тариф доступен сразу.</li>
+<li>Нажмите «Загрузить демо-данные» — платформа в один клик развернёт 8 объектов, 5 арендаторов и полгода истории платежей. Можно посмотреть всё на живом примере, ничего не перенося.</li>
+<li>Свои объекты внесите вручную или импортируйте из CSV — минимум для старта: название или адрес и сумма аренды.</li>
+<li>Добавьте жильцов: при создании арендатора платформа закрепит его на объекте, изменит статус объекта на «Сдаётся» и создаст первый платёж.</li>
+<li>Постройте график платежей на 12 месяцев одной кнопкой — с защитой от дублей по периоду.</li>
+</ol>
+<p>С этого момента напоминания жильцам, автопросрочки и аналитика работают сами: сервис напоминает жильцу за 3 дня до платежа и дублирует письмом, вам писать ничего не надо. Платные тарифы — от 990 ₽/мес; актуальные цены — на странице тарифов.</p>
+<h2>Как вести журнал, пока не переехали</h2>
+<p>Если сейчас журнал — ваш рабочий инструмент, выжмите из него максимум. Пять правил практики редакции:</p>
+<ul>
+<li>Один журнал на все объекты, а не тетрадь на каждую квартиру — так видно общий доход и общие долги.</li>
+<li>Запись — в день получения денег. «Запишу в конце недели» — главный способ потерять строку.</li>
+<li>Храните журнал вместе с договорами и актами: при споре бумага работает в связке, не поодиночке.</li>
+<li>Раз в месяц фотографируйте заполненные страницы — это единственная резервная копия журнала.</li>
+<li>В конце месяца сводите сумму по каждому объекту — это ваш ручной «дашборд», и заодно проверка: не затерялся ли платёж.</li>
+</ul>
+<h2>Частые вопросы</h2>
+<h3>Можно ли вести учёт аренды только в журнале?</h3>
+<p>Да — пока квартир одна-две и вы готовы сверять даты вручную. Это та же логика, что и с таблицами: до трёх объектов и при удобстве ручного учёта честный вариант — таблица; журнал отличается тем же, чем таблица отличается от сервиса, — отсутствием автоматизации.</p>
+<h3>Чем журнал лучше таблицы?</h3>
+<p>Не нужно настраивать формулы и держать компьютер под рукой: открыл — записал. Обратная сторона та же, что у таблиц: ничего не напоминает, не считает и не страхует от ошибок. Мнение редакции.</p>
+<h3>Что перенести в программу в первую очередь?</h3>
+<p>Объекты — вручную или импортом из CSV. Дальше сервис сам построит связи: жильца достаточно добавить с привязкой к квартире — первый платёж и график появятся автоматически. Демо-данные в один клик покажут, как это выглядит, до переноса своих данных.</p>
+<h3>Нужен ли журнал, если платежи безналичные?</h3>
+<p>Переводы фиксирует выписка банка — она сама документ об оплате, отдельная бумага не обязательна. Журнал (или сервис) в этом случае нужен не для фиксации, а для сводки: кто, когда и за какой период заплатил по каждому объекту.</p>
+<h3>Сколько стоит программа учёта аренды?</h3>
+<p>Есть бесплатный тариф — без банковской карты. Платные — от 990 ₽/мес (Start) до 7 990 ₽/мес (Business); при оплате за год дешевле — годовая оплата экономит ~17% по сравнению с помесячной. Актуальные цены всегда на странице тарифов.</p>
+<h2>Итог: журнал честен до второй квартиры</h2>
+<p>Бумажный журнал — честный инструмент для одной квартиры и дисциплинированного человека. Он не напоминает о платежах, не подсвечивает просрочки и не считает доход — и на двух квартирах это уже стоит денег и нервов. Программа учёта берёт именно эту рутину: связи «объект — жилец — платёж» создаются сами, просрочки всплывают сами, доход виден сразу, а вся история платежей хранится рядом с договором — как документы для спокойствия, а не для суда.</p>
+<p>Попробуйте без риска: зарегистрируйтесь в <a href="/" data-discover="true">Arendora</a> без банковской карты, загрузите демо-данные одним кликом и сравните, сколько минут теперь занимает ответ на вопрос «кто и сколько должен на этой неделе». Цены и состав планов — на странице <a href="/tariffs" data-discover="true">тарифов</a>, можно сравнить до регистрации.</p>
+<p>Попробуйте без риска: есть бесплатный тариф без банковской карты. Зарегистрируйтесь, загрузите демо-данные одним кликом и посмотрите, как учёт работает на живом примере.</p>
+</div><div class="mt-12 rounded-lg border bg-card p-6"><p class="font-bold">Ведите учёт аренды в Arendora</p><p class="mt-1 text-sm text-muted-foreground">Демо-данные в один клик. Без банковской карты.</p><button class="inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 brand-gradient text-white shadow-sm hover:opacity-90 h-10 px-4 py-2 mt-4"><a href="/register" data-discover="true">Попробовать бесплатно<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></button><p class="mt-3 text-sm text-muted-foreground"><a href="/tariffs" data-discover="true" class="text-primary hover:underline">Можно сравнить тарифы</a></p></div><div class="mt-10"><h2 class="text-lg font-bold">Другие материалы</h2><div class="mt-4 grid gap-4 sm:grid-cols-2"><a href="/blog/obrazec-dogovora-naima-kvartiry" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Договор найма квартиры: структура и 12 пунктов, из-за которых ссорятся</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Договор найма квартиры между физлицами: структура и 12 пунктов — залог, коммуналка, доступ, индексация, расторжение. Формулировки и типичные ошибки 2026.</p></div></a><a href="/blog/posutochno-ili-dolgosrok" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Посуточная аренда или долгосрочная: считаем экономику на реальных цифрах</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Что выгоднее — посуточная аренда или долгосрочная: расчёт на условных цифрах, скрытые расходы, таблица сравнения, гибридная схема и нюансы налогов.</p></div></a></div></div></article></div><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Необходимые cookie хранят вход в аккаунт и настройки; обезличенная статистика посещений собирается Яндекс.Метрикой. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      window.addEventListener("error", (e) => {
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока он не
+      // задан, счётчик не подключается вовсе: ни очереди ym, ни запросов
+      // к mc.yandex.ru (важно для dev и e2e-тестов). При отказе от cookie
+      // в баннере счётчик не подключается со следующего посещения.
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+  
+
+</body></html>

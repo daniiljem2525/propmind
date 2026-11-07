@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Объекты, жильцы, платежи, заявки и документы в одном окне. Ведите учёт аренды с телефона или компьютера: бесплатно и без банковской карты.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js);
+          /  — коды подтверждения
+         Яндекс.Вебмастера и Search Console (пустые, пока не заданы в env). -->
+    <meta name="yandex-verification" content="">
+    <meta name="google-site-verification" content="">
+    <link rel="canonical" href="https://arendora.ru/features/dlya-arendodatelya">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/features/dlya-arendodatelya">
+    <meta property="og:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Arendora: квартиры, платежи, жильцы — в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Приложение для арендодателя: учёт аренды в одном окне — Arendora">
+    <meta property="og:description" content="Объекты, жильцы, платежи, заявки и документы в одном окне. Ведите учёт аренды с телефона или компьютера: бесплатно и без банковской карты.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Приложение для арендодателя: учёт аренды в одном окне — Arendora">
+    <meta name="twitter:description" content="Объекты, жильцы, платежи, заявки и документы в одном окне. Ведите учёт аренды с телефона или компьютера: бесплатно и без банковской карты.">
+    <title>Приложение для арендодателя: учёт аренды в одном окне — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. Страницы Release 2 несут ровно
+         один Article и один FAQPage (задание релиза; правило S1.3 SEO: в разметке
+         только видимый на странице текст — FAQPage дословно совпадает с видимым FAQ).
+         Google отключил FAQ rich-результаты в мае 2026 — финальное решение по
+         FAQPage за SEO (NT-001); блок снимается одной строкой (скрипт
+         data-page-json-ld="2") без правки контента.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "name": "Arendora", "url": "https://arendora.ru/", "logo": "https://arendora.ru/icon-512.png", "email": "support@arendora.ru", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "email": "support@arendora.ru", "availableLanguage": ["ru", "en"]}}, {"@type": "WebSite", "name": "Arendora", "url": "https://arendora.ru/", "inLanguage": ["ru", "en"]}, {"@type": "SoftwareApplication", "name": "Arendora", "url": "https://arendora.ru/", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "inLanguage": ["ru", "en"], "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "Тариф Free: бесплатный старт без банковской карты"}, "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"}]}</script>
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type": "Question", "name": "Есть ли у Arendora мобильное приложение?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Нативного приложения нет — это веб-сервис с PWA: открываете arendora.ru в браузере телефона и добавляете на главный экран, работает как приложение, есть тёмная тема. Данные при этом живут в облаке и доступны с любого устройства — учёт не теряется вместе с телефоном."}},
+    {"@type": "Question", "name": "Что нужно установить, чтобы начать?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Ничего: сервис работает в браузере. Регистрация — email и пароль, без банковской карты; внедрения и обучения не нужны — «работает сразу после регистрации»."}},
+    {"@type": "Question", "name": "Подойдёт ли сервис для посуточной аренды?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Да: у объектов есть тип сдачи — долгосрочно или посуточно."}},
+    {"@type": "Question", "name": "Как перенести данные из таблиц в сервис?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Сохраните таблицу объектов как CSV и импортируйте одним файлом — портфель заливается без ручного набивания карточек. Замер миграции: регистрация — 2 минуты, импорт CSV — 5, арендаторы с автосвязыванием — 5, график платежей — 1–2; итого 13–14 минут."}},
+    {"@type": "Question", "name": "Сколько стоит сервис для арендодателя?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Есть бесплатный тариф — без банковской карты. Платные — от 990 ₽/мес (Start) до 7 990 ₽/мес (Business); при оплате за год дешевле — годовая оплата экономит ~17% по сравнению с помесячной. Актуальные цены — на странице «Тарифы»."}},
+    {"@type": "Question", "name": "Что будет с данными, если захочу уйти?",
+     "acceptedAnswer": {"@type": "Answer", "text": "Платежи выгружаются в CSV, объекты импортировались из CSV — данные не запираются, обратная дорога в таблицы открыта."}}
+  ]
+}</script>
+    <!-- Локальный стиль таблиц Release 2: рамки и отступы для читаемости сводных
+         таблиц (в шаблоне статьи таблицы оформлены не были). Цвета нейтральные —
+         читаемы в светлой и тёмной теме. -->
+    <style>
+      .r2-wrap{overflow-x:auto;margin-top:1rem}
+      .r2-wrap table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+      .r2-wrap th,.r2-wrap td{border:1px solid rgb(113 113 122 / .4);padding:8px 10px;text-align:left;vertical-align:top}
+      .r2-wrap th{font-weight:700;background:rgb(113 113 122 / .08)}
+      .r2-code{background:rgb(113 113 122 / .12);padding:2px 6px;border-radius:6px;white-space:nowrap}
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+          читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <script type="module" crossorigin="" src="/assets/index-BWsfJtM6.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-Dd4gxM_m.css">
+  <script type="application/ld+json" data-page-json-ld="1">{"@context": "https://schema.org", "@graph": [{"@type": "Article", "headline": "Приложение для арендодателя: учёт аренды без таблиц", "description": "Объекты, жильцы, платежи, заявки и документы в одном окне. Ведите учёт аренды с телефона или компьютера: бесплатно и без банковской карты.", "datePublished": "2026-11-05", "dateModified": "2026-11-05", "inLanguage": "ru", "mainEntityOfPage": "https://arendora.ru/features/dlya-arendodatelya", "author": {"@type": "Organization", "name": "Arendora", "url": "https://arendora.ru/"}, "publisher": {"@type": "Organization", "name": "Arendora", "logo": {"@type": "ImageObject", "url": "https://arendora.ru/icon-192.png"}}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Arendora", "item": "https://arendora.ru/"}, {"@type": "ListItem", "position": 2, "name": "Приложение для арендодателя: учёт аренды без таблиц", "item": "https://arendora.ru/features/dlya-arendodatelya"}]}]}</script><link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>На главную</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Приложение для арендодателя: учёт аренды без таблиц</h1>
+<p class="mt-4 leading-relaxed">Одна квартира ещё помещается в блокнот: дата, сумма, «отдан за коммуналку». Появляется вторая — записи живут уже в трёх местах: бумага, заметки в телефоне, чат с жильцом. Арендатор платит «где-то в начале месяца», напоминание держится на памяти, а договор со сроком окончания лежит сканом в почте. Приложение для арендодателя нужно именно в этот момент — когда учёт перестал помещаться в голову.</p>
+<p class="mt-4 leading-relaxed">Arendora — российский облачный сервис управления арендной недвижимостью: объекты, жильцы, платежи, заявки на обслуживание, документы и аналитика в одном окне. Связи «объект ↔ жилец ↔ платёж» создаются автоматически, график платежей строится на 12 месяцев одной кнопкой, просрочки подсвечиваются сами, а жильцу уходит напоминание до даты оплаты.</p>
+<a href="/register" class="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Попробовать бесплатно</a>
+<h2 class="mt-10 text-2xl font-bold">Кому подходит</h2>
+<p class="mt-4 leading-relaxed">Arendora рассчитана на частных арендодателей с одной или несколькими квартирами — долгосрочная и посуточная сдача, на собственников растущего портфеля — от 10 до 100+ объектов — и на небольшие управляющие, которые устали от двойного ввода в таблицы. Данные хранятся на серверах в России: платформа собрана с учётом требований 152-ФЗ о локализации персональных данных. Для старта есть бесплатный тариф — банковская карта не нужна.</p>
+<h2 class="mt-10 text-2xl font-bold">Что сервис берёт на себя</h2>
+<p class="mt-4 leading-relaxed">Никаких настроек и обучения — «работает сразу после регистрации».</p>
+<h3 class="mt-8 text-xl font-semibold">Всё связывается само</h3>
+<p class="mt-4 leading-relaxed">«Добавили жильца и его квартиру — первый платёж появился сам. Ничего не нужно заносить руками». При создании арендатора с привязкой к объекту платформа закрепляет жильца на объекте, меняет статус объекта на «Сдаётся» и создаёт первый платёж на сумму аренды — три ручных действия становятся одним. У объектов есть карточки с фото, адресом, статусом («сдаётся / сдан / ремонт»), суммой аренды, поиском и фильтрами.</p>
+<h3 class="mt-8 text-xl font-semibold">Платежи и график — без ручных таблиц</h3>
+<p class="mt-4 leading-relaxed">Одна кнопка у арендатора создаёт 12 ежемесячных платежей — с защитой от дублей по периоду, так что случайное двойное нажатие не задвоит деньги. Платёж с прошедшей датой сам становится «просрочено», а владелец получает уведомление — реакция в первый день, а не через две недели. «Сколько заработали и кто должен — видно сразу, без Excel».</p>
+<h3 class="mt-8 text-xl font-semibold">Напоминания жильцам — без вашего участия</h3>
+<p class="mt-4 leading-relaxed">Большинство задержек оплаты — не злой умысел, а забывчивость. Сервис напоминает жильцу за 3 дня до платежа и дублирует напоминание письмом; вам писать ничего не надо. Черновик письма по платежу платформа готовит сама: выбираете арендаторов, смотрите превью и отправляете разом. У жильца есть свой портал: он видит свои платежи, заявки и документы.</p>
+<h3 class="mt-8 text-xl font-semibold">Заявки на обслуживание — с фото и статусами</h3>
+<p class="mt-4 leading-relaxed">Жилец сообщает о проблеме фото и комментарием, заявка идёт по циклу «новая → назначена → в работе → выполнена → закрыта» — с срочностью и историей событий. Ничего не теряется в чате: видно, кто исполнитель и что уже сделано.</p>
+<h3 class="mt-8 text-xl font-semibold">Документы и аналитика — рядом с каждой квартирой</h3>
+<p class="mt-4 leading-relaxed">Договоры, акты и описи хранятся в карточке объекта. Аналитика — готовыми виджетами: доход по месяцам, статусы объектов и платежей, топ объектов. Истекающие договоры видны на дашборде; продление — кнопкой «Продлить на год»: новая дата и график платежей создаются автоматически. Платежи выгружаются в CSV в пару кликов — данные не запираются.</p>
+<h2 class="mt-10 text-2xl font-bold">С телефона — как приложение: PWA</h2>
+<p class="mt-4 leading-relaxed">Честно и сразу: нативного мобильного приложения у Arendora нет — это веб-сервис, который работает с телефона как приложение. Открываете arendora.ru в браузере телефона и добавляете на главный экран: PWA ставится как приложение, есть тёмная тема для ночных сверок. Важнее форм-фактора другое: данные живут в облаке, а не на одном устройстве, — доступ с любого устройства, и учёт не теряется вместе с телефоном. Как устроен рынок «приложений для арендодателя» и что реально существует под iOS и Android — отдельный обзор: <a class="text-primary underline underline-offset-2" href="/blog/prilozhenie-dlya-arendodatelya">приложение для арендодателя: что реально существует</a>.</p>
+<h2 class="mt-10 text-2xl font-bold">Три сценария для арендодателя</h2>
+<p class="mt-4 leading-relaxed"><strong>Одна–две квартиры, долгосрочно.</strong> Регистрация — email и пароль, без карты. Прежде чем заносить свои данные, нажмите «Загрузить демо-данные» — платформа в один клик развернёт 8 объектов, 5 арендаторов и полгода истории платежей: живой пример до миграции. Напоминания, автопросрочки и график работают сразу.</p>
+<p class="mt-4 leading-relaxed"><strong>Портфель 4–14 объектов.</strong> Свой портфель переносится импортом объектов из CSV — одним файлом. Замер статьи о миграции: регистрация — 2 минуты, импорт CSV — 5, арендаторы с автосвязыванием — 5, график платежей — 1–2; итого 13–14 минут активного времени, без обучения и «внедрения». Доход по месяцам и статусы — готовыми виджетами, без ручных сводных таблиц.</p>
+<p class="mt-4 leading-relaxed"><strong>Небольшая управляющая.</strong> Роли: владелец, жилец (свой портал), исполнитель, администратор платформы. Заявки с фото и статусами — подрядчики работают без напоминаний в чате. Все платежи выгружаются в CSV — обратная дорога в таблицы всегда открыта.</p>
+<h2 class="mt-10 text-2xl font-bold">Учёт аренды: сервис или таблицы</h2>
+<p class="mt-4 leading-relaxed">Excel и Google Таблицы бесплатны и привычны, но не напоминают о платежах, не ставят статус «просрочено» и не связывают объекты, жильцов и платежи между собой — все связи держатся на ручном вводе. Arendora делает это автоматически.</p>
+<table class="mt-6 w-full text-sm"><thead><tr class="border-b text-left"><th class="py-2 pr-4 font-semibold">Задача</th><th class="py-2 pr-4 font-semibold">Таблицы</th><th class="py-2 font-semibold">Arendora</th></tr></thead><tbody><tr class="border-b"><td class="py-2 pr-4">Напоминание жильцу</td><td class="py-2 pr-4">нет</td><td class="py-2">за 3 дня до платежа + письмом</td></tr><tr class="border-b"><td class="py-2 pr-4">Статус «просрочено»</td><td class="py-2 pr-4">красить руками</td><td class="py-2">ставится автоматически</td></tr><tr class="border-b"><td class="py-2 pr-4">График платежей на 12 месяцев</td><td class="py-2 pr-4">формулами, настройка вручную</td><td class="py-2">одной кнопкой</td></tr><tr class="border-b"><td class="py-2 pr-4">Связь объект — жилец — платёж</td><td class="py-2 pr-4">вручную, тремя листами</td><td class="py-2">автоматом при создании жильца</td></tr><tr class="border-b"><td class="py-2 pr-4">Доход по месяцам</td><td class="py-2 pr-4">собрать формулами</td><td class="py-2">готовая аналитика</td></tr><tr class="border-b"><td class="py-2 pr-4">Данные на входе и на выходе</td><td class="py-2 pr-4">CSV вручную</td><td class="py-2">импорт из CSV, экспорт в CSV</td></tr></tbody></table>
+<p class="mt-4 leading-relaxed">Строки таблицы — из сравнения «Arendora или Google Таблицы»; механики Arendora подтверждены статьями об автоматизации и миграции. Полное сравнение с расчётами — в статьях <a class="text-primary underline underline-offset-2" href="/blog/uchet-arendy-v-excel">«Учёт аренды в Excel и бумажном журнале»</a> и <a class="text-primary underline underline-offset-2" href="/blog/arendora-vs-google-tablicy">«Arendora или Google Таблицы»</a>.</p>
+<p class="mt-4 leading-relaxed">Цена медленного учёта — месяц аренды: при ставке 35 000 ₽ один пропущенный месяц дороже года подписки на сервис за 990 ₽/мес. Ручная рутина — сверка оплаты, напоминания, разбор просрочек — стоит около 50 минут на объект в месяц; на пяти объектах сервис экономит примерно 3 часа в месяц, или 36 часов в год.</p>
+<h2 class="mt-10 text-2xl font-bold">Как начать вести учёт аренды</h2>
+<ol class="mt-4 list-decimal space-y-2 pl-6 leading-relaxed"><li>Зарегистрируйтесь: email и пароль, без банковской карты — бесплатный тариф доступен сразу.</li><li>Нажмите «Загрузить демо-данные» — 8 объектов, 5 арендаторов и полгода истории платежей одним кликом.</li><li>Добавьте объект и жильца — первый платёж и график появятся автоматически.</li><li>Постройте график платежей на 12 месяцев одной кнопкой.</li></ol>
+<p class="mt-4 leading-relaxed">Частный случай этой схемы — платежи: как вести их так, чтобы ни один не терялся, — в посадочной <a class="text-primary underline underline-offset-2" href="/features/uchet-platezhey">учёт платежей квартирантов</a>.</p>
+<h2 class="mt-10 text-2xl font-bold">Частые вопросы</h2>
+<div class="mt-4 space-y-2"><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Есть ли у Arendora мобильное приложение?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Нативного приложения нет — это веб-сервис с PWA: открываете arendora.ru в браузере телефона и добавляете на главный экран, работает как приложение, есть тёмная тема. Данные при этом живут в облаке и доступны с любого устройства — учёт не теряется вместе с телефоном.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Что нужно установить, чтобы начать?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Ничего: сервис работает в браузере. Регистрация — email и пароль, без банковской карты; внедрения и обучения не нужны — «работает сразу после регистрации».</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Подойдёт ли сервис для посуточной аренды?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Да: у объектов есть тип сдачи — долгосрочно или посуточно.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Как перенести данные из таблиц в сервис?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Сохраните таблицу объектов как CSV и импортируйте одним файлом — портфель заливается без ручного набивания карточек. Замер миграции: регистрация — 2 минуты, импорт CSV — 5, арендаторы с автосвязыванием — 5, график платежей — 1–2; итого 13–14 минут.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Сколько стоит сервис для арендодателя?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Есть бесплатный тариф — без банковской карты. Платные — от 990 ₽/мес (Start) до 7 990 ₽/мес (Business); при оплате за год дешевле — годовая оплата экономит ~17% по сравнению с помесячной. Актуальные цены — на странице «Тарифы».</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Что будет с данными, если захочу уйти?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Платежи выгружаются в CSV, объекты импортировались из CSV — данные не запираются, обратная дорога в таблицы открыта.</p></details></div>
+<div class="mt-12 rounded-2xl border bg-card p-8 text-center"><h2 class="text-2xl font-bold">Ведите учёт аренды без таблиц</h2><p class="mt-3 leading-relaxed text-muted-foreground">Заведите первый объект и жильца — связи, график платежей и напоминания заработают сами. Не готовы переносить данные — загрузите демо-данные одним кликом и посмотрите на живом примере.</p><a href="/register" class="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Попробовать бесплатно</a><a href="/tariffs" class="mt-6 ml-4 inline-flex items-center text-sm font-semibold text-primary underline underline-offset-2 hover:opacity-90">Сравнить тарифы</a><p class="mt-3 text-sm text-muted-foreground">Без карты для старта. Настройка за 15 минут.</p><p class="mt-1 text-sm text-muted-foreground">Цены — от 0 ₽; платные от 990 ₽/мес.</p></div></article></div><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Необходимые cookie хранят вход в аккаунт и настройки; обезличенная статистика посещений собирается Яндекс.Метрикой. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      window.addEventListener("error", (e) => {
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм счётчика
+      // на этой странице (решение NT-001 Р4 от 2026-11-01: один механизм загрузки
+      // tag.js на весь сайт; статических тегов в <head> нет). Копия загрузчика —
+      // из живого шаблона статьи блога (снапшот p27.html, деплой Release 1).
+      // При отказе от cookie в баннере счётчик не подключается со следующего
+      // посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+
+
+</body></html>
