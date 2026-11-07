@@ -387,7 +387,7 @@ export const ru = {
   "upsell.cta": "Обновить тариф",
   "upsell.later": "Позже",
   "upsell.features.properties": "до 3 объектов",
-  "upsell.features.tenants": "1 арендатора",
+  "upsell.features.tenants": "до 3 арендаторов",
 
   // ——— Лендинг: конверсионные блоки ———
   "land.guarantee1": "Без карты для старта",
@@ -666,7 +666,7 @@ export const ru = {
   "plans.assure3": "Отмена в любой момент, данные остаются вашими",
   "plans.free.name": "Free",
   "plans.free.desc": "Познакомиться с платформой",
-  "plans.free.features": "1 объект|1 арендатор|Базовые платежи",
+  "plans.free.features": "До 3 объектов|До 3 арендаторов|Базовые платежи",
   "plans.start.name": "Start",
   "plans.start.desc": "Для начинающих рантье",
   "plans.start.features": "До 4 объектов (1 + 3 доп.)|Платежи и график на год|Заявки на обслуживание",

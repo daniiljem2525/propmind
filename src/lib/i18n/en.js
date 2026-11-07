@@ -387,7 +387,7 @@ export const en = {
   "upsell.cta": "Upgrade plan",
   "upsell.later": "Later",
   "upsell.features.properties": "up to 3 properties",
-  "upsell.features.tenants": "1 tenant",
+  "upsell.features.tenants": "up to 3 tenants",
 
   // ——— Landing conversion blocks ———
   "land.guarantee1": "No card to start",
@@ -666,7 +666,7 @@ export const en = {
   "plans.assure3": "Cancel anytime, your data stays yours",
   "plans.free.name": "Free",
   "plans.free.desc": "Get to know the platform",
-  "plans.free.features": "1 property|1 tenant|Basic payments",
+  "plans.free.features": "Up to 3 properties|Up to 3 tenants|Basic payments",
   "plans.start.name": "Start",
   "plans.start.desc": "For starting landlords",
   "plans.start.features": "Up to 4 properties (1 + 3 extra)|Payments and yearly schedule|Maintenance requests",

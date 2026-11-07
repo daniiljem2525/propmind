@@ -157,12 +157,13 @@ function PricingPlans() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* Основная сетка Free/Start/Pro/Business — всегда одна строка на десктопе (от lg/1024) */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {PLANS.map((p) => {
           const price = yearly ? p.yearly : p.monthly;
           const isCurrent = current === p.id;
           return (
-            <Card key={p.id} className={cn("relative flex flex-col p-5", p.highlight && "border-primary ring-2 ring-primary")}>
+            <Card key={p.id} className={cn("relative flex flex-col p-4", p.highlight && "border-primary ring-2 ring-primary")}>
               {p.highlight && (
                 <span className="brand-gradient absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
                   ★ Pro
