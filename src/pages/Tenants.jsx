@@ -10,7 +10,9 @@ import { Field, Input, Select, Textarea } from "@/components/ui/input";
 import { useCollection } from "@/hooks/useCollection";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useDemoExitGate } from "@/hooks/useDemoExitGate";
+import UpsellDialog from "@/components/UpsellDialog";
 import { useAuth } from "@/lib/authContext";
+import { getPlanLimits } from "@/lib/config/misc";
 import { getOrCreateInviteCode } from "@/lib/api/auth";
 import { sendInviteEmail } from "@/lib/email";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
@@ -208,11 +210,18 @@ export default function Tenants() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [upsellOpen, setUpsellOpen] = useState(false);
+  const planLimits = getPlanLimits(user?.plan);
   const demoGate = useDemoExitGate();
 
-  // Канон Free с 07.11 (решение CEO): арендаторы без ограничений на любом
-  // тарифе — лимит и upsell-диалог для арендаторов сняты (см. PLAN_LIMITS).
+  // Канон Free с 07.11, правка 2 (решение CEO): 1 объект И 1 арендатор.
+  // Лимит блокирует только СОЗДАНИЕ нового арендатора; существующие записи
+  // не трогаем (см. PLAN_LIMITS). В демо-режиме лимиты не применяются.
   const tryCreate = () => {
+    if (planLimits.tenants !== null && tenants.length >= planLimits.tenants) {
+      setUpsellOpen(true);
+      return;
+    }
     // В демо-режиме — сначала выход из демо (с удалением демо-данных)
     demoGate.guarded(() => {
       setEditing(null);
@@ -544,6 +553,9 @@ export default function Tenants() {
         onConfirm={confirmDelete}
         description={deleting?.full_name}
       />
+
+      {/* Лимит тарифа Free (1 арендатор) исчерпан — апселл Start */}
+      <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} feature={t("upsell.features.tenants")} />
 
       {/* Подтверждение создания графика */}
       <ConfirmDialog

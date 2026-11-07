@@ -29,12 +29,12 @@ export const PLANS = [
   { id: "individual", monthly: null, yearly: null, highlight: false },
 ];
 
-// Лимиты тарифов (null — без ограничения)
+// Лимиты тарифов (null — лимит не применяется)
 export const PLAN_LIMITS = {
-  // Канон Free с 07.11 (решение CEO): 1 объект, арендаторы без ограничений.
+  // Канон Free с 07.11, правка 2 (решение CEO): 1 объект И 1 арендатор.
   // Лимит блокирует только СОЗДАНИЕ нового; существующие данные не трогаем —
-  // у тестовых пользователей может быть >1 объекта, они работают дальше.
-  free: { properties: 1, tenants: null },
+  // у тестовых пользователей может быть больше лимита, они работают дальше.
+  free: { properties: 1, tenants: 1 },
   start: { properties: 4, tenants: null }, // 1 бесплатно + 3 доп.
   pro: { properties: 8, tenants: null },
   business: { properties: 14, tenants: null },

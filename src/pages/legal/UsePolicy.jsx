@@ -101,7 +101,7 @@ export default function UsePolicy() {
           <tbody>
             <tr>
               <TD bold>Free</TD>
-              <TD>1 объект, арендаторы без ограничений</TD>
+              <TD>1 объект, 1 арендатор</TD>
             </tr>
             <tr>
               <TD bold>Start</TD>
