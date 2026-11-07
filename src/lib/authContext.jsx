@@ -107,6 +107,14 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  // Удаление учётной записи (облако): edge-функция удаляет пользователя,
+  // здесь гасим локальное состояние профиля (кэш чистится эффектом ниже)
+  const deleteAccount = async () => {
+    const ok = await authApi.deleteAccount();
+    setUser(null);
+    return ok;
+  };
+
   const updateProfile = async (userId, data) => {
     const u = await authApi.updateProfile(userId, data);
     setUser((prev) => (prev && prev.id === u?.id ? u : prev));
@@ -122,6 +130,7 @@ export function AuthProvider({ children }) {
         verifyOtp,
         refreshUser,
         logout,
+        deleteAccount,
         updateProfile,
         requestPasswordReset: authApi.requestPasswordReset,
         resetPassword: authApi.resetPassword,

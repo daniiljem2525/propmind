@@ -108,6 +108,26 @@ export async function logout() {
   await supabase.auth.signOut();
 }
 
+// Полное удаление учётной записи (право на забвение — /privacy п. 8.3,
+// /terms п. 13). Удаление выполняет edge-функция delete-account: она
+// верифицирует JWT и удаляет пользователя сервис-ролью (anon-ключ
+// удалять пользователей не может). Данные чистятся каскадом по FK.
+export async function deleteAccount() {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) throw new Error("SESSION_EXPIRED");
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${session.access_token}` },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok !== true) {
+    throw new Error(data?.error || `HTTP ${res.status}`);
+  }
+  // Аккаунта больше нет — гасим сессию и локальные следы профиля
+  await supabase.auth.signOut();
+  return true;
+}
+
 // Соц-вход (Яндекс / VK / Mail.ru). У Supabase нет таких провайдеров,
 // поэтому OAuth ведёт наша edge-функция oauth: она создаёт/находит
 // пользователя и возвращает на /auth/social одноразовый token_hash,

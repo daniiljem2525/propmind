@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bell,
   Check,
@@ -10,6 +10,7 @@ import {
   Palette,
   ShieldCheck,
   Sparkles,
+  AlertTriangle,
   User,
   UserPlus,
   Users,
@@ -228,6 +229,76 @@ function PricingPlans() {
         ))}
       </div>
     </div>
+  );
+}
+
+// ——— Опасная зона: удаление учётной записи (/privacy п. 8.3, /terms п. 13) ———
+function DeleteAccountZone() {
+  const { t } = useLang();
+  const { deleteAccount } = useAuth();
+  const toast = useToast();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const [word, setWord] = useState("");
+  const [busy, setBusy] = useState(false);
+  const required = t("settings.deleteAccountWord"); // «УДАЛИТЬ» (ru) / «DELETE» (en)
+  const ready = word.trim().toUpperCase() === required;
+
+  const confirm = async () => {
+    setBusy(true);
+    try {
+      // Внутри: edge-функция delete-account (сервис-роль) + signOut;
+      // контекст сбрасывает профиль, редирект — на логин с сообщением
+      await deleteAccount();
+      toast.success(t("auth.accountDeleted"));
+      navigate("/login?deleted=1", { replace: true });
+    } catch (e) {
+      toast.error(`${t("settings.deleteAccountFailed")}${e?.message ? ` (${e.message})` : ""}`);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Card className="mt-6 border-destructive/40">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-destructive">
+          <AlertTriangle className="h-4 w-4" />
+          {t("settings.dangerZone")}
+        </CardTitle>
+        <CardDescription>{t("settings.deleteAccountDesc")}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button variant="destructive" onClick={() => setOpen(true)}>
+          {t("settings.deleteAccountBtn")}
+        </Button>
+      </CardContent>
+
+      <Dialog
+        open={open}
+        onClose={busy ? undefined : () => setOpen(false)}
+        title={t("settings.deleteAccountConfirmTitle")}
+      >
+        <p className="text-sm text-muted-foreground">{t("settings.deleteAccountConfirmDesc")}</p>
+        <p className="mt-1 text-sm font-bold tracking-widest text-destructive">{required}</p>
+        <Input
+          className="mt-3"
+          value={word}
+          onChange={(e) => setWord(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && ready && !busy && confirm()}
+          autoFocus
+          disabled={busy}
+          placeholder={required}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+            {t("common.cancel")}
+          </Button>
+          <Button variant="destructive" onClick={confirm} disabled={!ready || busy} loading={busy}>
+            {t("settings.deleteAccountBtn")}
+          </Button>
+        </div>
+      </Dialog>
+    </Card>
   );
 }
 
@@ -531,6 +602,10 @@ export default function Settings() {
       {activeTab === "plan" && <PricingPlans />}
       {activeTab === "users" && isAdmin && <UsersPanel />}
       {searchParams.get("debug") && <SwDiag />}
+
+      {/* Право на удаление аккаунта — любому пользователю облака (/privacy п. 8.3).
+          В демо-режиме и без облака не показываем: удалять нечего/опасно. */}
+      {isSupabaseConfigured && user && !isDemoMode() && <DeleteAccountZone />}
 
       <ConfirmDialog
         open={demoConfirm !== null}

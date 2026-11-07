@@ -50,6 +50,17 @@ export default function Login() {
     ensureDemoAccount();
   }, []);
 
+  // Возврат после удаления учётной записи (Настройки → Опасная зона):
+  // сообщаем об успехе и убираем параметр из адресной строки
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("deleted")) {
+      toast.success(t("auth.accountDeleted"));
+      navigate(location.pathname, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
