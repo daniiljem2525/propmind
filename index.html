@@ -118,11 +118,32 @@
         el.innerHTML = "<b>" + kind + "</b><br>" + text;
         document.body.appendChild(el);
       }
+      // Ограниченные контексты Safari (приватный режим, запрет cookie): пока
+      // приложение не смонтировалось — SecurityError фатальны, показываем
+      // плашку (диагностика краша iOS). После монтирования интерфейса те же
+      // ошибки — асинхронные хвосты деградировавшего realtime/хранилищ:
+      // приложение живо и работает без live-обновлений, плашка не нужна.
+      function pmAppAlive() {
+        var root = document.getElementById("root");
+        return !!(root && root.childElementCount);
+      }
+      function pmBenign(text) {
+        return /^SecurityError/.test(text) && pmAppAlive();
+      }
       window.addEventListener("error", (e) => {
+        if (pmBenign(e.message || "")) {
+          console.warn("pm: нефатальная SecurityError (приложение работает):", e.message);
+          return;
+        }
         pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
       });
       window.addEventListener("unhandledrejection", (e) => {
-        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+        var reason = e.reason?.message || String(e.reason);
+        if (pmBenign(reason)) {
+          console.warn("pm: нефатальная SecurityError (rejection, приложение работает):", reason);
+          return;
+        }
+        pmShowFatal("REJ", reason);
       });
     </script>
     <script>

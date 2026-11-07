@@ -97,9 +97,14 @@ export function makeEntity(collection, defaults = {}) {
 // Имена каналов уникальны (счётчик), чтобы дубли не конфликтовали.
 const channels = new Map();
 let channelSeq = 0;
+// Ограниченный контекст (iOS Safari в приватном режиме / запрет cookie): первая
+// же попытка подписки бросает SecurityError — после неё realtime не пытаемся
+// больше нигде на этой странице (до перезагрузки), иначе внутренние
+// retry-таймеры транспорта стреляют тем же SecurityError уже асинхронно.
+let realtimeBlocked = false;
 
 export function subscribeSupabase(collection, cb) {
-  if (!supabase) return () => {};
+  if (!supabase || realtimeBlocked) return () => {};
   if (!channels.has(collection)) {
     const cbs = new Set();
     channelSeq += 1;
@@ -130,6 +135,21 @@ export function subscribeSupabase(collection, cb) {
       console.warn(
         `realtime: подписка «${collection}» не удалась (${error?.message || error}) — live-обновления отключены`
       );
+      // Разбираем неудавшуюся попытку до конца: канал уже зарегистрирован в
+      // клиенте, а транспортный адаптер успел навесить таймеры/обработчики до
+      // броска — без этой зачистки они выстреливают SecurityError асинхронно
+      // (уходит в window.onerror → ERR-плашка поверх работающего интерфейса).
+      realtimeBlocked = true;
+      try {
+        channel?.unsubscribe?.();
+      } catch {}
+      try {
+        supabase.realtime.remove(channel);
+      } catch {}
+      try {
+        supabase.realtime.disconnect()?.catch?.(() => {});
+      } catch {}
+      channel = null;
     }
     channels.set(collection, { channel, cbs }); // channel=null — режим деградации
   }
