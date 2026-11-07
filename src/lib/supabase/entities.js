@@ -26,7 +26,7 @@ export const Payment = makeEntity("payments", {
   status: "pending",
 });
 
-// Заезды посуточной сдачи: гость, даты, цена за ночь (долгосрок — в payments)
+// Заезды посуточной сдачи: гость, даты, цена за сутки (долгосрок — в payments)
 export const Booking = makeEntity("bookings", {
   currency: "RUB",
 });

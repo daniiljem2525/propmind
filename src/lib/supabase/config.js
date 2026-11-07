@@ -21,17 +21,27 @@ export const isSupabaseConfigured =
   SUPABASE_ANON_KEY.length > 20 &&
   !SUPABASE_ANON_KEY.includes("ТВОЙ");
 
-// ——— Надёжное хранение сессии ———
-// iOS у домашних PWA при выгрузке приложения (свайп из недавних)
-// может вычищать localStorage — и каждый запуск требовал заново
-// входить. Сессия дублируется в cookie и IndexedDB; при чтении
-// берём первый непустой источник, так что сессия переживает чистку.
+// ——— Надёжное хранение сессии (safeStorage) ———
+// iOS Safari в ограниченных контекстах (приватный режим, «запрет всех
+// cookie», встроенные webview) бросает SecurityError «The operation
+// is insecure» на любое обращение к localStorage/cookie — обращение к
+// хранилищу не должно ронять клиент. Сессия дублируется в cookie и
+// IndexedDB; последний рубеж — in-memory Map: если все персистентные
+// хранилища недоступны, сессия хотя бы живёт до перезагрузки страницы,
+// и приложение работает без краша (деградация до одной сессии).
+
+// In-memory заглушка: записывается при каждом setItem, читается последней.
+const memoryStore = new Map();
 
 function cookieGet(name) {
-  const m = document.cookie.match(
-    new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") + "=([^;]*)")
-  );
-  return m ? decodeURIComponent(m[1]) : null;
+  try {
+    const m = document.cookie.match(
+      new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()[\]\\/+^]/g, "\\$&") + "=([^;]*)")
+    );
+    return m ? decodeURIComponent(m[1]) : null;
+  } catch {
+    return null; // document.cookie может бросить SecurityError (sandbox/приватный режим)
+  }
 }
 
 // Cookie ограничена ~4 КБ: слишком длинное значение браузер молча
@@ -74,12 +84,17 @@ export const robustStorage = {
     v = cookieGet(key);
     if (v != null) return v;
     try {
-      return (await withIdb("readonly", (s) => s.get(key))) ?? null;
+      v = (await withIdb("readonly", (s) => s.get(key))) ?? null;
     } catch {
-      return null;
+      v = null;
     }
+    if (v != null) return v;
+    // Все персистентные хранилища недоступны (iOS Safari, приватный режим) —
+    // отдаём то, что записано в памяти за эту сессию.
+    return memoryStore.has(key) ? memoryStore.get(key) : null;
   },
   async setItem(key, value) {
+    memoryStore.set(key, String(value)); // последний рубеж — всегда доступен
     try {
       localStorage.setItem(key, value);
     } catch {}
@@ -91,6 +106,7 @@ export const robustStorage = {
     } catch {}
   },
   async removeItem(key) {
+    memoryStore.delete(key);
     try {
       localStorage.removeItem(key);
     } catch {}

@@ -103,23 +103,47 @@ export function subscribeSupabase(collection, cb) {
   if (!channels.has(collection)) {
     const cbs = new Set();
     channelSeq += 1;
-    const channel = supabase
-      .channel(`rt-${collection}-${channelSeq}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: collection },
-        () => cbs.forEach((f) => f())
-      )
-      .subscribe();
-    channels.set(collection, { channel, cbs });
+    let channel = null;
+    try {
+      channel = supabase
+        .channel(`rt-${collection}-${channelSeq}`)
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: collection },
+          () => cbs.forEach((f) => f())
+        )
+        .subscribe((status) => {
+          // Ошибка канала после подключения (сеть, рестарт сервера) — тоже
+          // не бросаем: live-обновления необязательны, данные придут при
+          // следующем fetch/мутации.
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.warn(`realtime: канал «${collection}» — ${status}, live-обновления недоступны`);
+          }
+        });
+    } catch (error) {
+      // iOS Safari (приватный режим / запрет cookie) бросает SecurityError
+      // «The operation is insecure» синхронно из .subscribe() → connect()
+      // («WebSocket not available: …»). Раньше эта ошибка уходила в error
+      // boundary и роняла весь интерфейс красным экраном. Деградация:
+      // работаем без live-обновлений — мутации этой вкладки шлют
+      // notifyCollection, данные перечитываются при следующем fetch.
+      console.warn(
+        `realtime: подписка «${collection}» не удалась (${error?.message || error}) — live-обновления отключены`
+      );
+    }
+    channels.set(collection, { channel, cbs }); // channel=null — режим деградации
   }
   const entry = channels.get(collection);
   entry.cbs.add(cb);
   return () => {
     entry.cbs.delete(cb);
     if (entry.cbs.size === 0) {
-      supabase.removeChannel(entry.channel);
-      channels.delete(collection);
+      if (entry.channel) {
+        try {
+          supabase.removeChannel(entry.channel);
+        } catch {}
+      }
+      channels.delete(collection); // при следующей подписке канал будет создан заново
     }
   };
 }
