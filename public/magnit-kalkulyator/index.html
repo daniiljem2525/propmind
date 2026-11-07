@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор доходности квартиры с учётом налога — Arendora</title>
+<meta name="description" content="Чистый доход квартиры в месяц и в год — с учётом простоя, расходов и налога — и доходность в процентах от стоимости. Расчёт в браузере, данные не отправляются.">
+<!--
+  Лид-магнит 2: «Сколько реально приносит ваша квартира»
+  Артефакт спринта 1 отдела маркетинга NeuroTeam (2026-10-30).
+  Автономная страница: без сервера, зависимостей и отправки данных куда-либо.
+  Внедрение: разместить на arendora.ru (например /tools/rent-profitability) или отдать как отдельную страницу.
+  CTA несёт UTM: utm_source=marketing&utm_medium=leadmagnet&utm_campaign=calculator
+  Правила спринта: лимиты тарифов не упоминаем; цифры — только расчёт из введённых пользователем данных.
+  Расчётные допущения (показывать пользователю под результатом):
+  - налог: НПД 4% / ИП УСН 6% / НДФЛ 13% от валового дохода (без вычетов);
+  - простой — месяцы без аренды в году; коммуналка и прочие расходы — из расчета 12 месяцев;
+  - доходность = чистый годовой доход / стоимость квартиры. Без учёта роста цены и амортизации.
+
+  --- Адаптация под посадочную магнита (NT-013, Release 1, 2026-10-30) ---
+  Взят файл leadmagnet-profit-calculator.html ЦЕЛИКОМ; логика расчёта, формулы,
+  id элементов, значения по умолчанию и текст допущений НЕ менялись.
+  Добавлено: (1) вводный блок «Что вы посчитаете» после шапки; (2) блок
+  «Вести аренду в Arendora» внизу — второй визуальный блок с ТОЙ ЖЕ register-ссылкой
+  (href исходного CTA сохранён точь-в-точь, дубля ссылки-CTA в виде новой цели нет);
+  (3) consent-aware inline-загрузчик Яндекс.Метрики 113900461 в конце <body>
+  (дословная копия из company/departments/seo/shift-2026-10-30/pages/p02.html,
+  строки 135–168, закрывающий </script> — строка 169);
+  (4) title/meta description по правилам SEO (title ≤65 с суффиксом «— Arendora»,
+  description 130–160). Внешние запросы, кроме consent-aware счётчика, отсутствуют.
+-->
+<style>
+  :root{--dark:#141413;--light:#faf9f5;--gray:#e8e6dc;--accent:#d97757;--muted:#6b6a63;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Georgia,'Times New Roman',serif;background:var(--light);color:var(--dark);line-height:1.5}
+  .wrap{max-width:680px;margin:0 auto;padding:32px 20px 64px}
+  header{margin-bottom:8px}
+  .brand{font-family:Poppins,Arial,sans-serif;font-weight:600;letter-spacing:.5px;font-size:13px;text-transform:uppercase;color:var(--muted)}
+  h1{font-family:Poppins,Arial,sans-serif;font-size:30px;line-height:1.2;margin:10px 0 6px}
+  .sub{color:var(--muted);margin-bottom:24px}
+  .card{background:#fff;border:1px solid var(--gray);border-radius:12px;padding:22px;margin-bottom:18px}
+  .card h2{font-family:Poppins,Arial,sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;color:var(--muted)}
+  label{display:block;font-size:14px;margin:12px 0 4px}
+  label b{font-weight:600}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:2px}
+  input[type=number],select{width:100%;padding:10px 12px;border:1px solid var(--gray);border-radius:8px;font-size:16px;font-family:inherit;background:var(--light)}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+  .row{display:flex;gap:14px}.row>div{flex:1}
+  .result{background:var(--dark);color:var(--light);border:none}
+  .result h2{color:#b0aea5}
+  .big{font-family:Poppins,Arial,sans-serif;font-size:34px;font-weight:600;margin:2px 0 4px}
+  .line{display:flex;justify-content:space-between;font-size:14.5px;padding:7px 0;border-bottom:1px solid rgba(250,249,245,.15)}
+  .line:last-of-type{border-bottom:none}
+  .line span:last-child{font-family:Poppins,Arial,sans-serif;font-weight:600}
+  .assum{font-size:12.5px;color:#b0aea5;margin-top:12px}
+  .cta{display:block;text-align:center;background:var(--accent);color:#fff;text-decoration:none;font-family:Poppins,Arial,sans-serif;font-weight:600;padding:14px;border-radius:10px;margin-top:16px;font-size:16px}
+  .cta:hover{filter:brightness(.95)}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;text-align:center}
+  .intro p{font-size:15.5px}
+  .keep p{font-size:15.5px;margin-bottom:2px}
+  @media(max-width:520px){.row{flex-direction:column}}
+</style>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">Arendora</div>
+    <h1>Сколько реально приносит ваша квартира</h1>
+    <p class="sub">Посчитайте чистый доход и доходность — с учётом простоя, расходов и налога. Данные никуда не отправляются, расчёт идёт в браузере.</p>
+  </header>
+
+  <div class="card intro">
+    <h2>Что вы посчитаете</h2>
+    <p>Эта страница — для собственника, который сдаёт жильё и хочет видеть реальный доход, а не цифру из объявления. Подставьте свои числа в поля ниже: калькулятор покажет чистый доход в месяц и в год — с учётом простоя, ваших расходов и налога, — а если укажете стоимость квартиры, то и доходность в процентах от неё. Расчёт обновляется сразу и идёт прямо в браузере.</p>
+  </div>
+
+  <div class="card">
+    <h2>Доход</h2>
+    <div class="row">
+      <div>
+        <label for="rent"><b>Аренда в месяц, ₽</b></label>
+        <input type="number" id="rent" value="35000" min="0" step="1000">
+      </div>
+      <div>
+        <label for="vacancy"><b>Простой, месяцев в году</b></label>
+        <input type="number" id="vacancy" value="1" min="0" max="11" step="1">
+        <p class="hint">Месяцы, когда квартира стоит пустой (пересъёмка, ремонт)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Расходы и налог</h2>
+    <label for="costs"><b>Ваши расходы в месяц, ₽</b></label>
+    <input type="number" id="costs" value="5000" min="0" step="500">
+    <p class="hint">Коммуналка, которую платите вы, интернет, мелкий ремонт — усреднённо</p>
+    <label for="tax"><b>Налоговый режим</b></label>
+    <select id="tax">
+      <option value="0.04">Самозанятость (НПД) — 4%</option>
+      <option value="0.06">ИП, УСН «доходы» — 6%</option>
+      <option value="0.13">Физлицо, НДФЛ — 13%</option>
+    </select>
+  </div>
+
+  <div class="card">
+    <h2>Доходность</h2>
+    <label for="price"><b>Стоимость квартиры, ₽ (необязательно)</b></label>
+    <input type="number" id="price" value="7000000" min="0" step="100000">
+    <p class="hint">Если укажете — посчитаем годовую доходность в % от цены</p>
+  </div>
+
+  <div class="card result">
+    <h2>Ваш расчёт</h2>
+    <div class="line"><span>Валовый доход за год</span><span id="gross">—</span></div>
+    <div class="line"><span>Налог за год</span><span id="taxOut">—</span></div>
+    <div class="line"><span>Расходы за год</span><span id="costsOut">—</span></div>
+    <div style="margin-top:10px">
+      <div style="font-size:13px;color:#b0aea5">Чистый доход в месяц</div>
+      <div class="big" id="netMonth">—</div>
+    </div>
+    <div class="line"><span>Чистый доход за год</span><span id="netYear">—</span></div>
+    <div class="line"><span>Доходность от стоимости</span><span id="yield">—</span></div>
+    <p class="assum" id="assumptions">Допущения: налог считается от валового дохода без вычетов; расходы — 12 месяцев в году; доходность — без учёта роста цены квартиры.</p>
+  </div>
+
+  <a class="cta" id="ctaLink"
+     href="https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=calculator">
+     Вести аренду без таблиц — попробовать Arendora бесплатно</a>
+  <p class="note">Без карты для старта · Отмена в любой момент</p>
+
+  <div class="card keep">
+    <h2>Вести аренду в Arendora</h2>
+    <p>Договор, платёж и жилец — в одном окне: сервис напоминает об оплате раньше, чем просрочка станет конфликтом, а документы по каждому объекту находятся за минуту, а не «где-то в чате».</p>
+    <a class="cta" href="https://arendora.ru/register?utm_source=marketing&utm_medium=leadmagnet&utm_campaign=calculator">Вести аренду в Arendora</a>
+    <p class="note">Бесплатный старт без карты · Отмена в любой момент</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var rent=document.getElementById('rent'),
+      vac=document.getElementById('vacancy'),
+      costs=document.getElementById('costs'),
+      tax=document.getElementById('tax'),
+      price=document.getElementById('price');
+  function num(el){var v=parseFloat(el.value);return isNaN(v)||v<0?0:v;}
+  function fmt(v){return Math.round(v).toLocaleString('ru-RU')+' \u20BD';}
+  function calc(){
+    var monthsPaid=Math.max(0,12-Math.floor(num(vac)));
+    var gross=num(rent)*monthsPaid;
+    var taxRate=parseFloat(tax.value)||0;
+    var taxSum=gross*taxRate;
+    var costsSum=num(costs)*12;
+    var net=gross-taxSum-costsSum;
+    document.getElementById('gross').textContent=fmt(gross);
+    document.getElementById('taxOut').textContent='\u2212'+fmt(taxSum);
+    document.getElementById('costsOut').textContent='\u2212'+fmt(costsSum);
+    document.getElementById('netYear').textContent=fmt(net);
+    document.getElementById('netMonth').textContent=fmt(net/12);
+    var y=document.getElementById('yield');
+    var p=num(price);
+    y.textContent=p>0?(net/p*100).toFixed(1).replace('.',',')+' %':'—';
+    y.style.color=(p>0&&net<0)?'#e07b56':'inherit';
+  }
+  [rent,vac,costs,tax,price].forEach(function(el){
+    el.addEventListener('input',calc);el.addEventListener('change',calc);
+  });
+  calc();
+})();
+</script>
+
+<!-- Счётчик Яндекс.Метрики 113900461 (consent-aware загрузчик сайта). Допущение канцелярии для измеримости CTA: если платформа сама вставляет счётчик на этой странице — удалить этот блок, чтобы счётчик не задвоился -->
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока он не
+      // задан, счётчик не подключается вовсе: ни очереди ym, ни запросов
+      // к mc.yandex.ru (важно для dev и e2e-тестов). При отказе от cookie
+      // в баннере счётчик не подключается со следующего посещения.
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+</body>
+</html>

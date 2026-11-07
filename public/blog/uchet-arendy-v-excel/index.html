@@ -1,0 +1,227 @@
+<!DOCTYPE html><html lang="ru"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Учёт аренды в Excel на 100+ объектах: сколько это стоит, пять признаков, что пора переезжать, и переезд в облако за 15 минут. Проверьте свой портфель.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js);
+          /  — коды подтверждения
+         Яндекс.Вебмастера и Search Console (пустые, пока не заданы в env). -->
+    <meta name="yandex-verification" content="">
+    <meta name="google-site-verification" content="">
+    <link rel="canonical" href="https://arendora.ru/blog/uchet-arendy-v-excel">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/blog/uchet-arendy-v-excel">
+    <meta property="og:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Arendora: квартиры, платежи, жильцы — в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Учёт аренды в Excel и бумажном журнале: сколько это стоит собственнику и как перевести портфель в облако за 15 минут — Arendora">
+    <meta property="og:description" content="Во что обходится учёт аренды в Excel на портфеле 100+ объектов и пошаговый чек-лист, как перевести недвижимость в облако за 15 минут.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Arendora — управление недвижимостью без таблиц и хаоса">
+    <meta name="twitter:description" content="Запуск за 15 минут. Автосвязывание объектов, арендаторов и платежей. Бесплатно до 3 объектов.">
+    <title>Учёт аренды в Excel: цена ошибки на 100+ объектах — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. FAQPage и HowTo убраны: Google
+         полностью отключил их rich-результаты (FAQ — в мае 2026), пользы ноль,
+         а тексты дублировали лендинг и требовали синхронизации.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "logo": "https://arendora.ru/icon-512.png",
+          "email": "",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатно до 3 объектов и 3 арендаторов"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+          читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <script type="module" crossorigin="" src="/assets/index-CWAiXXY7.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-B7Bnr4t4.css">
+<script type="application/ld+json" data-page-json-ld="1">{"@context":"https://schema.org","@graph":[{"@type":"Article","mainEntityOfPage":"https://arendora.ru/blog/uchet-arendy-v-excel","headline":"Учёт аренды в Excel и бумажном журнале: сколько это стоит собственнику и как перевести портфель в облако за 15 минут","description":"Во что обходится учёт аренды в Excel на портфеле 100+ объектов и пошаговый чек-лист, как перевести недвижимость в облако за 15 минут.","datePublished":"2026-10-10","dateModified":"2026-10-10","inLanguage":"ru","author":{"@type":"Organization","name":"Arendora","url":"https://arendora.ru/"},"publisher":"logo":"https://arendora.ru/icon-192.png",{"@type":"Organization","name":"Arendora"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Arendora","item":"https://arendora.ru/"},{"@type":"ListItem","position":2,"name":"Блог Arendora","item":"https://arendora.ru/blog"},{"@type":"ListItem","position":3,"name":"Учёт аренды в Excel и бумажном журнале: сколько это стоит собственнику и как перевести портфель в облако за 15 минут"}]}]}</script><link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/blog" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Ко всем материалам</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Учёт аренды в Excel и бумажном журнале: сколько это стоит собственнику и как перевести портфель в облако за 15 минут</h1><p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground"><span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days h-4 w-4"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Обновлено 10 октября 2026 г.</span><span>6 мин чтения · <a href="/" data-discover="true" class="transition-colors hover:text-foreground">Arendora</a></span></p><div class="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&amp;_a]:text-primary [&amp;_h2]:mt-8 [&amp;_h2]:text-2xl [&amp;_h2]:font-bold [&amp;_h3]:mt-6 [&amp;_h3]:text-xl [&amp;_h3]:font-bold [&amp;_li]:ml-5 [&amp;_li]:list-disc [&amp;_strong]:font-bold"><p>Пятьдесят объектов ещё можно держать в голове. Сто и больше — уже нет. У большинства собственников, чей портфель вырос из «десяти квартир и одного управляющего», учёт аренды квартир до сих пор живёт в трёх-четырёх файлах Excel, бумажном журнале и переписке в мессенджерах. Файл называется «Аренда_ФИНАЛ_2.xlsx», открывается раз в месяц — и каждый раз подкладывает сюрприз: кто-то из арендаторов не заплатил две недели назад, а вы узнали об этом только сейчас.</p>
+<p>Это не «особенности ручной работы», а конкретные потери — в деньгах, часах и нервах. Ниже посчитаем, во что обходится Excel на портфеле 100+ объектов, а затем дадим пошаговый чек-лист, как перевести учёт недвижимости из Excel в облако за 15 минут.</p>
+<h2>Сколько на самом деле стоит учёт «в таблицах»</h2>
+<h3>Пропущенные платежи и поздние реакции</h3>
+<p>Excel не напомнит о платеже: в ячейке нет статуса «просрочено». Пока кто-то не открыл файл и не сверил даты вручную, долг арендатора невидим. А каждая неделя такой невидимости — это, по сути, беспроцентный кредит, который вы выдаёте арендатору.</p>
+<p>Простая прикидка: 100 объектов, средний платёж 40 000 ₽, всего один «прозеванный» платёж в квартал — и за год это уже 160 000 ₽, которые зависли в чужих руках. Плюс время на разбирательства: звонки, «я же оплатил», поиск подтверждений в старых версиях файла.</p>
+<h3>Потерянные договоры и внезапные окончания</h3>
+<p>Договор лежит сканом на рабочем столе, в почте или в ящике стола. Когда он истекает, обычно узнают постфактум — в момент, когда арендатор уже съезжает или требует новых условий. А каждый месяц простоя квартиры между арендаторами — это минус полная арендная ставка этого объекта.</p>
+<h3>Двойной ввод и человеческие ошибки</h3>
+<p>Одна и та же информация живёт минимум в трёх местах: таблица объектов, таблица платежей, журнал или блокнот. Сдали квартиру — обновите все три. Опечатка в сумме (5 000 вместо 50 000), пропущенная строка, «я же вносил» — классика ручного учёта. Сверка расхождений в конце месяца легко съедает вечер, а на портфеле 100+ объектов — несколько вечеров.</p>
+<h3>Нет аналитики — нет решений</h3>
+<p>Сколько портфель принёс за месяц? Какие объекты простаивают? Где доходность просела? В Excel каждый такой вопрос — отдельный проект с формулами, который в реальности никто не делает. Решения принимаются «по ощущениям».</p>
+<h2>Пять признаков, что пора переезжать в облако</h2>
+<ul>
+<li>На вопрос «кто должен заплатить на этой неделе?» отвечаешь за полчаса с открытым файлом.</li>
+<li>Статус объекта («сдаётся / сдан / ремонт») выясняется звонком или листанием вкладок.</li>
+<li>Договоры истекают «внезапно», хотя окончание было видно за месяц.</li>
+<li>Учёт ведёт один конкретный человек — и он же точка отказа: отпуск, болезнь, увольнение.</li>
+<li>Доход портфеля за прошлый месяц вы не назовёте, не открыв Excel.</li>
+</ul>
+<p>Совпало хотя бы два пункта — значит, таблица уже не масштабируется вместе с бизнесом. Подробный разбор критериев выбора — в статье <a href="/blog/programma-dlya-upravleniya-arendoy" data-discover="true">как выбрать программу для управления арендой</a>.</p>
+<h2>Как перевести учёт недвижимости из Excel в облако за 15 минут</h2>
+<p>Дальше — чек-лист миграции на примере Arendora, облачной платформы управления недвижимостью для портфелей от 100+ объектов. Это не «ещё одна таблица в браузере»: объекты, арендаторы, платежи, заявки и документы связаны между собой, и большую часть связей платформа проставляет автоматически.</p>
+<h3>Шаг 0. Не верьте на слово — включите демо-данные</h3>
+<p>Регистрация в Arendora — email и пароль, без банковской карты, бесплатный тариф сразу (до 3 объектов). Прежде чем переносить свой портфель, нажмите на дашборде «Загрузить демо-данные»: платформа в один клик развернёт 8 объектов, 5 арендаторов, полгода истории платежей, заявки, документы и уведомления. Пять минут на живом примере — и вы понимаете, как всё устроено, ещё до миграции своих данных.</p>
+<h3>Шаг 1. Сохраните Excel в CSV</h3>
+<p>Откройте таблицу объектов и сохраните её как CSV («Файл → Сохранить как → CSV»). Минимум, что нужно платформе, — название или адрес и сумма аренды; если в таблице есть статус и тип объекта, они тоже пригодятся. Никакой многочасовой «чистки» сотен строк не требуется — важнее корректные заголовки и ключевые поля.</p>
+<h3>Шаг 2. Импорт объектов из CSV</h3>
+<p>В Arendora: раздел «Объекты» → импорт объектов из CSV. Весь портфель заливается за один раз, без ручного набивания карточек. После импорта у объектов уже есть поиск, фильтры по статусу и типу, карточки с фото — то, что в Excel приходилось собирать формулами и макросами.</p>
+<h3>Шаг 3. Добавьте арендаторов — связи проставятся сами</h3>
+<p>Здесь живёт главная экономия на двойном вводе. При создании арендатора с привязкой к объекту Arendora автоматически:</p>
+<ul>
+<li>закрепляет арендатора на объекте;</li>
+<li>меняет статус объекта на «Сдаётся»;</li>
+<li>создаёт первый платёж на сумму аренды.</li>
+</ul>
+<p>Три ручных действия из Excel-мира стали одним. То же работает и в формах: выбрали арендатора при создании платежа — объект и сумма подставились сами.</p>
+<h3>Шаг 4. Постройте график платежей на 12 месяцев</h3>
+<p>Одна кнопка у арендатора создаёт 12 ежемесячных платежей — с защитой от дублей по периоду, так что случайное «двойное нажатие» не задвоит деньги. Договор по умолчанию ставится «сегодня → +1 год», валюта — рубли. Для бухучёта пригодится и обратная операция: платежи выгружаются в CSV в пару кликов.</p>
+<h3>Шаг 5. Перенесите документы и включите ежедневную работу</h3>
+<p>Загрузите договоры и приложите их к объектам — документы хранятся в карточке объекта, а не в папке «Загрузки». Дальше платформа работает на вас: просроченные платежи сами получают соответствующий статус, вам падает уведомление, арендатору — напоминание.</p>
+<p>По времени это выглядит так: регистрация — 2 минуты, импорт CSV — 5, арендаторы с автосвязыванием — 5, график платежей — 1–2. Итого 13–14 минут — те самые «15 минут», которые Arendora обещает на лендинге, и это активное время, без обучения и «внедрения».</p>
+<h2>Что меняется после переезда</h2>
+<ul>
+<li><strong>Просрочки видно сразу.</strong> Платежи с прошедшей датой автоматически становятся просроченными, владелец получает уведомление — реакция в первый день, а не через две недели.</li>
+<li><strong>Напоминания арендаторам — в пару кликов.</strong> Черновик письма по платежу платформа готовит сама: выбираете арендаторов, смотрите превью и отправляете разом, без вычитки каждой строки.</li>
+<li><strong>Договоры не истекают внезапно.</strong> Истекающие договоры видны на дашборде; продление — кнопкой «Продлить на год»: новая дата и график платежей создаются автоматически.</li>
+<li><strong>Аналитика без Excel-акробатики.</strong> Доход по месяцам, статусы объектов и платежей, топ объектов — готовыми виджетами, без ручных сводных таблиц.</li>
+<li><strong>Нет точки отказа в одном человеке.</strong> Данные живут в облаке, с ролями и правами доступа; заодно — интерфейс на русском и английском и тёмная тема для ночных сверок.</li>
+</ul>
+<p>Если решение о переезде пока не принято, не выбирайте сервис по демо-странице: прогоните кандидата через <a href="/blog/programma-dlya-ucheta-arendy-kvartir" data-discover="true">полный чек-лист выбора программы</a> для учёта аренды квартир — там лестница цен, критерии сравнения и типичные ловушки миграции. Как после переезда выглядит <a href="/features/uchet-platezhey" data-discover="true">учёт платежей квартирантов в Arendora</a>, собрали на странице функции Arendora.</p><h2>Вывод: таблица честна до сотого объекта</h2>
+<p>Excel и бумажный журнал — честные инструменты, пока портфель помещается в голове. На ста и больше они превращаются в скрытый налог: пара пропущенных платежей, вечера на сверку, простои из-за «внезапно» закончившихся договоров, зависимость от одного файла и одного человека. Программа для учёта арендаторов и платежей снимает с владельца именно эту рутину: данные связываются сами, просрочки всплывают сами, отчёты строятся сами.</p>
+<p>Попробуйте без риска: бесплатный тариф Arendora — до 3 объектов, без карты. Зарегистрируйтесь, загрузите демо-данные одним кликом, затем импортируйте свои объекты из CSV — и сравните, сколько минут теперь занимает ответ на вопрос «кто и сколько должен на этой неделе».</p></div><div class="mt-12 rounded-lg border bg-card p-6"><p class="font-bold">Попробуйте Arendora бесплатно</p><p class="mt-1 text-sm text-muted-foreground">До 3 объектов — бесплатно и навсегда. Демо-данные в один клик.</p><button class="inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 brand-gradient text-white shadow-sm hover:opacity-90 h-10 px-4 py-2 mt-4"><a href="/register" data-discover="true">Попробовать бесплатно<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></button><p class="mt-3 text-sm text-muted-foreground"><a href="/tariffs" class="text-primary hover:underline">Сравнить тарифы</a></p></div><div class="mt-10"><h2 class="text-lg font-bold">Другие материалы</h2><div class="mt-4 grid gap-4 sm:grid-cols-2"><a href="/blog/obrazec-dogovora-naima-kvartiry" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Договор найма квартиры: структура и 12 пунктов, из-за которых ссорятся</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Договор найма квартиры между физлицами: структура и 12 пунктов — залог, коммуналка, доступ, индексация, расторжение. Формулировки и типичные ошибки 2026.</p></div></a><a href="/blog/posutochno-ili-dolgosrok" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Посуточная аренда или долгосрочная: считаем экономику на реальных цифрах</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Что выгоднее — посуточная аренда или долгосрочная: расчёт на условных цифрах, скрытые расходы, таблица сравнения, гибридная схема и нюансы налогов.</p></div></a></div></div></article></div><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Необходимые cookie хранят вход в аккаунт и настройки; обезличенная статистика посещений собирается Яндекс.Метрикой. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      window.addEventListener("error", (e) => {
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. ID подставляется на этапе сборки из переменной
+      // окружения VITE_YANDEX_METRICA_ID (см. vite.config.js); пока он не
+      // задан, счётчик не подключается вовсе: ни очереди ym, ни запросов
+      // к mc.yandex.ru (важно для dev и e2e-тестов). При отказе от cookie
+      // в баннере счётчик не подключается со следующего посещения.
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+  
+
+</body></html>
