@@ -31,7 +31,10 @@ export const PLANS = [
 
 // Лимиты тарифов (null — без ограничения)
 export const PLAN_LIMITS = {
-  free: { properties: 3, tenants: 3 }, // единый оффер: «до 3 объектов»
+  // Канон Free с 07.11 (решение CEO): 1 объект, арендаторы без ограничений.
+  // Лимит блокирует только СОЗДАНИЕ нового; существующие данные не трогаем —
+  // у тестовых пользователей может быть >1 объекта, они работают дальше.
+  free: { properties: 1, tenants: null },
   start: { properties: 4, tenants: null }, // 1 бесплатно + 3 доп.
   pro: { properties: 8, tenants: null },
   business: { properties: 14, tenants: null },

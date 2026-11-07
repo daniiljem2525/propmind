@@ -2,7 +2,7 @@
 export const en = {
   "app.name": "Arendora",
   "meta.homeTitle": "Arendora — property management without spreadsheets and chaos",
-  "meta.homeDesc": "Manage apartments, payments and requests in one window. Links and payment schedules build themselves. Free for up to 3 properties — no card required.",
+  "meta.homeDesc": "Manage apartments, payments and requests in one window. Links and payment schedules build themselves. Free: 1 property, unlimited tenants — no card required.",
   "app.tagline": "Property management",
   "auth.errors.consentRequired": "Please confirm consent to personal data processing",
   "auth.consentText": "I consent to the processing of personal data and accept the",
@@ -383,11 +383,10 @@ export const en = {
 
   // ——— Plan limit upsell ———
   "upsell.title": "Free plan limit reached",
-  "upsell.desc": "The Free plan allows {feature}. Upgrade to keep growing your portfolio — no data migration needed.",
+  "upsell.desc": "The Free plan allows {feature}. The limit is reached — upgrade to Start (up to 4 properties) to keep growing your portfolio. No data migration needed.",
   "upsell.cta": "Upgrade plan",
   "upsell.later": "Later",
-  "upsell.features.properties": "up to 3 properties",
-  "upsell.features.tenants": "up to 3 tenants",
+  "upsell.features.properties": "just 1 property",
 
   // ——— Landing conversion blocks ———
   "land.guarantee1": "No card to start",
@@ -675,7 +674,7 @@ export const en = {
   "plans.assure3": "Cancel anytime, your data stays yours",
   "plans.free.name": "Free",
   "plans.free.desc": "Get to know the platform",
-  "plans.free.features": "Up to 3 properties|Up to 3 tenants|Basic payments",
+  "plans.free.features": "1 property|Unlimited tenants|Basic payments",
   "plans.start.name": "Start",
   "plans.start.desc": "For starting landlords",
   "plans.start.features": "Up to 4 properties (1 + 3 extra)|Payments and yearly schedule|Maintenance requests",
@@ -727,7 +726,7 @@ export const en = {
   "land.cta": "Start free",
   "land.ctaStart": "Try for free",
   "land.ctaPricing": "See pricing",
-  "land.heroTrust": "Free up to 3 properties · No card required · RU / EN",
+  "land.heroTrust": "Free: 1 property · Unlimited tenants · RU / EN",
   "land.featuresTitle": "Everything a property owner needs",
   "land.featuresSub": "No setup, no training — works right after sign-up",
   "land.f1.title": "Everything links itself",
@@ -766,7 +765,7 @@ export const en = {
   "blog.notFound": "Material not found",
   "blog.words": "words",
   "blog.ctaTitle": "Try Arendora for free",
-  "blog.ctaText": "Up to 3 properties — free forever. Demo data in one click.",
+  "blog.ctaText": "1 property and unlimited tenants — free forever. Demo data in one click.",
   "blog.ctaCompare": "Compare plans",
   "blog.more": "More from the blog",
   "blog.updated": "Updated",
@@ -780,9 +779,9 @@ export const en = {
   "land.q2.q": "How is this different from enterprise systems?",
   "land.q2.a": "Competitors configure the system around your processes for weeks. Arendora is the opposite: the processes are built in (auto-linking, payment schedules) — you just use it.",
   "land.q3.q": "Do I need a card to start?",
-  "land.q3.a": "No. The Free plan is free forever: up to 3 properties and 3 tenants.",
+  "land.q3.a": "No. The Free plan is free forever: 1 property, unlimited tenants.",
   "land.q4.q": "Is my data safe?",
   "land.q4.a": "Every user sees only their own records. In the cloud version data is isolated per owner, and passwords are stored hashed.",
   "land.finalTitle": "Bring order to your portfolio today",
-  "land.finalSub": "The first 3 properties are free forever. Load demo data and see the platform in action right now.",
+  "land.finalSub": "1 property is free forever. Load demo data and see the platform in action right now.",
 };

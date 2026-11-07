@@ -13,8 +13,9 @@ describe("тарифы", () => {
     }
   });
 
-  it("лимиты: free — 3 объекта (единый оффер), платные растут, business — 14", () => {
-    expect(getPlanLimits("free").properties).toBe(3);
+  it("лимиты: free — 1 объект и арендаторы без ограничений (канон с 07.11), платные растут, business — 14", () => {
+    expect(getPlanLimits("free").properties).toBe(1);
+    expect(getPlanLimits("free").tenants).toBeNull();
     expect(getPlanLimits("start").properties).toBe(4);
     expect(getPlanLimits("pro").properties).toBe(8);
     expect(getPlanLimits("business").properties).toBe(14);
