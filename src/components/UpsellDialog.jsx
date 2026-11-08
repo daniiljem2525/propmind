@@ -23,7 +23,7 @@ function PayStartButton() {
     } catch (e) {
       setPaying(false);
       toast.error(t("billing.notConfigured"));
-      if (!isSupabaseConfigured) window.location.assign("/app/settings?tab=plan");
+      if (!isSupabaseConfigured) window.location.assign("/app/plan");
     }
   };
 

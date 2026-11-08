@@ -290,7 +290,7 @@ export default function Landing() {
             <h2 className="text-3xl font-extrabold tracking-tight">{t("land.pricingTitle")}</h2>
             <p className="mt-3 text-muted-foreground">{t("land.pricingSub")}</p>
           </div>
-          <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-4 sm:grid-cols-4">
             <div className="col-span-full mb-[-8px] flex justify-center md:col-span-full">
               <div className="inline-flex rounded-md border bg-card p-1 shadow-sm">
                 {[["monthly", false], ["yearly", true]].map(([key, val]) => (

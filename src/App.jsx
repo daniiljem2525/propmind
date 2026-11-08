@@ -17,6 +17,7 @@ import Agreement from "@/pages/legal/Agreement";
 import Consent from "@/pages/legal/Consent";
 import Tariffs from "@/pages/legal/Tariffs";
 import Details from "@/pages/legal/Details";
+import Plan from "@/pages/Plan";
 import PaymentsPolicy from "@/pages/legal/Payments";
 import UsePolicy from "@/pages/legal/UsePolicy";
 import Cookies from "@/pages/legal/Cookies";
@@ -98,6 +99,7 @@ export default function App() {
                     <Route path="maintenance" element={<Maintenance />} />
                     <Route path="documents" element={<Documents />} />
                     <Route path="analytics" element={<Analytics />} />
+                    <Route path="plan" element={<Plan />} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="admin" element={<Admin />} />
                     <Route path="notifications" element={<Notifications />} />
