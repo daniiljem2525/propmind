@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Клиентский флоу биллинга ЮKassa: edge-функция /functions/v1/billing
@@ -42,7 +43,10 @@ describe("billing client", () => {
     expect(init.method).toBe("POST");
     expect(init.headers.Authorization).toBe("Bearer jwt-123");
     const body = JSON.parse(init.body);
-    expect(body).toEqual({ action: "create", plan: "start", period: "month" });
+    expect(body.action).toBe("create");
+    expect(body.plan).toBe("start");
+    expect(body.period).toBe("month");
+    expect(body.return_url).toMatch(/^https?:\/\/[^"]+\/app\?billing=return$/)
   });
 
   it("без сессии — SESSION_EXPIRED без похода в сеть", async () => {

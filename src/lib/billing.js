@@ -40,7 +40,14 @@ export async function createBillingPayment({ plan, period = "month" }) {
   }
   return authedFetch("", {
     method: "POST",
-    body: JSON.stringify({ action: "create", plan, period }),
+    body: JSON.stringify({
+      action: "create",
+      plan,
+      period,
+      // возврат на тот же origin — иначе после оплаты на staging/yandex-landing
+      // пользователь попадает в другой localStorage и его выкидывает на логин
+      return_url: `${typeof window !== "undefined" ? window.location.origin : "https://arendora.ru"}/app?billing=return`,
+    }),
   });
 }
 

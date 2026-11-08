@@ -28,6 +28,21 @@ const SECRET = Deno.env.get("YOOKASSA_SECRET_KEY") || "";
 const RETURN_URL =
   Deno.env.get("YOOKASSA_RETURN_URL") || "https://arendora.ru/app?billing=return";
 
+// Возврат после оплаты — на тот же origin, откуда платёж начался
+// (иначе сессии нет: staging → прод = другой localStorage). origin
+// валидируем по белому списку, произвольные редиректы не пропускаем.
+const ALLOWED_RETURN_HOSTS = new Set(["arendora.ru", "www.arendora.ru", "staging.arendora.ru"]);
+function safeReturnUrl(raw: string | undefined): string {
+  if (!raw) return RETURN_URL;
+  try {
+    const u = new URL(raw);
+    if (u.protocol === "https:" && ALLOWED_RETURN_HOSTS.has(u.hostname) && u.pathname === "/app") {
+      return `${u.origin}/app?billing=return`;
+    }
+  } catch {}
+  return RETURN_URL;
+}
+
 // v0: автосписания (рекурренты) и возвраты НЕ реализованы — возвраты вручную
 // по правилам /payments; автопродление — по решению CEO (v1).
 const PRICES: Record<string, { month: string; year: string; title: string }> = {
@@ -149,6 +164,7 @@ Deno.serve(async (req) => {
   const period = body.period === "year" ? "year" : "month";
   const price = PRICES[plan];
   if (!price) return json({ error: "BAD_PLAN", allowed: Object.keys(PRICES) }, 400);
+  const returnUrl = safeReturnUrl((body as Record<string, string>).return_url);
 
   const description = `Arendora ${price.title} — ${period === "year" ? "год" : "месяц"}`;
   const res = await fetch("https://api.yookassa.ru/v3/payments", {
@@ -157,7 +173,7 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       amount: { value: price[period], currency: "RUB" },
       capture: true,
-      confirmation: { type: "redirect", return_url: RETURN_URL },
+      confirmation: { type: "redirect", return_url: returnUrl },
       description,
       metadata: { user_id: userId, plan, period },
     }),
