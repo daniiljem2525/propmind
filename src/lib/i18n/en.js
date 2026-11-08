@@ -690,6 +690,13 @@ export const en = {
   "plans.individual.features": "Limits by agreement|Everything in Business|Personal terms",
   "plans.individual.price": "Custom",
   "plans.adminOnly": "Plans are assigned by an administrator — contact us",
+  "plans.payNow": "Pay now",
+  "billing.notConfigured": "Payments are not connected yet",
+  "billing.failed": "Could not start the payment. Try again or contact Support",
+  "billing.redirecting": "Redirecting to checkout…",
+  "billing.returnOk": "Payment received — plan updated",
+  "billing.returnPending": "Payment not completed — no charge was made",
+  "billing.payStart": "Get Start — 990 ₽/mo",
   "admin.planChanged": "Plan updated",
 
   "notifications.title": "Notifications",

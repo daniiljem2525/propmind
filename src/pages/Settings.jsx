@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
+import { createBillingPayment, getBillingStatus } from "@/lib/billing";
 import { getPushState, enablePush, disablePush } from "@/lib/push";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { probeSessionStores } from "@/lib/supabase/config";
@@ -117,6 +118,7 @@ function PricingPlans() {
   const { user } = useAuth();
   const toast = useToast();
   const [yearly, setYearly] = useState(false);
+  const [paying, setPaying] = useState(null);
   const [plan, setPlan] = useState(() => {
     try {
       return localStorage.getItem(PLAN_KEY) || "free";
@@ -125,12 +127,28 @@ function PricingPlans() {
     }
   });
 
-  // В облаке тариф привязан к аккаунту и выдаётся администратором
+  // В облаке тариф привязан к аккаунту (profiles.plan, меняется через оплату)
   const current = isSupabaseConfigured ? user?.plan || "free" : plan;
+
+  // Возврат с экрана ЮKassa: ?billing=return — проверяем статус платежа
+  // сервером (edge-функция сама не применяет план до вебхука ЮKassa)
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (!isSupabaseConfigured || searchParams.get("billing") !== "return") return;
+    setSearchParams({}, { replace: true });
+    getBillingStatus()
+      .then((s) => {
+        const last = s.payments?.[0];
+        if (last?.status === "succeeded") toast.success(t("billing.returnOk"));
+        else toast.info(t("billing.returnPending"));
+      })
+      .catch(() => toast.error(t("billing.failed")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const choose = (id) => {
     if (isSupabaseConfigured) {
-      toast.info(t("plans.adminOnly"));
+      pay(id);
       return;
     }
     try {
@@ -138,6 +156,22 @@ function PricingPlans() {
     } catch {}
     setPlan(id);
     toast.success(t("plans.choose"));
+  };
+
+  const pay = async (id) => {
+    try {
+      setPaying(id);
+      const { confirmation_url } = await createBillingPayment({
+        plan: id,
+        period: yearly ? "year" : "month",
+      });
+      if (confirmation_url) window.location.assign(confirmation_url);
+    } catch (e) {
+      if (e.code === "BILLING_NOT_CONFIGURED") toast.error(t("billing.notConfigured"));
+      else toast.error(e.message || t("billing.failed"));
+    } finally {
+      setPaying(null);
+    }
   };
 
   return (
@@ -195,10 +229,18 @@ function PricingPlans() {
               <Button
                 className="mt-5 w-full"
                 variant={p.highlight ? "gradient" : "outline"}
-                disabled={isCurrent || p.monthly == null}
+                disabled={isCurrent || p.monthly == null || paying === p.id}
                 onClick={() => choose(p.id)}
               >
-                {isCurrent ? t("plans.current") : p.monthly == null ? t("plans.contactUs") : t("plans.choose")}
+                {isCurrent
+                  ? t("plans.current")
+                  : paying === p.id
+                    ? t("billing.redirecting")
+                    : p.monthly == null
+                      ? t("plans.contactUs")
+                      : isSupabaseConfigured
+                        ? t("plans.payNow")
+                        : t("plans.choose")}
               </Button>
             </Card>
           );

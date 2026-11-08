@@ -690,6 +690,13 @@ export const ru = {
   "plans.individual.features": "Лимиты по договорённости|Всё из тарифа Бизнес|Персональные условия",
   "plans.individual.price": "По запросу",
   "plans.adminOnly": "Тариф назначает администратор — свяжитесь с нами",
+  "plans.payNow": "Оплатить",
+  "billing.notConfigured": "Платежи ещё не подключены — оплатить пока нельзя",
+  "billing.failed": "Не удалось начать оплату. Попробуйте ещё раз или напишите в Поддержку",
+  "billing.redirecting": "Переходим к оплате…",
+  "billing.returnOk": "Оплата получена — тариф обновлён",
+  "billing.returnPending": "Оплата не завершена — деньги не списаны",
+  "billing.payStart": "Оплатить Start — 990 ₽/мес",
   "admin.planChanged": "Тариф обновлён",
 
   "notifications.title": "Уведомления",
