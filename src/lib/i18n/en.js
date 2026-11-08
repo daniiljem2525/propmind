@@ -383,10 +383,11 @@ export const en = {
   "dashboard.videoSub": "Dashboard, properties, payments, broadcast, requests and analytics — everything inside",
 
   // ——— Plan limit upsell ———
-  "upsell.title": "Free plan limit reached",
-  "upsell.desc": "The Free plan allows {feature}. The limit is reached — upgrade to Start (up to 4 properties) to keep growing your portfolio. No data migration needed.",
-  "upsell.cta": "Upgrade plan",
-  "upsell.later": "Later",
+  "upsell.title.properties": "Your second property — with Start",
+  "upsell.title.tenants": "Your second tenant — with Start",
+  "upsell.desc.properties": "Free covers 1 property, and everything you already have keeps working. Add a second property with Start at 990 ₽/mo: up to 4 properties, unlimited tenants, a year-long payment schedule. No data migration needed.",
+  "upsell.desc.tenants": "Free covers 1 tenant, and everything you already have stays as is. Start at 990 ₽/mo lifts the tenant limit: add as many tenants as you need and manage up to 4 properties with a year-long payment schedule. No data migration needed.",
+  "upsell.later": "Later — your data stays in Free",
   "upsell.features.properties": "just 1 property",
   "upsell.features.tenants": "just 1 tenant",
 
@@ -679,7 +680,7 @@ export const en = {
   "plans.free.features": "1 property|1 tenant|Basic payments",
   "plans.start.name": "Start",
   "plans.start.desc": "For starting landlords",
-  "plans.start.features": "Up to 4 properties (1 + 3 extra)|Payments and yearly schedule|Maintenance requests",
+  "plans.start.features": "Unlimited tenants|Up to 4 properties (1 + 3 extra)|Payments and a year-long schedule|Maintenance requests",
   "plans.pro.name": "Pro",
   "plans.pro.desc": "For small portfolio managers",
   "plans.pro.features": "Up to 8 properties|Analytics and reports|Documents and notifications",
