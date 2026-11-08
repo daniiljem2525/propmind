@@ -481,6 +481,12 @@ export default function Landing() {
           <div className="mt-8 border-t border-border pt-6 text-sm text-muted-foreground">
             <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Контакты</p>
             <p className="mt-3">
+              Telegram поддержки:{" "}
+              <a href="https://t.me/arendora_support" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                @arendora_support
+              </a>
+            </p>
+            <p className="mt-3">
               Поддержка и обращения:{" "}
               <a href="mailto:support@arendora.ru" className="text-primary hover:underline">
                 support@arendora.ru

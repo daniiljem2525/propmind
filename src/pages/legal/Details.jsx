@@ -43,7 +43,10 @@ export default function Details() {
           д. 3, кв. 388.
         </LI>
         <LI>
-          <b>Поддержка:</b> support@arendora.ru.
+          <b>Поддержка:</b> Telegram{" "}
+          <a href="https://t.me/arendora_support" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            t.me/arendora_support
+          </a>{" "}или support@arendora.ru.
         </LI>
         <LI>
           <b>Сайт:</b> www.arendora.ru.
@@ -70,7 +73,10 @@ export default function Details() {
           раздел 3).
         </LI>
         <LI>
-          Вопросы по реквизитам, документам и платежам: support@arendora.ru.
+          Вопросы по реквизитам, документам и платежам: Telegram{" "}
+          <a href="https://t.me/arendora_support" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+            t.me/arendora_support
+          </a>{" "}или support@arendora.ru.
         </LI>
       </UL>
 
