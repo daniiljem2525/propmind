@@ -66,6 +66,43 @@ function ykHeaders(idempotenceKey?: string): Record<string, string> {
   return h;
 }
 
+// Применение платежа: статус в billing_payments + план/срок в профиль
+// (plan_until наращивается от текущего, если тот ещё активен — продление
+// не теряет дни). Общий для вебхука и verify-реконсиляции.
+async function applyPayment(
+  admin: ReturnType<typeof createClient>,
+  payment: Record<string, unknown>
+): Promise<void> {
+  const meta = (payment.metadata || {}) as Record<string, string>;
+  const paymentId = String(payment.id);
+  const paid = payment.status === "succeeded";
+  await admin
+    .from("billing_payments")
+    .update({
+      status: payment.status,
+      raw: payment,
+      paid_at: paid ? (payment.captured_at as string) || new Date().toISOString() : null,
+    })
+    .eq("provider_payment_id", paymentId);
+  if (paid && meta.user_id && meta.plan && meta.period) {
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("plan, plan_until")
+      .eq("id", meta.user_id)
+      .maybeSingle();
+    const base =
+      prof?.plan === meta.plan && prof?.plan_until && new Date(prof.plan_until) > new Date()
+        ? new Date(prof.plan_until)
+        : new Date();
+    if (meta.period === "year") base.setFullYear(base.getFullYear() + 1);
+    else base.setMonth(base.getMonth() + 1);
+    await admin
+      .from("profiles")
+      .update({ plan: meta.plan, plan_until: base.toISOString() })
+      .eq("id", meta.user_id);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
 
@@ -95,36 +132,7 @@ Deno.serve(async (req) => {
     if (!res.ok) return json({ error: "VERIFY_FAILED", status: res.status }, 502);
     const payment = await res.json();
 
-    const meta = (payment.metadata || {}) as Record<string, string>;
-    const paid = payment.status === "succeeded";
-    await admin
-      .from("billing_payments")
-      .update({
-        status: payment.status,
-        raw: payment,
-        paid_at: paid ? payment.captured_at || new Date().toISOString() : null,
-      })
-      .eq("provider_payment_id", paymentId);
-
-    if (paid && meta.user_id && meta.plan && meta.period) {
-      // план_until наращиваем от текущего plan_until, если он ещё активен
-      // (продление не теряет дни), иначе — от сейчас
-      const { data: prof } = await admin
-        .from("profiles")
-        .select("plan, plan_until")
-        .eq("id", meta.user_id)
-        .maybeSingle();
-      const base =
-        prof?.plan === meta.plan && prof?.plan_until && new Date(prof.plan_until) > new Date()
-          ? new Date(prof.plan_until)
-          : new Date();
-      if (meta.period === "year") base.setFullYear(base.getFullYear() + 1);
-      else base.setMonth(base.getMonth() + 1);
-      await admin
-        .from("profiles")
-        .update({ plan: meta.plan, plan_until: base.toISOString() })
-        .eq("id", meta.user_id);
-    }
+    await applyPayment(admin, payment as Record<string, unknown>);
     // 200 на известные события — иначе ЮKassa будет ретраить
     return json({ ok: true });
   }
@@ -158,6 +166,51 @@ Deno.serve(async (req) => {
     body = await req.json();
   } catch {
     return json({ error: "BAD_JSON" }, 400);
+  }
+  if (body.action === "verify") {
+    // Реконсиляция при возврате с кассы: платёж пользователя сверяется
+    // с API ЮKassa синхронно (вебхук мог задержаться/не дойти)
+    const pid = (body as Record<string, string>).payment_id;
+    let row;
+    if (pid) {
+      const r = await admin
+        .from("billing_payments")
+        .select("id, provider_payment_id")
+        .eq("user_id", userId)
+        .eq("provider_payment_id", pid)
+        .maybeSingle();
+      row = r?.data;
+    } else {
+      const r = await admin
+        .from("billing_payments")
+        .select("id, provider_payment_id")
+        .eq("user_id", userId)
+        .neq("status", "succeeded")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      row = r?.data;
+    }
+    if (!row) {
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("plan, plan_until")
+        .eq("id", userId)
+        .maybeSingle();
+      return json({ status: "none", plan: prof?.plan || "free", plan_until: prof?.plan_until || null });
+    }
+    const res = await fetch(`https://api.yookassa.ru/v3/payments/${row.provider_payment_id}`, {
+      headers: ykHeaders(),
+    });
+    if (!res.ok) return json({ error: "VERIFY_FAILED", status: res.status }, 502);
+    const payment = (await res.json()) as Record<string, unknown>;
+    await applyPayment(admin, payment);
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("plan, plan_until")
+      .eq("id", userId)
+      .maybeSingle();
+    return json({ status: payment.status, plan: prof?.plan || "free", plan_until: prof?.plan_until || null, amount: payment.amount });
   }
   if (body.action !== "create") return json({ error: "UNKNOWN_ACTION" }, 400);
   const plan = body.plan || "";

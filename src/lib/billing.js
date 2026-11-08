@@ -51,6 +51,15 @@ export async function createBillingPayment({ plan, period = "month" }) {
   });
 }
 
+// Реконсиляция при возврате с кассы: сверка платежа с API ЮKassa
+// синхронно (вебхук мог задержаться). Возвращает { status, plan, plan_until }.
+export async function verifyBillingPayment(paymentId) {
+  return authedFetch("", {
+    method: "POST",
+    body: JSON.stringify({ action: "verify", payment_id: paymentId }),
+  });
+}
+
 // Текущий тариф и последние платежи: { plan, plan_until, payments[] }.
 export async function getBillingStatus() {
   return authedFetch("", { method: "GET" });

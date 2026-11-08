@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, ConfirmDialog } from "@/components/ui/dialog";import { Field, Input, Select, Switch } from "@/components/ui/input";
 import { useAuth } from "@/lib/authContext";
-import { createBillingPayment, getBillingStatus } from "@/lib/billing";
+import { createBillingPayment, getBillingStatus, verifyBillingPayment } from "@/lib/billing";
 import { getPushState, enablePush, disablePush } from "@/lib/push";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { probeSessionStores } from "@/lib/supabase/config";
@@ -136,10 +136,9 @@ function PricingPlans() {
   useEffect(() => {
     if (!isSupabaseConfigured || searchParams.get("billing") !== "return") return;
     setSearchParams({}, { replace: true });
-    getBillingStatus()
+    verifyBillingPayment()
       .then((s) => {
-        const last = s.payments?.[0];
-        if (last?.status === "succeeded") toast.success(t("billing.returnOk"));
+        if (s.status === "succeeded") toast.success(t("billing.returnOk"));
         else toast.info(t("billing.returnPending"));
       })
       .catch(() => toast.error(t("billing.failed")));

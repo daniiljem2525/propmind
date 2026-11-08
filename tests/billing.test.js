@@ -20,7 +20,7 @@ vi.mock("@/lib/supabase/config", () => ({
 // fetch — глобальный (используется внутри billing.js)
 vi.stubGlobal("fetch", fetchMock);
 
-import { createBillingPayment, getBillingStatus, BILLING_PRICES } from "@/lib/billing";
+import { createBillingPayment, getBillingStatus, verifyBillingPayment, BILLING_PRICES } from "@/lib/billing";
 
 beforeEach(() => {
   fetchMock.mockReset();
@@ -72,6 +72,17 @@ describe("billing client", () => {
     const res = await getBillingStatus();
     expect(res.plan).toBe("start");
     expect(fetchMock.mock.calls[0][1].method).toBe("GET");
+  });
+
+  it("verifyBillingPayment: action=verify + опциональный payment_id", async () => {
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ status: "succeeded", plan: "start", plan_until: "2027-01-01T00:00:00Z" }),
+    });
+    const res = await verifyBillingPayment("pay-9");
+    expect(res.status).toBe("succeeded");
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body).toEqual({ action: "verify", payment_id: "pay-9" });
   });
 
   it("цены тарифов = оферта (Start 990/9900, Pro 2990/29900, Business 7990/79900)", () => {
