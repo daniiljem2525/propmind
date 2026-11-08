@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Клиентский флоу биллинга ЮKassa: edge-функция /functions/v1/billing
