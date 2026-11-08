@@ -116,7 +116,11 @@ function PricingPlans() {
           const price = yearly ? p.yearly : p.monthly;
           const isCurrent = current === p.id;
           return (
-            <Card key={p.id} className={cn("relative flex flex-col p-4", p.highlight && "border-primary ring-2 ring-primary")}>
+            <Card key={p.id} className={cn(
+                "relative flex flex-col p-4",
+                p.highlight && "border-primary ring-2 ring-primary",
+                p.id === "individual" && "sm:col-span-4"
+              )}>
               {p.highlight && (
                 <span className="brand-gradient absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">
                   ★ Pro
