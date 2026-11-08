@@ -524,8 +524,8 @@ function HeroVideo() {
           loop
           playsInline
           preload="auto"
-          poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg?v=2`}
-          src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4?v=2`}
+          poster={`${import.meta.env.BASE_URL}video/arendora-demo-poster.jpg?v=3`}
+          src={`${import.meta.env.BASE_URL}video/arendora-demo.mp4?v=3`}
         />
       </div>
     </div>
