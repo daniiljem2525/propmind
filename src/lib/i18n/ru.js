@@ -24,6 +24,7 @@ export const ru = {
   "nav.documents": "Документы",
   "nav.analytics": "Аналитика",
   "nav.blog": "Блог",
+  "nav.plan": "Тариф",
   "nav.settings": "Настройки",
   "header.demoMode": "Демо-режим",
   "header.demoModeHint": "Вы в демо-режиме: видны только демо-данные, реальные скрыты. Выключить — в настройках.",

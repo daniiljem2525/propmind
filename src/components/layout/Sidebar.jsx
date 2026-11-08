@@ -12,7 +12,8 @@ import {
   Settings,
   ShieldCheck,
   Users,
-  Wrench,
+  Wrench,,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n/LangContext";
@@ -27,6 +28,7 @@ const NAV_ITEMS = [
   { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance", roles: ["owner", "admin", "contractor"] },
   { to: "/app/documents", icon: FileText, key: "nav.documents", roles: ["owner", "admin", "tenant"] },
   { to: "/app/analytics", icon: BarChart3, key: "nav.analytics", roles: ["owner", "admin"] },
+  { to: "/app/settings?tab=plan", icon: Wallet, key: "nav.plan", roles: ["owner", "admin"] },
   { to: "/app/settings", icon: Settings, key: "nav.settings", roles: ["owner", "admin", "tenant", "contractor"] },
   { to: "/app/admin", icon: ShieldCheck, key: "admin.title", adminOnly: true },
 ];
