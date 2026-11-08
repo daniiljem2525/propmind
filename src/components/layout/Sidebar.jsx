@@ -12,7 +12,7 @@ import {
   Settings,
   ShieldCheck,
   Users,
-  Wrench,,
+  Wrench,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
