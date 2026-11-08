@@ -50,6 +50,7 @@ const EXTRA_PAGES = [
   { loc: "blog/prilozhenie-dlya-arendodatelya", lastmod: "2026-11-07" },
   { loc: "blog/kak-avtomatizirovat-sdachu-kvartiry", lastmod: "2026-11-07" },
   { loc: "features/uchet-platezhey", lastmod: "2026-11-07" },
+  { loc: "details", lastmod: "2026-11-08" },
   { loc: "features/dlya-arendodatelya", lastmod: "2026-11-05" },
 ];
 
