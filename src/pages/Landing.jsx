@@ -473,6 +473,7 @@ export default function Landing() {
               <Link to="/payments" className="hover:text-foreground hover:underline">Политика возвратов и платежей</Link>
               <Link to="/usepolicy" className="hover:text-foreground hover:underline">Политика допустимого использования</Link>
               <Link to="/cookies" className="hover:text-foreground hover:underline">Политика cookie</Link>
+              <Link to="/details" className="hover:text-foreground hover:underline">Реквизиты</Link>
             </nav>
           </div>
 
