@@ -35,13 +35,13 @@ function PayStartButton() {
 }
 
 // Upsell-диалог при достижении лимита бесплатного тарифа
-export default function UpsellDialog({ open, onClose, feature }) {
+export default function UpsellDialog({ open, onClose, variant = "properties" }) {
   const { t } = useLang();
 
   return (
-    <Dialog open={open} onClose={onClose} title={t("upsell.title")} size="md">
+    <Dialog open={open} onClose={onClose} title={t(`upsell.title.${variant}`)} size="md">
       <div className="space-y-5">
-        <p className="text-sm leading-relaxed text-muted-foreground">{t("upsell.desc").replace("{feature}", feature)}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{t(`upsell.desc.${variant}`)}</p>
 
         <div className="rounded-lg border border-primary/30 bg-primary/5 p-4">
           <p className="flex items-center gap-2 text-sm font-bold text-primary">

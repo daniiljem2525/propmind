@@ -656,7 +656,7 @@ export default function Properties() {
         description={deleting?.name}
       />
 
-      <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} feature={t("upsell.features.properties")} />
+      <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} variant="properties" />
 
       {/* Подтверждение импорта с количеством найденных объектов */}
       <ConfirmDialog

@@ -555,7 +555,7 @@ export default function Tenants() {
       />
 
       {/* Лимит тарифа Free (1 арендатор) исчерпан — апселл Start */}
-      <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} feature={t("upsell.features.tenants")} />
+      <UpsellDialog open={upsellOpen} onClose={() => setUpsellOpen(false)} variant="tenants" />
 
       {/* Подтверждение создания графика */}
       <ConfirmDialog
