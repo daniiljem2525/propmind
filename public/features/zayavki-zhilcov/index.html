@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Заявки жильцов с фото и срочностью: цикл от «новая» до «закрыта», исполнитель и история событий. Заявки, платежи и документы — в одном окне Arendora.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js);
+          /  — коды подтверждения
+         Яндекс.Вебмастера и Search Console (пустые, пока не заданы в env). -->
+    <meta name="yandex-verification" content="">
+    <meta name="google-site-verification" content="">
+    <link rel="canonical" href="https://arendora.ru/features/zayavki-zhilcov">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/features/zayavki-zhilcov">
+    <meta property="og:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Arendora: квартиры, платежи, жильцы — в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og-cover.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Заявки жильцов: учёт обращений и статусы — Arendora">
+    <meta property="og:description" content="Заявки жильцов с фото и срочностью: цикл от «новая» до «закрыта», исполнитель и история событий. Заявки, платежи и документы — в одном окне Arendora.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Заявки жильцов: учёт обращений и статусы — Arendora">
+    <meta name="twitter:description" content="Заявки жильцов с фото и срочностью: цикл от «новая» до «закрыта», исполнитель и история событий. Заявки, платежи и документы — в одном окне Arendora.">
+    <title>Заявки жильцов: учёт обращений и статусы — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. Страницы Release 2 несут ровно
+         один Article и один FAQPage (задание релиза; правило S1.3 SEO: в разметке
+         только видимый на странице текст — FAQPage дословно совпадает с видимым FAQ).
+         Google отключил FAQ rich-результаты в мае 2026 — финальное решение по
+         FAQPage за SEO (NT-001); блок снимается одной строкой (скрипт
+         data-page-json-ld="2") без правки контента.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "name": "Arendora", "url": "https://arendora.ru/", "logo": "https://arendora.ru/icon-512.png", "email": "", "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "email": "", "availableLanguage": ["ru", "en"]}}, {"@type": "WebSite", "name": "Arendora", "url": "https://arendora.ru/", "inLanguage": ["ru", "en"]}, {"@type": "SoftwareApplication", "name": "Arendora", "url": "https://arendora.ru/", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "inLanguage": ["ru", "en"], "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "RUB", "description": "Тариф Free: бесплатно 1 объект, 1 арендатор"}, "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; документы; аналитика доходов"}]}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Заявки жильцов — что это и зачем они арендодателю?", "acceptedAnswer": {"@type": "Answer", "text": "Карточка с фото проблемы, описанием, срочностью, исполнителем и статусом — от «новая» до «закрыта». Заявка дисциплинирует обе стороны и сохраняет хронологию, которая пригодится при удержании из залога и в суде."}}, {"@type": "Question", "name": "Arendora что это за сервис?", "acceptedAnswer": {"@type": "Answer", "text": "Российский облачный сервис управления арендной недвижимостью: объекты, жильцы, платежи, заявки на обслуживание, документы и аналитика в одном окне. Данные — на серверах в РФ по 152-ФЗ, интерфейс русский и английский. Заявки — один из шести блоков сервиса."}}, {"@type": "Question", "name": "Какое приложение для арендодателя подойдёт для заявок на обслуживание?", "acceptedAnswer": {"@type": "Answer", "text": "То, где заявка имеет статус, а не теряется в переписке: Arendora ведёт цикл «новая → назначена → в работе → выполнена → закрыта» с фото, срочностью и исполнителем. Работает в браузере и как PWA — ставится на телефон как приложение; нативного приложения нет (честно)."}}, {"@type": "Question", "name": "Что автоматизируется в заявках на обслуживание?", "acceptedAnswer": {"@type": "Answer", "text": "Фиксация и движение: фото, срочность, назначение исполнителя, статусы, комментарии и история событий. Сам ремонт не автоматизируется — автоматизируется учёт: вместо «труба течёт, посмотри как-нибудь» в полночь — карточка с историей и сроками."}}, {"@type": "Question", "name": "Чем Arendora отличается от других сервисов управления арендой недвижимости?", "acceptedAnswer": {"@type": "Answer", "text": "Заявки, платежи и документы связаны в одном окне: заявка заводится в карточке объекта рядом с договором и актом, а жилец видит свои платежи и заявки в личном портале. Есть бесплатный тариф: 1 объект, 1 арендатор; данные — в РФ по 152-ФЗ."}}, {"@type": "Question", "name": "Сколько стоит программа для учёта аренды квартир с заявками?", "acceptedAnswer": {"@type": "Answer", "text": "Бесплатный тариф — 0 ₽ (1 объект, 1 арендатор), без банковской карты. Платные: Start — 990 ₽/мес, Pro — 2 990 ₽/мес, Business — 7 990 ₽/мес; годовая оплата дешевле на 17%; «Индивидуальный» — по запросу. Заявки входят в список возможностей сервиса; ограничения тарифов — по числу объектов."}}]}</script>
+    <!-- Локальный стиль таблиц Release 2: рамки и отступы для читаемости сводных
+         таблиц (в шаблоне статьи таблицы оформлены не были). Цвета нейтральные —
+         читаемы в светлой и тёмной теме. -->
+    <style>
+      .r2-wrap{overflow-x:auto;margin-top:1rem}
+      .r2-wrap table{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+      .r2-wrap th,.r2-wrap td{border:1px solid rgb(113 113 122 / .4);padding:8px 10px;text-align:left;vertical-align:top}
+      .r2-wrap th{font-weight:700;background:rgb(113 113 122 / .08)}
+      .r2-code{background:rgb(113 113 122 / .12);padding:2px 6px;border-radius:6px;white-space:nowrap}
+    </style>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+          читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <link rel="stylesheet" crossorigin="" href="/assets/index-DcOHwJ8S.css">
+  <script type="application/ld+json" data-page-json-ld="1">{"@context": "https://schema.org", "@graph": [{"@type": "Article", "headline": "Заявки жильцов: приём, статусы и контроль выполнения", "description": "Заявки жильцов с фото и срочностью: цикл от «новая» до «закрыта», исполнитель и история событий. Заявки, платежи и документы — в одном окне Arendora.", "datePublished": "2026-11-06", "dateModified": "2026-11-06", "inLanguage": "ru", "mainEntityOfPage": "https://arendora.ru/features/zayavki-zhilcov", "author": {"@type": "Organization", "name": "Arendora", "url": "https://arendora.ru/"}, "publisher": {"@type": "Organization", "name": "Arendora", "logo": {"@type": "ImageObject", "url": "https://arendora.ru/icon-192.png"}}}, {"@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "Arendora", "item": "https://arendora.ru/"}, {"@type": "ListItem", "position": 2, "name": "Заявки жильцов", "item": "https://arendora.ru/features/zayavki-zhilcov"}]}]}</script><link rel="icon" type="image/svg+xml" href="/icon.svg">
+<link rel="icon" type="image/png" sizes="120x120" href="/icon-120.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+</head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>На главную</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Заявки жильцов: приём, статусы и контроль выполнения</h1><p class="mt-4 leading-relaxed">«Труба течёт, посмотри как-нибудь» в полночь в мессенджере — так выглядит заявка на ремонт, которой нет. Через полгода в споре обе стороны восстанавливают хронологию по памяти, и память у каждой своя.</p><p class="mt-4 leading-relaxed">Arendora ведёт заявки жильцов как карточки с циклом статусов «новая → назначена → в работе → выполнена → закрыта»: фото, срочность, исполнитель и история событий — в одном месте. Заявка заводится в карточке объекта — рядом с договором, актом и платежами.</p><a href="https://arendora.ru/register" class="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Попробовать бесплатно</a><h2 class="mt-10 text-2xl font-bold">Заявка против чата в мессенджере</h2><p class="mt-4 leading-relaxed">Переписка в мессенджере быстро теряет доказательную силу: фото сжимаются, история уезжает вверх, а из десятка сообщений не видно статуса — сообщили, приняли, починили, проверили. Жилец фотографирует потёкший кран и отправляет заявку — она приходит вам со статусом и исполнителем. Заявка дисциплинирует обе стороны: жилец видит, что проблема не зависла в воздухе; собственник — на что и сколько уходит. Частным арендодателям заявки заменяют чат с жильцами и блокнот, небольшим управляющим — таблицы и звонки: объекты в Arendora ведутся карточками со статусами «сдаётся / сдан / ремонт», поиском и фильтрами.</p><h2 class="mt-10 text-2xl font-bold">Как устроены заявки в Arendora</h2><h3 class="mt-8 text-xl font-semibold">Цикл статусов: новая → назначена → в работе → выполнена → закрыта</h3><p class="mt-4 leading-relaxed">У каждой заявки пять статусов — от «новая» до «закрыта». В карточке заявки виден статус вплоть до закрытия: не надо листать переписку, чтобы понять, починили ли кран или он до сих пор «в работе». Скрытого этапа нет — состояние заявки всегда можно назвать точно.</p><h3 class="mt-8 text-xl font-semibold">Фото, срочность, исполнитель</h3><p class="mt-4 leading-relaxed">К заявке прикладываются фото проблемного места, ставится срочность, назначается исполнитель — клининг, мастер, электрик, сантехник. Полезно сразу писать, что случилось, когда заметили и что уже попробовали — тогда исполнитель приезжает с нужными деталями с первого раза. В комментариях к заявке фиксируются договорённости, в истории событий — каждое изменение статуса. Фото в карточке — та мелочь, которая при споре о «разбитой плитке» через год стоит дороже любого шаблона договора.</p><h3 class="mt-8 text-xl font-semibold">История событий: документы для залога и суда</h3><p class="mt-4 leading-relaxed">Хронология заявки — фото, описание, срок устранения, исполнитель — работает на обе стороны: она пригодится и при удержании из залога, и в суде, если до него дойдёт. У кого аккуратнее бумаги, тот и выигрывает — это верно и для платежей, и для ремонтов. Акт приёма-передачи — карта состояния квартиры на день заселения: техника, мебель, отделка, показания счётчиков; без него любой спор о ремонте превращается в спор о воспоминаниях. А когда жилец съезжает, его история уходит в архив вместе с ним — а не растворяется в переписке трёх мессенджеров.</p><h3 class="mt-8 text-xl font-semibold">Жилец подаёт заявку сам — портал жильца</h3><p class="mt-4 leading-relaxed">У жильца есть свой портал: он видит свои платежи, заявки и документы. Заявка приходит владельцу со статусом и исполнителем — вместо полуночных сообщений в трёх мессенджерах. Роли разведены: владелец, жилец, исполнитель — у каждого свой вход и свои права.</p><h3 class="mt-8 text-xl font-semibold">Заявки рядом с платежами и документами</h3><p class="mt-4 leading-relaxed">Заявка на обслуживание заводится в карточке объекта: там же хранятся договор и акт по объекту. Платежи и ремонты — два канала одного процесса: график платежей, напоминания и автопросрочки закрывают деньги, заявки с фото и статусами — обслуживание квартиры. Если платежи уже на автопилоте — добавьте к ним системную работу с заявками. Как собрать обе механики в один контур — рассказано в статье <a class="text-primary underline underline-offset-2" href="/blog/avtomatizaciya-sdachi-kvartiry">«Автоматизация сдачи квартиры: что отдать сервису»</a>. Денежная половина контура — <a class="text-primary underline underline-offset-2" href="/features/uchet-platezhey">учёт платежей квартирантов</a> — график, напоминания и статусы просрочек в одном окне.</p><h2 class="mt-10 text-2xl font-bold">Сроки по срочности — реалистичная шкала</h2><table class="mt-6 w-full text-sm"><thead><tr class="border-b text-left"><th class="py-2 pr-4 font-semibold">Ситуация</th><th class="py-2 font-semibold">Срок устранения</th></tr></thead><tbody><tr class="border-b"><td class="py-2 pr-4">Протечка, искра в розетке</td><td class="py-2">в тот же день</td></tr><tr class="border-b"><td class="py-2 pr-4">Неработающая конфорка</td><td class="py-2">неделя</td></tr><tr class="border-b"><td class="py-2 pr-4">Царапина на подоконнике</td><td class="py-2">к следующему визиту мастера</td></tr></tbody></table><p class="mt-4 leading-relaxed">Сроки ставьте реалистичные и по степени срочности. Шкала — из статьи «Кто должен делать ремонт в съёмной квартире»; в Arendora срочность задаётся полем заявки, а срок — её описанием. Заявка фиксирует проблему и сроки, но не чинит её: сервис не заменяет мастера — он заменяет хаос вокруг вызова мастера.</p><h2 class="mt-10 text-2xl font-bold">Заявки: мессенджер или сервис</h2><table class="mt-6 w-full text-sm"><thead><tr class="border-b text-left"><th class="py-2 pr-4 font-semibold">Задача</th><th class="py-2 pr-4 font-semibold">Чат в мессенджере</th><th class="py-2 font-semibold">Arendora</th></tr></thead><tbody><tr class="border-b"><td class="py-2 pr-4">Статус «починили?»</td><td class="py-2 pr-4">листать переписку</td><td class="py-2">цикл из пяти статусов</td></tr><tr class="border-b"><td class="py-2 pr-4">Фото проблемы</td><td class="py-2 pr-4">сжимаются, теряются</td><td class="py-2">прикрепляется к заявке</td></tr><tr class="border-b"><td class="py-2 pr-4">Исполнитель</td><td class="py-2 pr-4">«на словах»</td><td class="py-2">назначается в заявке</td></tr><tr class="border-b"><td class="py-2 pr-4">Срочность</td><td class="py-2 pr-4">не фиксируется</td><td class="py-2">поле заявки</td></tr><tr class="border-b"><td class="py-2 pr-4">История для залога и суда</td><td class="py-2 pr-4">восстанавливается по памяти</td><td class="py-2">история событий в карточке</td></tr><tr class="border-b"><td class="py-2 pr-4">Связь с платежами и документами</td><td class="py-2 pr-4">нет</td><td class="py-2">рядом, в карточке объекта</td></tr><tr class="border-b"><td class="py-2 pr-4">Канал жильца</td><td class="py-2 pr-4">чат без структуры</td><td class="py-2">портал жильца</td></tr></tbody></table><p class="mt-4 leading-relaxed">Колонка «Чат в мессенджере» — пересказ статьи о ремонте и статьи об автоматизации; колонка «Arendora» — дословные механизмы сервиса.</p><p class="mt-4 leading-relaxed">Простой квартиры в поисках нового жильца обходится дороже всего мелкого ремонта за год: один месяц без арендной платы съедает любую экономию на лампочках (условный расчёт). Квартира, где собственник отвечает на заявки за день-два, дольше сохраняет отделку и технику, а жилец, которого слышат, остаётся на следующий срок.</p><h2 class="mt-10 text-2xl font-bold">Как начать принимать заявки</h2><ol class="mt-4 list-decimal space-y-2 pl-6 leading-relaxed"><li>Зарегистрируйтесь: email и пароль, без банковской карты — бесплатный тариф доступен сразу.</li><li>Нажмите «Загрузить демо-данные» — платформа в один клик развернёт 8 объектов, 5 арендаторов и полгода истории платежей.</li><li>Добавьте объект и жилец — связь, первый платёж и график появятся автоматически.</li><li>Заведите первую заявку в карточке объекта: фото, срочность, исполнитель — и передайте жильцу доступ к порталу.</li></ol><p class="mt-4 leading-relaxed">Свой портфель переносится импортом объектов из CSV; старт заявлен за 15 минут, без внедрения и обучения. Поддержка — support@arendora.ru, ответ в течение 1–2 рабочих дней. Как разложить обязанности по ремонту между собственником и жильцом по закону — в статье <a class="text-primary underline underline-offset-2" href="/blog/kto-dolzhen-delat-remont">«Кто должен делать ремонт в съёмной квартире»</a>; а если жалуются соседи — шаги разбирала статья о жалобах соседей.</p><h2 class="mt-10 text-2xl font-bold">Частые вопросы</h2><div class="mt-4 space-y-2"><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Заявки жильцов — что это и зачем они арендодателю?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Карточка с фото проблемы, описанием, срочностью, исполнителем и статусом — от «новая» до «закрыта». Заявка дисциплинирует обе стороны и сохраняет хронологию, которая пригодится при удержании из залога и в суде.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Arendora что это за сервис?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Российский облачный сервис управления арендной недвижимостью: объекты, жильцы, платежи, заявки на обслуживание, документы и аналитика в одном окне. Данные — на серверах в РФ по 152-ФЗ, интерфейс русский и английский. Заявки — один из шести блоков сервиса.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Какое приложение для арендодателя подойдёт для заявок на обслуживание?</summary><p class="mt-2 leading-relaxed text-muted-foreground">То, где заявка имеет статус, а не теряется в переписке: Arendora ведёт цикл «новая → назначена → в работе → выполнена → закрыта» с фото, срочностью и исполнителем. Работает в браузере и как PWA — ставится на телефон как приложение; нативного приложения нет (честно).</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Что автоматизируется в заявках на обслуживание?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Фиксация и движение: фото, срочность, назначение исполнителя, статусы, комментарии и история событий. Сам ремонт не автоматизируется — автоматизируется учёт: вместо «труба течёт, посмотри как-нибудь» в полночь — карточка с историей и сроками.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Чем Arendora отличается от других сервисов управления арендой недвижимости?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Заявки, платежи и документы связаны в одном окне: заявка заводится в карточке объекта рядом с договором и актом, а жилец видит свои платежи и заявки в личном портале. Есть бесплатный тариф: 1 объект, 1 арендатор; данные — в РФ по 152-ФЗ.</p></details><details class="rounded-lg border p-4"><summary class="cursor-pointer font-semibold">Сколько стоит программа для учёта аренды квартир с заявками?</summary><p class="mt-2 leading-relaxed text-muted-foreground">Бесплатный тариф — 0 ₽ (1 объект, 1 арендатор), без банковской карты. Платные: Start — 990 ₽/мес, Pro — 2 990 ₽/мес, Business — 7 990 ₽/мес; годовая оплата дешевле на 17%; «Индивидуальный» — по запросу. Заявки входят в список возможностей сервиса; ограничения тарифов — по числу объектов.</p></details></div><div class="mt-12 rounded-2xl border bg-card p-8 text-center"><h2 class="text-2xl font-bold">Переведите заявки из чата в карточки</h2><p class="mt-3 leading-relaxed text-muted-foreground">Заведите объект и жильца — первая заявка с фото, срочностью и исполнителем займёт пару минут, а история останется в карточке объекта. Не готовы переносить данные — загрузите демо-данные одним кликом.</p><a href="https://arendora.ru/register" class="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">Попробовать бесплатно</a><a href="/tariffs" class="mt-6 ml-4 inline-flex items-center text-sm font-semibold text-primary underline underline-offset-2 hover:opacity-90">Сравнить тарифы</a><p class="mt-3 text-sm text-muted-foreground">Без карты для старта. Настраивается за 15 минут.</p></div></article></div><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Необходимые cookie хранят вход в аккаунт и настройки; обезличенная статистика посещений собирается Яндекс.Метрикой. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      window.addEventListener("error", (e) => {
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        pmShowFatal("REJ", e.reason?.message || String(e.reason));
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм счётчика
+      // на этой странице (решение NT-001 Р4 от 2026-11-01: один механизм загрузки
+      // tag.js на весь сайт; статических тегов в <head> нет). Копия загрузчика —
+      // из живого шаблона статьи блога (снапшот p27.html, деплой Release 1).
+      // При отказе от cookie в баннере счётчик не подключается со следующего
+      // посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+
+
+</body></html>

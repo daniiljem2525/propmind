@@ -9,7 +9,10 @@
 //      (слаг = имя файла; новая статья попадает сама);
 //   3. Магниты ×3 (/magnit-dogovor, /magnit-kalkulyator, /magnit-kurs);
 //   4. GEO-страницы Release 2 (5 шт., /blog/…);
-//   5. Посадочная /features/uchet-platezhey (спринт 2, пакет NT-018).
+//   5. Посадочные /features/*: uchet-platezhey (спринт 2, пакет NT-018),
+//      napominaniya (пакет №2, 05.11) и zayavki-zhilcov (пакет №3, 06.11) —
+//      SEO-смена 2026-11-04, приняты NT-001 (Р1); features не из content/blog,
+//      поэтому включаются явно через EXTRA_PAGES.
 //
 // lastmod вручную не правится: берётся из EXTRA_LASTMOD/STATIC-списка или
 // front-matter статьи. Файл public/sitemap.xml перезаписывается целиком —
@@ -50,6 +53,9 @@ const EXTRA_PAGES = [
   { loc: "blog/prilozhenie-dlya-arendodatelya", lastmod: "2026-11-07" },
   { loc: "blog/kak-avtomatizirovat-sdachu-kvartiry", lastmod: "2026-11-07" },
   { loc: "features/uchet-platezhey", lastmod: "2026-11-07" },
+  // Посадочные волны 2 (пакеты №2/№3 SEO, утверждены NT-001 04.11, даты — из Р1.6)
+  { loc: "features/napominaniya", lastmod: "2026-11-05" },
+  { loc: "features/zayavki-zhilcov", lastmod: "2026-11-06" },
   { loc: "details", lastmod: "2026-11-08" },
   { loc: "features/dlya-arendodatelya", lastmod: "2026-11-05" },
 ];
