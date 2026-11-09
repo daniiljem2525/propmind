@@ -21,7 +21,7 @@ if (!bundle || !css) {
 }
 
 // Страницы-снапшоты, безопасно загружающие актуальный бандл
-const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", "blog/samozanyatost-podvodnye-kamni", "blog/remont-bez-vladeltsa"];
+const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", "blog/samozanyatost-podvodnye-kamni", "blog/remont-bez-vladeltsa", "blog/indeksaciya-arendnoy-platy", "blog/kvartirant-ne-sezzhaet"];
 
 let fixed = 0;
 for (const p of PAGES) {
