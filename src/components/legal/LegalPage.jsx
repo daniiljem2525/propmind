@@ -24,8 +24,8 @@ export const UL = ({ children }) => (
  * редакция и контент. Используется всеми страницами из /terms, /privacy
  * и раздела «Документы».
  */
-export default function LegalPage({ title, edition, path, children }) {
-  usePageMeta(`${title} — Arendora`, null, path);
+export default function LegalPage({ title, edition, path, description, children }) {
+  usePageMeta(`${title} — Arendora`, description || null, path);
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-3xl px-4 py-10">
