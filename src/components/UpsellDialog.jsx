@@ -6,6 +6,7 @@ import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { createBillingPayment } from "@/lib/billing";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { isDemoMode } from "@/lib/demoMode";
 import { Check } from "lucide-react";
 
 // Кнопка оплаты Start из диалога апселла: платёж ЮKassa (месяц) сразу.
@@ -16,6 +17,10 @@ function PayStartButton() {
   const [paying, setPaying] = useState(false);
 
   const pay = async () => {
+    if (isDemoMode()) {
+      toast.error(t("billing.demoMode"));
+      return;
+    }
     try {
       setPaying(true);
       const { confirmation_url } = await createBillingPayment({ plan: "start", period: "month" });

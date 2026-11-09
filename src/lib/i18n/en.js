@@ -699,6 +699,7 @@ export const en = {
   "billing.returnOk": "Payment received — plan updated",
   "billing.returnPending": "Payment not completed — no charge was made",
   "billing.payStart": "Get Start — 990 ₽/mo",
+"billing.demoMode": "Payments are unavailable in demo mode — register to pay for your own portfolio",
   "plan.title": "Plan & billing",
   "plan.subtitle": "Your current plan, YooKassa checkout and payment history",
   "plan.current": "Current plan",

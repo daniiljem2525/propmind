@@ -10,6 +10,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { PLANS } from "@/lib/config/misc";
 import { cn, formatMoney } from "@/lib/utils";
 import { createBillingPayment, getBillingStatus, verifyBillingPayment } from "@/lib/billing";
+import { isDemoMode } from "@/lib/demoMode";
 
 const PLAN_KEY = "arendora:plan";
 
@@ -77,6 +78,10 @@ function PricingPlans() {
   };
 
   const pay = async (id) => {
+    if (isDemoMode()) {
+      toast.info(t("billing.demoMode"));
+      return;
+    }
     try {
       setPaying(id);
       const { confirmation_url } = await createBillingPayment({
