@@ -41,7 +41,7 @@ const FEATURES = [
   { icon: Globe, tile: "bg-violet-500", key: "land.f6" },
 ];
 
-const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4"];
+const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4", "land.q5", "land.q6", "land.q7", "land.q8"];
 
 // S1.7 (ТЗ seo/sprint1/07, состав утверждён NT-001 2026-11-01): блок
 // «Полезные материалы» на главной — после FAQ, перед финальным CTA.
@@ -160,10 +160,10 @@ export default function Landing() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="#pricing"
+              href="#how"
               className="inline-flex items-center gap-2 rounded-md border bg-card px-7 py-3 text-base font-semibold transition-colors hover:bg-muted"
             >
-              {t("land.ctaPricing")}
+              {t("land.ctaHow")}
             </a>
           </div>
 
@@ -185,6 +185,26 @@ export default function Landing() {
 
           {/* Живой пример дашборда + лента событий */}
           <HeroVideo />
+        </div>
+      </section>
+
+      {/* Знакомо? — боли собственника */}
+      <section className="py-20">
+        <div className="mx-auto max-w-4xl px-4 lg:px-8">
+          <h2 className="text-center text-3xl font-extrabold tracking-tight">{t("land.painTitle")}</h2>
+          <p className="mt-3 text-center text-muted-foreground">{t("land.painSub")}</p>
+          <ul className="mx-auto mt-8 max-w-2xl space-y-3">
+            {["land.pain1", "land.pain2", "land.pain3", "land.pain4", "land.pain5"].map((k) => (
+              <li key={k} className="flex items-start gap-3 rounded-lg border bg-card p-4 text-sm">
+                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-rose-500/15 text-xs font-bold text-rose-500">✕</span>
+                {t(k)}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-8 text-center text-lg font-semibold">{t("land.painOutro")}</p>
+          <div className="mt-4 text-center">
+            <a href="#features" className="text-primary hover:underline">{t("land.featuresTitle")} →</a>
+          </div>
         </div>
       </section>
 
@@ -228,6 +248,24 @@ export default function Landing() {
                   <ArrowRight className="absolute -right-5 top-4 hidden h-5 w-5 text-muted-foreground/40 md:block" />
                 )}
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Для кого */}
+      <section className="border-t bg-card/50 py-20">
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t("land.whoTitle")}</h2>
+            <p className="mt-3 text-muted-foreground">{t("land.whoSub")}</p>
+          </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {["land.who1", "land.who2", "land.who3"].map((base) => (
+              <Card key={base} className="p-5">
+                <h3 className="text-base font-bold">{t(`${base}.title`)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(`${base}.text`)}</p>
+              </Card>
             ))}
           </div>
         </div>

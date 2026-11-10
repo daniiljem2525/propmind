@@ -6,8 +6,8 @@ import { useLang } from "@/lib/i18n/LangContext";
 const FEATURES = {
   ru: [
     { icon: Sparkles, text: "Запуск за 15 минут — без внедрения" },
-    { icon: Building2, text: "Объекты, арендаторы и платежи связаны автоматически" },
-    { icon: Wrench, text: "Заявки, документы и аналитика в одном окне" },
+    { icon: Building2, text: "Платежи, напоминания и просрочки — под контролем без ручных таблиц" },
+    { icon: Wrench, text: "Все документы по квартире — в одном месте. Доходность каждого объекта — как на ладони" },
   ],
   en: [
     { icon: Sparkles, text: "Up in 15 minutes — no onboarding" },
@@ -36,7 +36,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
 
         <div className="relative space-y-7">
           <h1 className="text-3xl font-bold leading-tight">
-            {lang === "ru" ? "Ваши квартиры и платежи — в одном окне" : "Your apartments and payments — in one window"}
+            {lang === "ru" ? "Ваша недвижимость приносит доход. Не головную боль" : "Your apartments and payments — in one window"}
           </h1>
           <ul className="space-y-4">
             {FEATURES[lang].map((f, i) => (
