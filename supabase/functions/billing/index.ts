@@ -125,6 +125,40 @@ Deno.serve(async (req) => {
     const paymentId = body.object?.id;
     if (!body.event || !paymentId) return json({ error: "BAD_PAYLOAD" }, 400);
 
+    // refund.succeeded: объект вебхука — ВОЗВРАТ (не платёж), поэтому
+    // сначала запрашиваем сам возврат по его id, из него берём payment_id
+    // и помечаем платёж refunded; тариф снимаем, если других активных
+    // оплат у пользователя не осталось
+    if (body.event === "refund.succeeded") {
+      const rres = await fetch(`https://api.yookassa.ru/v3/refunds/${paymentId}`, { headers: ykHeaders() });
+      if (!rres.ok) return json({ error: "VERIFY_FAILED", status: rres.status }, 502);
+      const refund = await rres.json();
+      const linkedPaymentId = refund.payment_id as string;
+      await admin
+        .from("billing_payments")
+        .update({ status: "refunded", raw: refund })
+        .eq("provider_payment_id", linkedPaymentId);
+      const { data: row } = await admin
+        .from("billing_payments")
+        .select("user_id")
+        .eq("provider_payment_id", linkedPaymentId)
+        .maybeSingle();
+      if (row?.user_id) {
+        const { count } = await admin
+          .from("billing_payments")
+          .select("id", { count: "exact" })
+          .eq("user_id", row.user_id)
+          .eq("status", "succeeded");
+        if (!count) {
+          await admin
+            .from("profiles")
+            .update({ plan: "free", plan_until: null })
+            .eq("id", row.user_id);
+        }
+      }
+      return json({ ok: true });
+    }
+
     // Верификация: платеж запрашиваем из API ЮKassa, телу вебхука не доверяем
     const res = await fetch(`https://api.yookassa.ru/v3/payments/${paymentId}`, {
       headers: ykHeaders(),
