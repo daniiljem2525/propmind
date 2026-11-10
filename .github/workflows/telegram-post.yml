@@ -1,0 +1,47 @@
+# Публикация поста из content/post-telegram.md в Telegram-канал.
+# Запуск: Actions → Telegram post → Run workflow (можно указать другой канал).
+#
+# Разовая настройка CEO (5 минут):
+#   1) Добавить бота @arendora_push_bot администратором канала (право «Публикация сообщений»).
+#   2) Settings → Secrets and variables → Actions → New repository secret:
+#        TG_BOT_TOKEN = токен бота (ops/credentials/tg-bot-token.txt)
+#        TG_CHAT_ID   = @юзернейм_канала или числовой chat_id
+#   3) Run workflow — пост уходит в канал.
+name: Telegram post
+on:
+  workflow_dispatch:
+    inputs:
+      chat:
+        description: "Канал (@username или chat_id). Пусто = TG_CHAT_ID из секретов"
+        required: false
+        default: ""
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read post text
+        run: |
+          { echo 'POST_TEXT<<TEOF'; cat content/post-telegram.md; echo 'TEOF'; } >> "$GITHUB_ENV"
+
+      - name: Send to Telegram
+        env:
+          TG_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || secrets.TG_CHAT_ID }}
+        run: |
+          python3 - << 'PY'
+          import os, json, urllib.request
+          token = os.environ["TG_TOKEN"]
+          chat = os.environ["TG_CHAT"]
+          text = os.environ["POST_TEXT"]
+          assert token and chat and text.strip(), "нет токена/чата/текста"
+          req = urllib.request.Request(
+              f"https://api.telegram.org/bot{token}/sendMessage",
+              data=json.dumps({"chat_id": chat, "text": text}).encode(),
+              headers={"Content-Type": "application/json"},
+          )
+          r = urllib.request.urlopen(req, timeout=30)
+          print("Telegram:", r.status, json.load(r).get("result", {}).get("message_id", ""))
+          PY
