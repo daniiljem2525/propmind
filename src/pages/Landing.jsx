@@ -208,6 +208,21 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* CTA сразу после болей — кто убедился, кликает здесь */}
+      <section className="px-4 lg:px-8">
+        <div className="brand-gradient mx-auto flex max-w-4xl flex-col items-center gap-4 rounded-lg p-10 text-center text-white shadow-card-hover">
+          <h2 className="text-2xl font-extrabold sm:text-3xl">{t("land.finalTitle")}</h2>
+          <p className="max-w-xl text-white/85">{t("land.finalSub")}</p>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-2 rounded-md bg-white px-7 py-3 text-base font-semibold text-primary shadow-sm transition-opacity hover:opacity-90"
+          >
+            {t("land.ctaStart")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* Возможности */}
       <section id="features" className="border-t bg-card/50 py-20">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
@@ -450,21 +465,6 @@ export default function Landing() {
               </Link>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* Финальный CTA */}
-      <section className="px-4 pb-20 lg:px-8">
-        <div className="brand-gradient mx-auto flex max-w-4xl flex-col items-center gap-4 rounded-lg p-10 text-center text-white shadow-card-hover">
-          <h2 className="text-2xl font-extrabold sm:text-3xl">{t("land.finalTitle")}</h2>
-          <p className="max-w-xl text-white/85">{t("land.finalSub")}</p>
-          <Link
-            to="/register"
-            className="inline-flex items-center gap-2 rounded-md bg-white px-7 py-3 text-base font-semibold text-primary shadow-sm transition-opacity hover:opacity-90"
-          >
-            {t("land.ctaStart")}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
       </section>
 
