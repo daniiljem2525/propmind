@@ -53,6 +53,10 @@ const USEFUL_LINKS = [
   { to: "/blog/programma-dlya-upravleniya-arendoy", key: "land.useful3" },
   { to: "/blog/sdat-kvartiru-v-arendu-cheklist", key: "land.useful4" },
   { to: "/blog/nalogi-so-sdachi-kvartiry", key: "land.useful5" },
+  { to: "/blog/samozanyatost-podvodnye-kamni", key: "land.useful6" },
+  { to: "/blog/indeksaciya-arendnoy-platy", key: "land.useful7" },
+  { to: "/blog/kvartirant-ne-sezzhaet", key: "land.useful8" },
+  { to: "/blog/remont-bez-vladeltsa", key: "land.useful9" },
 ];
 
 export default function Landing() {

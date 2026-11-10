@@ -28,6 +28,10 @@
 - [Квартирант не платит: что делать](https://arendora.ru/blog/chto-delat-esli-kvartirant-ne-platit): план от разговора до судебного приказа.
 - [Как выселить квартиранта законно](https://arendora.ru/blog/kak-vyselit-kvartiranta-zakonno): с договором и без, по ст. 687 ГК РФ.
 - [Налоги со сдачи квартиры в 2026](https://arendora.ru/blog/nalogi-so-sdachi-kvartiry): самозанятость 4–6%, НДФЛ, ИП на УСН.
+- [Самозанятость: подводные камни](https://arendora.ru/blog/samozanyatost-podvodnye-kamni): лимит 2,4 млн ₽, чеки, смешение доходов — как не потерять режим.
+- [Индексация арендной платы](https://arendora.ru/blog/indeksaciya-arendnoy-platy): расчёт, формулировка в договоре, окно ст. 684 ГК.
+- [Квартирант не съезжает](https://arendora.ru/blog/kvartirant-ne-sezzhaet): уведомление, сроки, доказательства, суд.
+- [Ремонт без присутствия владельца](https://arendora.ru/blog/remont-bez-vladeltsa): смета, акты этапов, фотофиксация, поэтапные платежи.
 - [Программа для управления арендой квартир: честное сравнение решений 2026](https://arendora.ru/blog/programma-dlya-upravleniya-arendoy): когда таблицы перестают справляться; сравнение по категориям — таблицы, посуточные PMS, системы коммерческой недвижимости (Pro.rent, АрендаSoft, EstateCRM, ODIN), облачные SaaS для жилой долгосрочной аренды (Arendora), зарубежные сервисы; 10 критериев выбора перед покупкой, тарифы вендоров с датами проверки и источниками, FAQ из 6 вопросов.
 - [Учёт аренды в Excel: сколько это стоит](https://arendora.ru/blog/uchet-arendy-v-excel): потери на портфеле 100+ объектов и переезд в облако за 15 минут.
 
