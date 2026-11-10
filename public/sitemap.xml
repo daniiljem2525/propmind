@@ -4,8 +4,8 @@
      front-matter date из content/blog/. Токен __SITE_URL__ заменяется
      на этапе сборки (vite.config.js). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>__SITE_URL__</loc><lastmod>2026-11-09</lastmod></url>
-  <url><loc>__SITE_URL__blog</loc><lastmod>2026-11-09</lastmod></url>
+  <url><loc>__SITE_URL__</loc><lastmod>2026-11-10</lastmod></url>
+  <url><loc>__SITE_URL__blog</loc><lastmod>2026-11-10</lastmod></url>
   <url><loc>__SITE_URL__register</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__tariffs</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__terms</loc><lastmod>2026-11-07</lastmod></url>
@@ -15,37 +15,37 @@
   <url><loc>__SITE_URL__payments</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__usepolicy</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__cookies</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>__SITE_URL__blog/akt-priema-peredachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/arendora-vs-google-tablicy</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/avtomatizaciya-sdachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/chto-delat-esli-kvartirant-ne-platit</loc><lastmod>2026-10-25</lastmod></url>
   <url><loc>__SITE_URL__blog/indeksaciya-arendnoy-platy</loc><lastmod>2026-11-10</lastmod></url>
+  <url><loc>__SITE_URL__blog/kak-avtomatizirovat-sdachu-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/kak-povysit-arendnuyu-platu</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/kak-proverit-kvartiranta-pered-sdachey</loc><lastmod>2026-10-25</lastmod></url>
   <url><loc>__SITE_URL__blog/kak-vyselit-kvartiranta-zakonno</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/kto-dolzhen-delat-remont</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/kvartirant-ne-sezzhaet</loc><lastmod>2026-11-11</lastmod></url>
+  <url><loc>__SITE_URL__blog/luchshie-servisy-dlya-arendodateley-2026</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/nalogi-so-sdachi-kvartiry</loc><lastmod>2026-10-25</lastmod></url>
+  <url><loc>__SITE_URL__blog/obrazec-dogovora-naima-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/posutochno-ili-dolgosrok</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/prilozhenie-dlya-arendodatelya</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/programma-dlya-upravleniya-arendoy</loc><lastmod>2026-10-17</lastmod></url>
   <url><loc>__SITE_URL__blog/raspiska-za-arendu-obrazec</loc><lastmod>2026-11-06</lastmod></url>
   <url><loc>__SITE_URL__blog/remont-bez-vladeltsa</loc><lastmod>2026-11-09</lastmod></url>
   <url><loc>__SITE_URL__blog/samozanyatost-podvodnye-kamni</loc><lastmod>2026-11-08</lastmod></url>
-  <url><loc>__SITE_URL__blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
-  <url><loc>__SITE_URL__blog/uchet-arendy-v-excel</loc><lastmod>2026-11-07</lastmod></url>
-  <url><loc>__SITE_URL__blog/zhurnal-ili-programma-ucheta-arendy</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>__SITE_URL__blog/zalog-pri-sdache-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/sosed-zhaluetsya-na-kvartiranta</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>__SITE_URL__blog/samozanyatost-sdacha-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/posutochno-ili-dolgosrok</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/obrazec-dogovora-naima-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/kto-dolzhen-delat-remont</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/kak-povysit-arendnuyu-platu</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/avtomatizaciya-sdachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
-  <url><loc>__SITE_URL__blog/arendora-vs-google-tablicy</loc><lastmod>2026-11-06</lastmod></url>
-  <url><loc>__SITE_URL__blog/akt-priema-peredachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
+  <url><loc>__SITE_URL__blog/servisy-upravleniya-arendoy-nedvizhimostyu</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/sosed-zhaluetsya-na-kvartiranta</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/uchet-arendy-v-excel</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>__SITE_URL__blog/zalog-pri-sdache-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>__SITE_URL__blog/zhurnal-ili-programma-ucheta-arendy</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>__SITE_URL__magnit-dogovor</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__magnit-kalkulyator</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__magnit-kurs</loc><lastmod>2026-11-07</lastmod></url>
-  <url><loc>__SITE_URL__blog/luchshie-servisy-dlya-arendodateley-2026</loc><lastmod>2026-11-05</lastmod></url>
-  <url><loc>__SITE_URL__blog/servisy-upravleniya-arendoy-nedvizhimostyu</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>__SITE_URL__blog/programma-dlya-ucheta-arendy-kvartir</loc><lastmod>2026-11-07</lastmod></url>
-  <url><loc>__SITE_URL__blog/prilozhenie-dlya-arendodatelya</loc><lastmod>2026-11-07</lastmod></url>
-  <url><loc>__SITE_URL__blog/kak-avtomatizirovat-sdachu-kvartiry</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__features/uchet-platezhey</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__features/napominaniya</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>__SITE_URL__features/zayavki-zhilcov</loc><lastmod>2026-11-06</lastmod></url>

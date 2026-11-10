@@ -21,7 +21,16 @@ if (!bundle || !css) {
 }
 
 // Страницы-снапшоты, безопасно загружающие актуальный бандл
-const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", "blog/samozanyatost-podvodnye-kamni", "blog/remont-bez-vladeltsa", "blog/indeksaciya-arendnoy-platy", "blog/kvartirant-ne-sezzhaet"];
+// Страницы-снапшоты, безопасно загружающие актуальный бандл:
+// юрстраницы + логин/регистрация + блог-индекс + ВСЕ статьи с md-исходниками
+// (их данные в bundled md — SPA-рендер безопасен). Live-only страницы
+// (без md в content/blog), магниты и /features/* — НЕ трогаются: их
+// контента в текущем бандле нет, актуальный бандл заменил бы их 404-й.
+const blogDir = "content/blog";
+const blogSlugs = readdirSync(blogDir)
+  .filter((f) => f.endsWith(".md"))
+  .map((f) => "blog/" + f.replace(/\.md$/, ""));
+const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", ...blogSlugs];
 
 let fixed = 0;
 for (const p of PAGES) {
