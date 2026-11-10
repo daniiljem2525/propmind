@@ -262,10 +262,10 @@ export default function Landing() {
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {["land.who1", "land.who2", "land.who3"].map((base) => (
-              <Card key={base} className="p-5">
+              <div key={base} className="rounded-lg border bg-card p-5">
                 <h3 className="text-base font-bold">{t(`${base}.title`)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(`${base}.text`)}</p>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
