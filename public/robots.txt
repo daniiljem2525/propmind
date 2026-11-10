@@ -1,5 +1,5 @@
 # __BASE__ и __SITE_URL__ заменяются на этапе сборки (vite.config.js):
-# для GitHub Pages это /propmind/ и https://daniiljem2525.github.io/propmind/
+# прод: https://arendora.ru
 
 # --- ИИ-ассистенты и answer-движки: доступ явно разрешён -------------------
 # ChatGPT/Perplexity/Claude и другие нейросети собирают ответы по своим
