@@ -12,9 +12,12 @@ on:
   workflow_dispatch:
     inputs:
       chat:
-        description: "Канал (@username или chat_id). Пусто = TG_CHAT_ID из секретов"
+        description: "Канал (@username или chat_id). Пусто = авто-детект"
         required: false
         default: ""
+  push:
+    branches: [main]
+    paths: ["content/post-telegram.md"]
 
 jobs:
   post:
@@ -26,10 +29,36 @@ jobs:
         run: |
           { echo 'POST_TEXT<<TEOF'; cat content/post-telegram.md; echo 'TEOF'; } >> "$GITHUB_ENV"
 
+      - name: Detect chat (если TG_CHAT_ID не задан — берём из getUpdates)
+        if: ${{ (secrets.TG_CHAT_ID || '') == '' && github.event.inputs.chat == '' }}
+        env:
+          TG_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        run: |
+          python3 - << 'PY'
+          import os, json, urllib.request
+          token = os.environ["TG_TOKEN"]
+          r = urllib.request.urlopen(urllib.request.Request(f"https://api.telegram.org/bot{token}/getUpdates"), timeout=30)
+          upd = json.load(r).get("result", [])
+          chats = {}
+          for u in reversed(upd):
+              for key in ("channel_post", "message", "my_chat_member"):
+                  obj = u.get(key)
+                  if obj and obj.get("chat"):
+                      c = obj["chat"]
+                      chats[c["id"]] = c.get("title") or c.get("username") or c["id"]
+          if not chats:
+              raise SystemExit("getUpdates пуст: отправьте любое сообщение в канал от имени канала (или от пользователя) и перезапустите")
+          first = sorted(chats.items())[0]
+          with open(os.environ["GITHUB_ENV"], "a") as f:
+              f.write(f"TG_CHAT={first[0]}
+")
+          print("детект чата:", first)
+          PY
+
       - name: Send to Telegram
         env:
           TG_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || secrets.TG_CHAT_ID }}
+          TG_CHAT: ${{ github.event.inputs.chat != '' && github.event.inputs.chat || (secrets.TG_CHAT_ID != '' && secrets.TG_CHAT_ID || env.TG_CHAT) }}
         run: |
           python3 - << 'PY'
           import os, json, urllib.request
