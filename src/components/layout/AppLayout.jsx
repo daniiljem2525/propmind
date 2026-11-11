@@ -5,6 +5,7 @@ import Header from "./Header";
 import { cn } from "@/lib/utils";
 import { syncOverduePayments } from "@/lib/services";
 import PushOnboarding from "@/components/PushOnboarding";
+import SupportChat from "@/components/SupportChat";
 
 const KEY = "arendora:sidebar";
 
@@ -55,6 +56,7 @@ export default function AppLayout() {
           </div>
         </main>
       </div>
+    <SupportChat />
     </div>
   );
 }
