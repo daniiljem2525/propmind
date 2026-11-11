@@ -4,8 +4,8 @@
      front-matter date из content/blog/. Токен __SITE_URL__ заменяется
      на этапе сборки (vite.config.js). -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>__SITE_URL__</loc><lastmod>2026-11-10</lastmod></url>
-  <url><loc>__SITE_URL__blog</loc><lastmod>2026-11-10</lastmod></url>
+  <url><loc>__SITE_URL__</loc><lastmod>2026-11-11</lastmod></url>
+  <url><loc>__SITE_URL__blog</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>__SITE_URL__register</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__tariffs</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>__SITE_URL__terms</loc><lastmod>2026-11-07</lastmod></url>
@@ -51,4 +51,5 @@
   <url><loc>__SITE_URL__features/zayavki-zhilcov</loc><lastmod>2026-11-06</lastmod></url>
   <url><loc>__SITE_URL__details</loc><lastmod>2026-11-08</lastmod></url>
   <url><loc>__SITE_URL__features/dlya-arendodatelya</loc><lastmod>2026-11-05</lastmod></url>
+  <url><loc>__SITE_URL__features/upravlenie-nedvizhimostyu</loc><lastmod>2026-11-10</lastmod></url>
 </urlset>

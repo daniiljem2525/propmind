@@ -10,9 +10,9 @@
 //   3. Магниты ×3 (/magnit-dogovor, /magnit-kalkulyator, /magnit-kurs);
 //   4. GEO-страницы Release 2 (5 шт., /blog/…);
 //   5. Посадочные /features/*: uchet-platezhey (спринт 2, пакет NT-018),
-//      napominaniya (пакет №2, 05.11) и zayavki-zhilcov (пакет №3, 06.11) —
-//      SEO-смена 2026-11-04, приняты NT-001 (Р1); features не из content/blog,
-//      поэтому включаются явно через EXTRA_PAGES.
+//      napominaniya (пакет №2, 05.11), zayavki-zhilcov (пакет №3, 06.11) и
+//      upravlenie-nedvizhimostyu (SEO-смена 2026-11-10) — features не из
+//      content/blog, поэтому включаются явно через EXTRA_PAGES.
 //
 // lastmod вручную не правится: берётся из EXTRA_LASTMOD/STATIC-списка или
 // front-matter статьи. Файл public/sitemap.xml перезаписывается целиком —
@@ -58,6 +58,8 @@ const EXTRA_PAGES = [
   { loc: "features/zayavki-zhilcov", lastmod: "2026-11-06" },
   { loc: "details", lastmod: "2026-11-08" },
   { loc: "features/dlya-arendodatelya", lastmod: "2026-11-05" },
+  // Посадочная «Управление недвижимостью» (SEO-смена 2026-11-10, NT-019/NT-009)
+  { loc: "features/upravlenie-nedvizhimostyu", lastmod: "2026-11-10" },
 ];
 
 function frontMatterDate(md) {
