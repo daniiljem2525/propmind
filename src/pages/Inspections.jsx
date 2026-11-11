@@ -626,6 +626,10 @@ export default function Inspections() {
         }}
       />
 
+      {/* Гейт демо-режима: без рендера диалога кнопка «Запланировать осмотр»
+          в демо молча умирает (паттерн как в Maintenance/Documents) */}
+      {demoGate.dialog}
+
       <ConfirmDialog
         open={!!cancelling}
         onClose={() => setCancelling(null)}
