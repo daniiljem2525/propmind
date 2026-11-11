@@ -113,11 +113,11 @@ export default function App() {
                 </Route>
               </Routes>
             </AuthProvider>
+            <SupportChat />
             <CookieBanner />
           </ThemeProvider>
         </LangProvider>
       </ToastProvider>
-      <SupportChat />
     </BrowserRouter>
   );
 }
