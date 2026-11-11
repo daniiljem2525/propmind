@@ -1,90 +1,203 @@
-// Edge Function: чат поддержки (v0).
+// Edge Function: умный чат-помощник (v0).
 //
-//   POST { name, email, message } — аноним или залогиненный, JWT опционален
-//   GET  (JWT обязателен)         — свои сообщения + ответы поддержки
-//   PUT  (JWT + админ)            — ответить на сообщение
-//
-// Сообщения хранятся в public.support_messages.
-// Уведомление CEO: запись в notifications для is_platform_admin.
+//   POST { action:"ask", message }              — вопрос → умный ответ из базы знаний
+//   POST { action:"contact", name, email, message } — сообщение в поддержку (в БД)
+//   GET  ?session=<id> (без JWT)               — вся переписка по session_id
+//   PUT  (JWT + админ) { message_id, response } — ответ поддержки
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const cors = {
+const corsHeaders = () => ({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+});
 
 const json = (data: unknown, status = 200) =>
-  new Response(JSON.stringify(data), { status, headers: { ...cors, "Content-Type": "application/json" } });
+  new Response(JSON.stringify(data), { status, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
 
 const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+// ——— База знаний: ключевые слова → ответ ———
+const KB: { keywords: string[]; answer: string }[] = [
+  {
+    keywords: ["тариф", "цена", "стоимость", "сколько", "платить", "бесплатно", "free", "start", "pro", "business", "оплата тарифа"],
+    answer: "Тарифы Arendora:\n\n• **Free** — 0 ₽ навсегда: 1 объект, 1 арендатор, без карты\n• **Start** — 990 ₽/мес (9 900 ₽/год): до 4 объектов, арендаторы без лимита\n• **Pro** — 2 990 ₽/мес (29 900 ₽/год): до 8 объектов, аналитика\n• **Business** — 7 990 ₽/мес (79 900 ₽/год): до 14 объектов, команда\n\nОплата через ЮKassa. Годовая оплата выгоднее на ~17%.",
+  },
+  {
+    keywords: ["напоминание", "просрочк", "должен", "забыл", "уведомлен", "напомнить", "автопросрочк"],
+    answer: "Arendora автоматически отслеживает платежи:\n\n• Платёж с прошедшей датой сам переходит в «просрочен»\n• Вам приходит уведомление в день сбоя\n• Жильцу уходит напоминание за 5 дней до платежа\n• График платежей строится на 12 месяцев одной кнопкой",
+  },
+  {
+    keywords: ["безопасн", "данные", "хран", "152", "рф", "защит", "пароль", "персональн"],
+    answer: "Ваши данные хранятся на серверах в России с учётом требований 152-ФЗ. Каждый пользователь видит только свои записи, пароли хешированы. Удаление учётной записи — в Настройках.",
+  },
+  {
+    keywords: ["объект", "квартир", "добавить объект", "создать"],
+    answer: "Добавить объект: «Добавить объект» → название, адрес, цена аренды. График платежей и связи создаются автоматически. Импорт из CSV — для портфелей.",
+  },
+  {
+    keywords: ["арендатор", "жилец", "съехал", "высели", "провери", "регистрац жильца"],
+    answer: "Арендаторы: добавление, привязка к объекту, портал жильца, история платежей. Проверка перед сдачей — паспорт МВД, ФССП, банкротство, суды за 20 минут.",
+  },
+  {
+    keywords: ["заявк", "ремонт", "обслуживан", "проблема", "сломал", "труб", "домофон"],
+    answer: "Заявки на обслуживание: жилец сообщает о проблеме с фото → вы назначаете исполнителя и срочность → отслеживаете до закрытия. Ни одна проблема не теряется.",
+  },
+  {
+    keywords: ["документ", "договор", "акт", "счет"],
+    answer: "Документы привязаны к конкретной квартире: договоры, акты, счета. Не нужно искать файл в телефоне или почте — всё в одном месте.",
+  },
+  {
+    keywords: ["excel", "таблиц", "перенести", "импорт", "csv", "перенос", "демо"],
+    answer: "Перенос из Excel: объекты импортируются из CSV. Или начните с демо-данных (8 объектов, полгода платежей) одним кликом — посмотрите систему в действии.",
+  },
+  {
+    keywords: ["аналитик", "доход", "прибыл", "заработ", "отчет", "сколько приносит"],
+    answer: "Аналитика: доходы по объектам и месяцам, платёжная дисциплина, заполняемость. Всё автоматически — без ручных отчётов.",
+  },
+  {
+    keywords: ["как начать", "регистрац", "начать", "старт", "15 минут", "быстро"],
+    answer: "Старт за 15 минут: регистрация → загрузка демо-данных одним кликом (8 объектов, полгода платежей) → добавьте свои объекты. Без карты, без внедрения, без обучения.",
+  },
+  {
+    keywords: ["удалить", "аккаунт", "уйти", "экспорт", "вывести", "отзыв"],
+    answer: "Удаление учётной записи — в Настройках (Опасная зона). Данные удаляются безвозвратно в течение 30 дней. Экспорт данных доступен в любой момент.",
+  },
+  {
+    keywords: ["не платит", "долг", "взыскан", "выхел", "расторж"],
+    answer: "Если квартирант не платит: 1) разговор → 2) письменное уведомление → 3) судебный приказ. Статья «Квартирант не платит: что делать» в блоге — план от разговора до суда.",
+  },
+  {
+    keywords: ["поддержк", "связаться", "контакт", "помощь", "позвонить"],
+    answer: "Связаться с поддержкой:\n\n• Telegram: @arendora_support\n• Email: support@arendora.ru\n• Ответ в течение часа",
+  },
+];
 
+function smartAnswer(message: string): string {
+  const msg = message.toLowerCase();
+  let bestScore = 0;
+  let bestAnswer = "";
+
+  for (const entry of KB) {
+    let score = 0;
+    for (const kw of entry.keywords) {
+      if (msg.includes(kw.toLowerCase())) score += kw.length;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestAnswer = entry.answer;
+    }
+  }
+
+  if (bestScore > 0) return bestAnswer;
+
+  return "Я ответил на основные вопросы в базе знаний выше. Если ваш вопрос сложнее — напишите в поддержку:\n\n• Telegram: @arendora_support\n• Email: support@arendora.ru\n\nОтвечаем в течение часа.";
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders() });
+
+  const url = new URL(req.url);
   const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "").trim();
 
-  // Опциональная аутентификация
   let userId: string | null = null;
+  let isAdmin = false;
   if (token) {
     const { data: userData } = await admin.auth.getUser(token);
     userId = userData?.user?.id || null;
+    if (userId) {
+      // Платформенный админ — по флагу профиля (email-хак оставлен как fallback)
+      const { data: prof } = await admin
+        .from("profiles")
+        .select("is_platform_admin")
+        .eq("id", userId)
+        .maybeSingle();
+      isAdmin = !!prof?.is_platform_admin || (userData?.user?.email || "").includes("@arendora.ru");
+    }
   }
 
-  // ——— POST: новое сообщение ———
+  // ——— POST: вопрос боту / сообщение в поддержку ———
   if (req.method === "POST") {
-    let body: { name?: string; email?: string; message?: string };
+    let body: Record<string, string>;
     try { body = await req.json(); } catch { return json({ error: "BAD_JSON" }, 400); }
-    const message = (body.message || "").trim();
-    if (!message) return json({ error: "EMPTY_MESSAGE" }, 400);
-    if (message.length > 2000) return json({ error: "MESSAGE_TOO_LONG" }, 400);
-    const name = (body.name || "").trim().slice(0, 100);
-    const email = (body.email || "").trim().slice(0, 200);
 
-    const { data: msg, error } = await admin
+    const action = body.action || "ask";
+    const sessionId = body.session_id || crypto.randomUUID();
+    const text = (body.message || "").trim();
+    if (!text) return json({ error: "EMPTY_MESSAGE" }, 400);
+
+    if (action === "ask") {
+      // Умный ответ — сообщение НЕ сохраняем (это не тикет в поддержку)
+      const answer = smartAnswer(text);
+      return json({ ok: true, answer, session_id: sessionId });
+    }
+
+    if (action === "contact") {
+      // Сообщение в поддержку — сохраняем в БД, CEO видит в админке
+      const name = (body.name || "").trim().slice(0, 100);
+      const email = (body.email || "").trim().slice(0, 200);
+      const { data: msgRow, error } = await admin
+        .from("support_messages")
+        .insert({ user_id: userId, name, email, message: text, status: "new", session_id: sessionId })
+        .select("id, created_at")
+        .single();
+      if (error) return json({ error: error.message }, 500);
+
+      // Уведомление админам
+      try {
+        const { data: admins } = await admin.from("profiles").select("id").eq("is_platform_admin", true);
+        if (admins?.length) {
+          await admin.from("notifications").insert(
+            admins.map((a: { id: string }) => ({
+              user_id: a.id,
+              type: "support_new",
+              title: "Новое сообщение в чате поддержки",
+              message: (name || email || "Аноним") + ": " + text.slice(0, 200),
+              link: "/app/admin?tab=support",
+            }))
+          );
+        }
+      } catch { /* не критично */ }
+
+      return json({
+        ok: true,
+        id: msgRow?.id,
+        created_at: msgRow?.created_at,
+        session_id: sessionId,
+      });
+    }
+
+    return json({ error: "UNKNOWN_ACTION" }, 400);
+  }
+
+  // ——— GET: переписка по session_id; ?all=1 (JWT + админ) — все сообщения для админки ———
+  if (req.method === "GET") {
+    if (url.searchParams.get("all") === "1") {
+      if (!userId || !isAdmin) return json({ error: "FORBIDDEN" }, 403);
+      const { data: msgs } = await admin
+        .from("support_messages")
+        .select("id, user_id, name, email, message, response, status, session_id, created_at, responded_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      return json({ messages: msgs || [] });
+    }
+    const sessionId = url.searchParams.get("session");
+    if (!sessionId) return json({ error: "NO_SESSION" }, 400);
+    const { data: msgs } = await admin
       .from("support_messages")
-      .insert({
-        user_id: userId,
-        name: name || (userId ? "" : "Аноним"),
-        email,
-        message,
-        status: "new",
-      })
-      .select("id, created_at")
-      .single();
-    if (error) return json({ error: error.message }, 500);
-
-    // Уведомление админам
-    try {
-      const { data: admins } = await admin.from("profiles").select("id").eq("is_platform_admin", true);
-      if (admins?.length) {
-        await admin.from("notifications").insert(
-          admins.map((a: { id: string }) => ({
-            user_id: a.id,
-            type: "support_new",
-            title: "Новое сообщение в чате поддержки",
-            message: (name || email || "Аноним") + ": " + message.slice(0, 200),
-            link: "/app/admin?tab=support",
-          }))
-        );
-      }
-    } catch { /* уведомление не критично */ }
-
-    return json({ ok: true, id: msg?.id, created_at: msg?.created_at });
+      .select("id, message, response, status, created_at, responded_at")
+      .eq("session_id", sessionId)
+      .order("created_at", { ascending: true });
+    return json({ messages: msgs || [] });
   }
 
   // ——— PUT: ответ поддержки (только админ) ———
   if (req.method === "PUT") {
-    if (!userId) return json({ error: "NO_TOKEN" }, 401);
-    const { data: userData } = await admin.auth.getUser(token);
-    const isAdmin = (userData?.user?.email || "").includes("@arendora.ru") ||
-      userData?.user?.user_metadata?.is_platform_admin === true;
-    if (!isAdmin) return json({ error: "FORBIDDEN" }, 403);
-
+    if (!userId || !isAdmin) return json({ error: "FORBIDDEN" }, 403);
     let body: { message_id?: string; response?: string };
     try { body = await req.json(); } catch { return json({ error: "BAD_JSON" }, 400); }
     const response = (body.response || "").trim();
@@ -97,18 +210,6 @@ Deno.serve(async (req) => {
       .eq("id", msgId);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true });
-  }
-
-  // ——— GET: сообщения пользователя ———
-  if (req.method === "GET") {
-    if (!userId) return json({ error: "NO_TOKEN" }, 401);
-    const { data: msgs } = await admin
-      .from("support_messages")
-      .select("id, message, response, status, created_at, responded_at")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(20);
-    return json({ messages: msgs || [] });
   }
 
   return json({ error: "METHOD_NOT_ALLOWED" }, 405);

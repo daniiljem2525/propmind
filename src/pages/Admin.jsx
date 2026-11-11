@@ -12,6 +12,7 @@ import {
 import PageHeader from "@/components/PageHeader";
 import StatCard from "@/components/StatCard";
 import UsersPanel from "@/components/UsersPanel";
+import SupportPanel from "@/components/support/SupportPanel";
 import EmptyState from "@/components/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -127,6 +128,9 @@ export default function Admin() {
       <div className="mt-6">
         <UsersPanel />
       </div>
+
+      {/* Сообщения поддержки: треды чата + ответы */}
+      <SupportPanel />
 
       {/* Данные */}
       <Card className="mt-6">

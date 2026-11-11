@@ -10,9 +10,14 @@ create table if not exists public.support_messages (
   response text,
   status text not null default 'new',
   is_demo boolean not null default false,
+  session_id text,
   created_at timestamptz not null default now(),
   responded_at timestamptz
 );
+
+-- Переписка чата группируется по session_id (idempotent)
+alter table public.support_messages add column if not exists session_id text;
+create index if not exists support_messages_session_idx on public.support_messages (session_id);
 
 alter table public.support_messages enable row level security;
 

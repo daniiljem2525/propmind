@@ -1,10 +1,14 @@
-import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { MessageCircle, X, Send } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
 import { supabase, SUPABASE_URL } from "@/lib/supabase/config";
 
-// Умный чат-помощник — iPhone Messages стиль.
+const SESSION_KEY = "arendora:support-session";
+
+// Умный чат-помощник — iPhone Messages стиль, двухсторонний:
+// FAQ-ответы бота + сообщения в поддержку (тред по session_id) +
+// поллинг ответов поддержки раз в 5с, пока чат открыт.
 // Центральное модальное окно на десктопе, полный экран на мобильном.
 export default function SupportChat() {
   const { t } = useLang();
@@ -21,6 +25,24 @@ export default function SupportChat() {
   const [sending, setSending] = useState(false);
   const bodyRef = useRef(null);
 
+  // session_id треда — переживает перезагрузку страницы
+  const sessionRef = useRef(null);
+  try { sessionRef.current = localStorage.getItem(SESSION_KEY); } catch { /* private mode */ }
+  const [sessionTick, setSessionTick] = useState(0); // триггерит poll-эффект, когда сессия создана
+
+  // id строк support_messages, уже показанных в чате (чтобы поллинг не дублировал)
+  const shownMsgIds = useRef(new Set());
+  const shownRespIds = useRef(new Set());
+
+  const ensureSession = () => {
+    if (!sessionRef.current) {
+      sessionRef.current = crypto.randomUUID();
+      try { localStorage.setItem(SESSION_KEY, sessionRef.current); } catch { /* private mode */ }
+      setSessionTick((x) => x + 1); // стартует poll-эффект
+    }
+    return sessionRef.current;
+  };
+
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [messages, showContact]);
@@ -34,8 +56,46 @@ export default function SupportChat() {
     return () => window.removeEventListener("arendora:open-support-chat", openChat);
   }, []);
 
+  // ——— Дозагрузка строк из БД: история треда + ответы поддержки ———
+  const applyRows = useCallback((rows) => {
+    setMessages((m) => {
+      const add = [];
+      for (const row of rows) {
+        if (!shownMsgIds.current.has(row.id)) {
+          shownMsgIds.current.add(row.id);
+          add.push({ role: "user", text: row.message, contact: true });
+        }
+        if (row.response && !shownRespIds.current.has(row.id)) {
+          shownRespIds.current.add(row.id);
+          add.push({ role: "support", text: row.response });
+        }
+      }
+      return add.length ? [...m, ...add] : m;
+    });
+  }, []);
+
+  // ——— Poll: пока чат открыт и есть тред — раз в 5с забираем ответы поддержки ———
+  useEffect(() => {
+    if (!open || !sessionRef.current) return undefined;
+    let alive = true;
+    const load = async () => {
+      try {
+        const r = await fetch(
+          `${SUPABASE_URL}/functions/v1/support-chat?session=${encodeURIComponent(sessionRef.current)}`
+        );
+        if (!r.ok) return;
+        const data = await r.json();
+        if (alive && Array.isArray(data.messages) && data.messages.length) applyRows(data.messages);
+      } catch { /* сеть моргнула — попробуем на следующем тике */ }
+    };
+    load();
+    const timer = setInterval(load, 5000);
+    return () => { alive = false; clearInterval(timer); };
+  }, [open, applyRows, sessionTick]);
+
   // ——— Задать вопрос боту (один вызов = одно сообщение) ———
   const ask = (question) => {
+    const sessionId = ensureSession();
     setMessages((m) => [...m, { role: "user", text: question }]);
     setInput("");
     // «печатает…»
@@ -43,7 +103,7 @@ export default function SupportChat() {
     fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "ask", message: question }),
+      body: JSON.stringify({ action: "ask", message: question, session_id: sessionId }),
     })
       .then((r) => r.json())
       .then((data) => {
@@ -57,13 +117,17 @@ export default function SupportChat() {
   // ——— Отправить в поддержку ———
   const sendContact = (msg) => {
     setSending(true);
+    const sessionId = ensureSession();
+    // Своё сообщение показываем сразу; id строки придёт в ответе
+    setMessages((m) => [...m, { role: "user", text: msg, contact: true }]);
     fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "contact", name: name.trim(), email: email.trim() || user?.email || "", message: msg.trim() }),
+      body: JSON.stringify({ action: "contact", name: name.trim(), email: email.trim() || user?.email || "", message: msg.trim(), session_id: sessionId }),
     })
       .then((r) => r.json())
-      .then(() => {
+      .then((data) => {
+        if (data.id) shownMsgIds.current.add(data.id); // поллинг не задублирует
         setMessages((m) => [...m, { role: "bot", text: t("support.contactSent") }]);
         setShowContact(false);
       })
@@ -140,6 +204,12 @@ export default function SupportChat() {
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:150ms]" />
                         <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:300ms]" />
                       </span>
+                    </div>
+                  ) : m.role === "support" ? (
+                    // Ответ живого сотрудника поддержки
+                    <div className="max-w-[85%] rounded-2xl rounded-bl-sm border border-primary/30 bg-primary/5 px-3.5 py-2 text-sm text-foreground">
+                      <span className="mb-0.5 block text-xs font-semibold text-primary">{t("support.replyLabel")}</span>
+                      <span className="whitespace-pre-wrap">{m.text}</span>
                     </div>
                   ) : (
                     <div
