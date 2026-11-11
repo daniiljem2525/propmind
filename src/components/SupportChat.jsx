@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/authContext";
+import { useLang } from "@/lib/i18n/LangContext";
 import { SUPABASE_URL } from "@/lib/supabase/config";
 
 // Умный чат-помощник: слайд-панель справа, база знаний + связь с поддержкой.
