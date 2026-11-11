@@ -114,6 +114,7 @@ export default function App() {
               </Routes>
             </AuthProvider>
             <SupportChat />
+            <SupportChat />
             <CookieBanner />
           </ThemeProvider>
         </LangProvider>
