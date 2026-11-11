@@ -121,9 +121,11 @@ export async function createMonthlySchedule(tenant, property, months = 12) {
 
 // Уведомление — вспомогательное действие: его сбой (сеть, RLS, offline)
 // не должен превращать успешное действие пользователя в «ошибку».
+// getCurrentUser() в облаке асинхронный — await обязателен, иначе user.id
+// undefined и вставка молча падает (найдено smoke-тестом инспекций 11.11).
 export async function pushNotification(payload) {
   try {
-    const user = getCurrentUser();
+    const user = await getCurrentUser();
     if (!user) return;
     await NotificationEntity.create({ ...payload, user_id: user.id });
   } catch (e) {
