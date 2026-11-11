@@ -9,6 +9,7 @@ import { AuthProvider, useAuth as useAuthSafe } from "@/lib/authContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import GuestRoute from "@/components/GuestRoute";
 import AppLayout from "@/components/layout/AppLayout";
+import { hasAccess } from "@/lib/config/statuses";
 
 import Landing from "@/pages/Landing";
 import Terms from "@/pages/Terms";
@@ -34,10 +35,22 @@ function RoleDashboard() {
   if (user?.role === "tenant") return <TenantPortal />;
   return <Dashboard />;
 }
+
+// Роль-гейт страницы: доступ по матрице ROLE_ACCESS (config/statuses.js).
+// Сайдбар прячет ссылки, RoleRoute закрывает прямой URL: управляющий и
+// бухгалтер попадают на 404 вне своей матрицы, legacy-роли ("user", undefined
+// до загрузки) — полный доступ, прежнее поведение сохранено.
+function RoleRoute({ page, children }) {
+  const { user } = useAuthSafe();
+  if (user === undefined) return null;
+  if (!hasAccess(user, page)) return <NotFound />;
+  return children;
+}
 import Properties from "@/pages/Properties";
 import Tenants from "@/pages/Tenants";
 import Payments from "@/pages/Payments";
 import Maintenance from "@/pages/Maintenance";
+import Inspections from "@/pages/Inspections";
 import Documents from "@/pages/Documents";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
@@ -94,13 +107,14 @@ export default function App() {
                 <Route element={<ProtectedRoute />}>
                   <Route path="/app" element={<AppLayout />}>
                     <Route index element={<RoleDashboard />} />
-                    <Route path="properties" element={<Properties />} />
-                    <Route path="tenants" element={<Tenants />} />
-                    <Route path="payments" element={<Payments />} />
-                    <Route path="maintenance" element={<Maintenance />} />
-                    <Route path="documents" element={<Documents />} />
-                    <Route path="analytics" element={<Analytics />} />
-                    <Route path="plan" element={<Plan />} />
+                    <Route path="properties" element={<RoleRoute page="properties"><Properties /></RoleRoute>} />
+                    <Route path="tenants" element={<RoleRoute page="tenants"><Tenants /></RoleRoute>} />
+                    <Route path="payments" element={<RoleRoute page="payments"><Payments /></RoleRoute>} />
+                    <Route path="maintenance" element={<RoleRoute page="maintenance"><Maintenance /></RoleRoute>} />
+                    <Route path="inspections" element={<RoleRoute page="inspections"><Inspections /></RoleRoute>} />
+                    <Route path="documents" element={<RoleRoute page="documents"><Documents /></RoleRoute>} />
+                    <Route path="analytics" element={<RoleRoute page="analytics"><Analytics /></RoleRoute>} />
+                    <Route path="plan" element={<RoleRoute page="plan"><Plan /></RoleRoute>} />
                     <Route path="settings" element={<Settings />} />
                     <Route path="admin" element={<Admin />} />
                     <Route path="notifications" element={<Notifications />} />
@@ -112,9 +126,8 @@ export default function App() {
                   <Route path="*" element={<Landing />} />
                 </Route>
               </Routes>
+            <SupportChat />
             </AuthProvider>
-            <SupportChat />
-            <SupportChat />
             <CookieBanner />
           </ThemeProvider>
         </LangProvider>
