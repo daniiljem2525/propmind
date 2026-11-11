@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Bell,
   Building2,
+  ClipboardList,
   CreditCard,
   FileText,
   LogOut,
@@ -58,7 +59,11 @@ export default function Header({ onOpenMobile }) {
     },
     { overdue: 0, soon: 0 }
   );
-  const showPayChip = ["owner", "admin"].includes(user?.role) && (payReminders.overdue > 0 || payReminders.soon > 0);
+  // Чип платежей видят роли из матрицы с доступом к финансам:
+  // владелец/админ/управляющий/бухгалтер (у жильца — свой портал).
+  const showPayChip =
+    ["owner", "admin", "manager", "accountant"].includes(user?.role) &&
+    (payReminders.overdue > 0 || payReminders.soon > 0);
 
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -80,15 +85,17 @@ export default function Header({ onOpenMobile }) {
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
-  // Быстрое создание — инструмент владельца: жилец и исполнитель создают
-  // своё из своих порталов, поэтому кнопка «+» им не показывается
-  const isWorkspaceOwner = ["owner", "admin"].includes(user?.role);
+  // Быстрое создание — инструмент операционных ролей (владелец, админ,
+  // управляющий): жилец и исполнитель создают своё из своих порталов,
+  // бухгалтеру создание объектов/заявок недоступно по матрице ролей
+  const isWorkspaceOwner = ["owner", "admin", "manager"].includes(user?.role);
   const QUICK_CREATE = isWorkspaceOwner
     ? [
         { to: "/app/properties?new=1", icon: Building2, label: t("properties.addProperty") },
         { to: "/app/tenants?new=1", icon: UserRound, label: t("tenants.addTenant") },
         { to: "/app/payments?new=1", icon: CreditCard, label: t("payments.addPayment") },
         { to: "/app/maintenance?new=1", icon: Wrench, label: t("maintenance.addRequest") },
+        { to: "/app/inspections?new=1", icon: ClipboardList, label: t("inspections.addInspection") },
         { to: "/app/documents?new=1", icon: FileText, label: t("documents.upload") },
       ]
     : [];

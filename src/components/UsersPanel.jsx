@@ -9,11 +9,18 @@ import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ROLES } from "@/lib/config/statuses";
+import { planAllowsTeam } from "@/lib/config/misc";
 import { cn, initials } from "@/lib/utils";
 
-// Роли зависят от бэкенда: в облаке — owner/tenant/contractor, локально — user/admin
+// Роли зависят от бэкенда: в облаке — команда целиком (управляющий и
+// бухгалтер — тариф Бизнес, planAllowsTeam), локально — легаси user/admin
 const ROLE_OPTIONS = isSupabaseConfigured
-  ? ["owner", "tenant", "contractor"]
+  ? ["owner", "manager", "accountant", "tenant", "contractor"]
+  : ["user", "admin"];
+// Кого можно пригласить: жилец и исполнитель — всем; менеджер/бухгалтер —
+// условие покупки тарифа Бизнес (см. planAllowsTeam)
+const INVITE_OPTIONS = isSupabaseConfigured
+  ? ["tenant", "contractor", "manager", "accountant"]
   : ["user", "admin"];
 const PLAN_OPTIONS = ["free", "start", "pro", "business", "individual"];
 
@@ -31,7 +38,11 @@ export default function UsersPanel() {
   const { user, listUsers, updateUserRole, updateUserPlan, inviteUser } = useAuth();
   const [users, setUsers] = useState([]);
   const [inviteOpen, setInviteOpen] = useState(false);
-  const [inviteForm, setInviteForm] = useState({ email: "", role: "user" });
+  // Роли команды (manager/accountant) — условие покупки тарифа Бизнес:
+  // на free/start/pro в приглашении остаются только жилец и исполнитель
+  const teamAllowed = planAllowsTeam(user?.plan);
+  const defaultInviteRole = isSupabaseConfigured ? "tenant" : "user";
+  const [inviteForm, setInviteForm] = useState({ email: "", role: defaultInviteRole });
   const [inviteSaving, setInviteSaving] = useState(false);
 
   const reload = () => Promise.resolve(listUsers()).then((rows) => setUsers(rows ?? []));
@@ -72,7 +83,7 @@ export default function UsersPanel() {
       await inviteUser(inviteForm.email, inviteForm.role);
       toast.success(t("settings.inviteSent"));
       setInviteOpen(false);
-      setInviteForm({ email: "", role: "user" });
+      setInviteForm({ email: "", role: defaultInviteRole });
       reload();
     } catch (err) {
       toast.error(err.message === "EMAIL_EXISTS" ? t("auth.errors.emailExists") : t("errors.generic"));
@@ -176,10 +187,18 @@ export default function UsersPanel() {
           </Field>
           <Field label={t("settings.role")}>
             <Select value={inviteForm.role} onChange={(e) => setInviteForm((f) => ({ ...f, role: e.target.value }))}>
-              <option value="user">{t("settings.roleUser")}</option>
-              <option value="admin">{t("settings.roleAdmin")}</option>
+              {INVITE_OPTIONS.filter((r) => teamAllowed || !["manager", "accountant"].includes(r)).map((r) => (
+                <option key={r} value={r}>
+                  {lang === "ru" ? ROLES[r]?.label_ru : ROLES[r]?.label_en}
+                </option>
+              ))}
             </Select>
           </Field>
+          {!teamAllowed && (
+            <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-600 dark:text-amber-400">
+              {t("settings.teamUpsell")}
+            </p>
+          )}
         </form>
       </Dialog>
     </Card>

@@ -262,6 +262,15 @@ export const Document = makeEntity("documents", {
   type: "other",
 });
 
+// Инспекции (осмотры объектов): чек-лист — массив пунктов
+// [{ text, status: ok|issue|skipped, note }]. Локальный бэкенд уже оффлайн:
+// localStorage доступен без сети.
+export const Inspection = makeEntity("inspections", {
+  type: "routine",
+  status: "planned",
+  checklist: [],
+});
+
 export const NotificationEntity = makeEntity("notifications", {
   type: "general",
   is_read: false,

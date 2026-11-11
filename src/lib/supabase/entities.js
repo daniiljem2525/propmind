@@ -88,6 +88,15 @@ export const Document = makeEntity("documents", {
   type: "other",
 });
 
+// Инспекции (осмотры объектов): чек-лист — массив пунктов
+// [{ text, status: ok|issue|skipped, note }]. Оффлайн-работа поверх этого
+// бэкенда — в src/lib/offline/inspections.js (зеркало + outbox).
+export const Inspection = makeEntity("inspections", {
+  type: "routine",
+  status: "planned",
+  checklist: [],
+});
+
 export const NotificationEntity = makeEntity("notifications", {
   type: "general",
   is_read: false,

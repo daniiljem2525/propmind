@@ -300,7 +300,12 @@ export function getOrCreateInviteCode() {
   }
 }
 
+// Белый список ролей: смена/приглашение с произвольной строкой ломает
+// матрицу доступа (ROLE_ACCESS в config/statuses.js) — валидируем значения.
+const VALID_ROLES = ["owner", "manager", "accountant", "tenant", "contractor", "admin", "user"];
+
 export function updateUserRole(id, role) {
+  if (!VALID_ROLES.includes(role)) throw new Error("BAD_ROLE");
   const users = readUsers();
   const user = users.find((u) => u.id === id);
   if (!user) throw new Error("USER_NOT_FOUND");
@@ -311,6 +316,7 @@ export function updateUserRole(id, role) {
 }
 
 export function inviteUser(email, role = "user") {
+  if (!VALID_ROLES.includes(role)) throw new Error("BAD_ROLE");
   const normalized = String(email || "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalized)) throw new Error("EMAIL_INVALID");
   const users = readUsers();

@@ -43,6 +43,15 @@ const FEATURES = [
 
 const FAQ_KEYS = ["land.q1", "land.q2", "land.q3", "land.q4", "land.q5", "land.q6", "land.q7", "land.q8"];
 
+// Роли воркспейса (тариф Бизнес): матрица доступа описана словами на
+// лендинге — клиент с 10+ объектами покупает именно разделение прав
+const ROLE_CARDS = [
+  { icon: ShieldCheck, tile: "bg-teal-500", n: 1 },
+  { icon: Building2, tile: "bg-indigo-500", n: 2 },
+  { icon: CreditCard, tile: "bg-emerald-500", n: 3 },
+  { icon: Wrench, tile: "bg-amber-500", n: 4 },
+];
+
 // S1.7 (ТЗ seo/sprint1/07, состав утверждён NT-001 2026-11-01): блок
 // «Полезные материалы» на главной — после FAQ, перед финальным CTA.
 // Анкоры — сокращения реальных H1; без UTM; лимит Free числом и
@@ -76,6 +85,7 @@ export default function Landing() {
   const anchorNav = [
     { href: "#features", key: "land.navFeatures" },
     { href: "#how", key: "land.navHow" },
+    { href: "#roles", key: "land.navRoles" },
     { href: "#pricing", key: "land.navPricing" },
     { href: "/blog", key: "nav.blog" },
   ];
@@ -287,6 +297,31 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Роли и права доступа — тариф Бизнес */}
+      <section id="roles" className="py-20">
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t("land.rolesTitle")}</h2>
+            <p className="mt-3 text-muted-foreground">{t("land.rolesSub")}</p>
+          </div>
+          <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {ROLE_CARDS.map(({ icon: Icon, tile, n }) => (
+              <div key={n} className="rounded-lg border bg-card p-5 shadow-card">
+                <span className={`flex h-11 w-11 items-center justify-center rounded-lg text-white ${tile}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-4 font-semibold">{t(`land.role${n}.title`)}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(`land.role${n}.text`)}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mx-auto mt-8 max-w-3xl text-center text-sm text-muted-foreground">
+            <ShieldCheck className="mr-1.5 inline h-4 w-4 text-primary" />
+            {t("land.rolesNote")}
+          </p>
         </div>
       </section>
 

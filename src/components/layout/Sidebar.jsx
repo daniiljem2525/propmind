@@ -4,6 +4,7 @@ import {
   Building2,
   ChevronRight,
   ChevronsLeft,
+  ClipboardList,
   CreditCard,
   FileText,
   Globe,
@@ -18,18 +19,23 @@ import {
 import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
+import { hasAccess } from "@/lib/config/statuses";
 
+// Роли → страницы: матрица ROLE_ACCESS в config/statuses.js (единственный
+// источник прав: сайдбар, RoleRoute, Header). legacy-роли ("user", undefined)
+// hasAccess трактует как полный доступ — прежнее поведение сайдбара сохранено.
 const NAV_ITEMS = [
-  { to: "/app", icon: LayoutDashboard, key: "nav.dashboard", end: true, roles: ["owner", "admin"] },
-  { to: "/app/properties", icon: Building2, key: "nav.properties", roles: ["owner", "admin"] },
-  { to: "/app/tenants", icon: Users, key: "nav.tenants", roles: ["owner", "admin"] },
-  { to: "/app", icon: House, key: "portal.myHome", end: true, roles: ["tenant"] },
-  { to: "/app/payments", icon: CreditCard, key: "nav.payments", roles: ["owner", "admin", "tenant"] },
-  { to: "/app/maintenance", icon: Wrench, key: "nav.maintenance", roles: ["owner", "admin", "contractor"] },
-  { to: "/app/documents", icon: FileText, key: "nav.documents", roles: ["owner", "admin", "tenant"] },
-  { to: "/app/analytics", icon: BarChart3, key: "nav.analytics", roles: ["owner", "admin"] },
-  { to: "/app/plan", icon: Wallet, key: "nav.plan", roles: ["owner", "admin"] },
-  { to: "/app/settings", icon: Settings, key: "nav.settings", roles: ["owner", "admin", "tenant", "contractor"] },
+  { to: "/app", page: "dashboard", icon: LayoutDashboard, key: "nav.dashboard", end: true },
+  { to: "/app/properties", page: "properties", icon: Building2, key: "nav.properties" },
+  { to: "/app/tenants", page: "tenants", icon: Users, key: "nav.tenants" },
+  { to: "/app", page: "portal", icon: House, key: "portal.myHome", end: true },
+  { to: "/app/payments", page: "payments", icon: CreditCard, key: "nav.payments" },
+  { to: "/app/maintenance", page: "maintenance", icon: Wrench, key: "nav.maintenance" },
+  { to: "/app/inspections", page: "inspections", icon: ClipboardList, key: "nav.inspections" },
+  { to: "/app/documents", page: "documents", icon: FileText, key: "nav.documents" },
+  { to: "/app/analytics", page: "analytics", icon: BarChart3, key: "nav.analytics" },
+  { to: "/app/plan", page: "plan", icon: Wallet, key: "nav.plan" },
+  { to: "/app/settings", page: "settings", icon: Settings, key: "nav.settings" },
   { to: "/app/admin", icon: ShieldCheck, key: "admin.title", adminOnly: true },
 ];
 
@@ -37,17 +43,11 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
   const { t, lang, setLang } = useLang();
   const { user } = useAuth();
   const navigate = useNavigate();
-  // роль owner = легаси-админ; неизвестные роли ("user" из локальной
-  // регистрации, undefined до загрузки) видят полное меню, иначе сайдбар пуст
-  const visibleRole =
-    !user?.role || user.role === "owner" || user.role === "admin" || user.role === "user"
-      ? "admin"
-      : user.role;
   const items = NAV_ITEMS.filter(
     (item) =>
       // Админ-панель — только платформенному администратору (is_platform_admin в профиле)
       (!item.adminOnly || user?.is_platform_admin === true) &&
-      (!item.roles || item.roles.includes(visibleRole))
+      (!item.page || hasAccess(user, item.page))
   );
 
   return (

@@ -210,6 +210,9 @@ export default function Documents() {
   };
   const [dialogOpen, setDialogOpen] = useState(false);
   const demoGate = useDemoExitGate();
+  // Бухгалтер — только чтение документов (матрица ролей): без загрузки,
+  // редактирования и удаления. Остальные командные роли — полный доступ.
+  const canEdit = user?.role !== "accountant";
   // В демо-режиме — сначала выход из демо (с удалением демо-данных)
   const openCreate = () => demoGate.guarded(() => setDialogOpen(true));
   useNewParam(openCreate);
@@ -282,14 +285,16 @@ export default function Documents() {
         title={t("documents.title")}
         subtitle={t("documents.subtitle")}
         actions={
-          <Button
-            onClick={() => {
-              openCreate();
-            }}
-          >
-            <Plus className="h-4 w-4" />
-            {t("documents.upload")}
-          </Button>
+          canEdit ? (
+            <Button
+              onClick={() => {
+                openCreate();
+              }}
+            >
+              <Plus className="h-4 w-4" />
+              {t("documents.upload")}
+            </Button>
+          ) : undefined
         }
       />
 
@@ -321,14 +326,16 @@ export default function Documents() {
           description={t("documents.emptySubtitle")}
           action={
             <div className="flex flex-wrap justify-center gap-2">
-              <Button
-                onClick={() => {
-                  openCreate();
-                }}
-              >
-                <Plus className="h-4 w-4" />
-                {t("documents.upload")}
-              </Button>
+              {canEdit && (
+                <Button
+                  onClick={() => {
+                    openCreate();
+                  }}
+                >
+                  <Plus className="h-4 w-4" />
+                  {t("documents.upload")}
+                </Button>
+              )}
               {!isDemoSeen() && (
                 <Button variant="outline" onClick={demo.run} loading={demo.loading}>
                   {t("common.demoData")}
@@ -370,22 +377,24 @@ export default function Documents() {
                       {lang === "ru" ? typeConf.label_ru : typeConf.label_en}
                     </Badge>
                   </div>
-                  <div className="flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => {
-                        setEditing(d);
-                        setDialogOpen(true);
-                      }}
-                      title={t("common.edit")}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDeleting(d)} className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10" title={t("common.delete")}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  {canEdit && (
+                    <div className="flex shrink-0 gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditing(d);
+                          setDialogOpen(true);
+                        }}
+                        title={t("common.edit")}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleting(d)} className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10" title={t("common.delete")}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
                 {d.property_name && (

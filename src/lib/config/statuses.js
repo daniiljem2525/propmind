@@ -280,7 +280,89 @@ export const CHART_COLORS = ["#0F766E", "#14B8A6", "#6366F1", "#F43F5E", "#F59E0
 // ——— Роли пользователей ———
 export const ROLES = {
   owner: { label_ru: "Владелец", label_en: "Owner" },
+  manager: { label_ru: "Управляющий", label_en: "Manager" },
+  accountant: { label_ru: "Бухгалтер", label_en: "Accountant" },
   tenant: { label_ru: "Жилец", label_en: "Tenant" },
   contractor: { label_ru: "Исполнитель", label_en: "Contractor" },
   admin: { label_ru: "Администратор", label_en: "Admin" },
+};
+
+// ——— Матрица доступа: роль → страницы приложения ———
+// Единственный источник прав для навигации и роутов (Sidebar, RoleRoute,
+// Header). Условные записи: legacy-роль "user" и отсутствующая роль до
+// загрузки сессии видят всё (см. hasAccess) — как раньше вел себя сайдбар.
+// Роли команды (manager/accountant) — тариф Бизнес: матрица ограничивает
+// их только назначенным (управляющий — операционка, бухгалтер — финансы).
+export const ROLE_ACCESS = {
+  owner: [
+    "dashboard", "properties", "tenants", "payments", "maintenance",
+    "inspections", "documents", "analytics", "plan", "settings",
+  ],
+  admin: [
+    "dashboard", "properties", "tenants", "payments", "maintenance",
+    "inspections", "documents", "analytics", "plan", "settings",
+  ],
+  manager: [
+    "dashboard", "properties", "tenants", "payments", "maintenance",
+    "inspections", "documents", "analytics", "settings",
+  ],
+  accountant: ["dashboard", "payments", "documents", "analytics", "settings"],
+  tenant: ["portal", "payments", "documents", "settings"],
+  contractor: ["maintenance", "settings"],
+};
+
+// Проверка доступа к странице приложения. legacy-роли ("user", null,
+// undefined) — полный доступ: исторически так вел себя сайдбар, не ломаем
+// существующие аккаунты и демо-сессии.
+export function hasAccess(user, page) {
+  const role = user?.role;
+  const pages = ROLE_ACCESS[role] || ROLE_ACCESS.owner;
+  return pages.includes(page);
+}
+
+// ——— Инспекции (осмотры объектов) ———
+export const INSPECTION_TYPE_CONFIG = {
+  acceptance: { label_ru: "Приёмка квартиры", label_en: "Handover inspection", icon: ClipboardCheck },
+  routine: { label_ru: "Плановый осмотр", label_en: "Routine inspection", icon: CalendarClock },
+  move_out: { label_ru: "Осмотр при выезде", label_en: "Move-out inspection", icon: UserMinus },
+};
+
+export const INSPECTION_STATUS_CONFIG = {
+  planned: {
+    label_ru: "Запланирован",
+    label_en: "Planned",
+    badge: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-400",
+    dot: "bg-sky-500",
+  },
+  done: {
+    label_ru: "Проведён",
+    label_en: "Done",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+    dot: "bg-emerald-500",
+  },
+  cancelled: {
+    label_ru: "Отменён",
+    label_en: "Cancelled",
+    badge: "bg-slate-100 text-slate-600 dark:bg-slate-500/15 dark:text-slate-400",
+    dot: "bg-slate-400",
+  },
+};
+
+// Статус пункта чек-листа осмотра
+export const CHECKLIST_ITEM_STATUS_CONFIG = {
+  ok: {
+    label_ru: "В порядке",
+    label_en: "OK",
+    badge: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  },
+  issue: {
+    label_ru: "Проблема",
+    label_en: "Issue",
+    badge: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-400",
+  },
+  skipped: {
+    label_ru: "Пропущен",
+    label_en: "Skipped",
+    badge: "bg-slate-100 text-slate-600 dark:bg-slate-500/15 dark:text-slate-400",
+  },
 };

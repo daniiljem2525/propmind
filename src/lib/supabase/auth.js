@@ -163,13 +163,19 @@ export async function resetPassword(email) {
   return true;
 }
 
-// Приглашение: владелец создаёт код и отправляет его жильцу/исполнителю.
-// Код вводится при регистрации — роль и привязка к объекту применяются в БД.
-export async function createInvite(role, propertyId) {
+// Приглашение: контракт фасада inviteUser(email, role) — раньше сигнатура
+// была (role, propertyId) и email попадал в роль: код создавался с ролью-
+// адресом. Email в invites не хранится (таблица хранит коды): роль
+// применяется при регистрации приглашённого в claim_invite.
+// Код владелец отправляет сам — показывается на Tenants.
+const INVITE_ROLES = ["tenant", "contractor", "manager", "accountant"];
+
+export async function createInvite(_email, role) {
+  if (!INVITE_ROLES.includes(role)) throw new Error("BAD_ROLE");
   const me = await currentUserWithProfile();
   const { data, error } = await supabase
     .from("invites")
-    .insert({ role, property_id: propertyId || null, owner_id: me.id })
+    .insert({ role, owner_id: me.id })
     .select()
     .single();
   if (error) throw error;
