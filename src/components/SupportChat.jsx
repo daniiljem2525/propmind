@@ -25,6 +25,15 @@ export default function SupportChat() {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
   }, [messages, showContact]);
 
+  // Открытие извне: на телефонах плавающий шарик скрыт (занимает место и
+  // перекрывает sticky-CTA лендинга), чат открывают иконка в шапке
+  // приложения и кнопка в sticky-панели лендинга — через window-событие.
+  useEffect(() => {
+    const openChat = () => setOpen(true);
+    window.addEventListener("arendora:open-support-chat", openChat);
+    return () => window.removeEventListener("arendora:open-support-chat", openChat);
+  }, []);
+
   // ——— Задать вопрос боту (один вызов = одно сообщение) ———
   const ask = (question) => {
     setMessages((m) => [...m, { role: "user", text: question }]);
@@ -79,11 +88,12 @@ export default function SupportChat() {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Floating button — от sm (≥640px): на телефонах скрыт, чат там
+          открывается из шапки приложения и sticky-панели лендинга */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110"
+          className="fixed bottom-6 right-4 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110 sm:flex"
           title={t("support.title")}
           aria-label={t("support.title")}
         >

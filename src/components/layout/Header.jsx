@@ -8,6 +8,7 @@ import {
   FileText,
   LogOut,
   Menu,
+  MessageCircle,
   Moon,
   Plus,
   Search,
@@ -247,6 +248,17 @@ export default function Header({ onOpenMobile }) {
             </span>
           )}
         </Link>
+
+        {/* Чат поддержки: на телефонах плавающий шарик скрыт (занимал место) —
+            компактная иконка в шапке; на ≥sm шарик остаётся, иконка скрыта */}
+        <button
+          onClick={() => window.dispatchEvent(new Event("arendora:open-support-chat"))}
+          title={t("support.title")}
+          aria-label={t("support.title")}
+          className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:hidden"
+        >
+          <MessageCircle className="h-5 w-5" />
+        </button>
 
         {/* Профиль */}
         <div ref={menuRef} className="relative">

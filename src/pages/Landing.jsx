@@ -12,6 +12,7 @@ import {
   Globe,
   House,
   LogIn,
+  MessageCircle,
   Moon,
   Quote,
   ShieldCheck,
@@ -509,13 +510,25 @@ export default function Landing() {
 
       {/* Мобильный закреплённый CTA */}
       <div className="sticky bottom-0 z-40 border-t bg-card/95 p-3 backdrop-blur sm:hidden">
-        <Link
-          to="/register"
-          className="brand-gradient flex items-center justify-center gap-2 rounded-md py-3 text-sm font-semibold text-white shadow-sm"
-        >
-          {t("land.stickyCta")}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex gap-2">
+          <Link
+            to="/register"
+            className="brand-gradient flex flex-1 items-center justify-center gap-2 rounded-md py-3 text-sm font-semibold text-white shadow-sm"
+          >
+            {t("land.stickyCta")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          {/* Чат поддержки: на телефоне плавающий шарик скрыт (занимал место
+              поверх CTA) — компактная кнопка в этой же панели */}
+          <button
+            onClick={() => window.dispatchEvent(new Event("arendora:open-support-chat"))}
+            className="flex w-12 shrink-0 items-center justify-center rounded-md border bg-card text-primary shadow-sm"
+            title={t("support.title")}
+            aria-label={t("support.title")}
+          >
+            <MessageCircle className="h-5 w-5" />
+          </button>
+        </div>
       </div>
 
       {/* Футер */}
