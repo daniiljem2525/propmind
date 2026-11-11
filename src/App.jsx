@@ -18,6 +18,7 @@ import Consent from "@/pages/legal/Consent";
 import Tariffs from "@/pages/legal/Tariffs";
 import Details from "@/pages/legal/Details";
 import Plan from "@/pages/Plan";
+import SupportChat from "@/components/SupportChat";
 import PaymentsPolicy from "@/pages/legal/Payments";
 import UsePolicy from "@/pages/legal/UsePolicy";
 import Cookies from "@/pages/legal/Cookies";
@@ -116,6 +117,7 @@ export default function App() {
           </ThemeProvider>
         </LangProvider>
       </ToastProvider>
+      <SupportChat />
     </BrowserRouter>
   );
 }
