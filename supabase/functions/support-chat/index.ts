@@ -131,9 +131,21 @@ Deno.serve(async (req) => {
     if (!text) return json({ error: "EMPTY_MESSAGE" }, 400);
 
     if (action === "ask") {
-      // Умный ответ — сообщение НЕ сохраняем (это не тикет в поддержку)
+      // Умный ответ из базы знаний. Вопрос логируем в тред (status='bot'):
+      // CEO видит в инбоксе ВСЕ сообщения из чата, не только «Написать в поддержку».
       const answer = smartAnswer(text);
-      return json({ ok: true, answer, session_id: sessionId });
+      let msgId: string | null = null;
+      try {
+        const name = (body.name || "").trim().slice(0, 100);
+        const email = (body.email || "").trim().slice(0, 200);
+        const { data: msgRow } = await admin
+          .from("support_messages")
+          .insert({ user_id: userId, name, email, message: text, status: "bot", session_id: sessionId, sender: "user" })
+          .select("id")
+          .single();
+        msgId = msgRow?.id || null;
+      } catch { /* лог вопроса не критичен */ }
+      return json({ ok: true, answer, session_id: sessionId, id: msgId });
     }
 
     if (action === "contact") {
@@ -223,13 +235,13 @@ Deno.serve(async (req) => {
         .single();
       if (error) return json({ error: error.message }, 500);
 
-      // Сообщения пользователя в треде считаем отвеченными
+      // Сообщения пользователя в треде считаем отвеченными (включая автоответы бота)
       await admin
         .from("support_messages")
         .update({ status: "answered", responded_at: new Date().toISOString() })
         .eq("session_id", sessionId)
         .eq("sender", "user")
-        .eq("status", "new");
+        .in("status", ["new", "bot"]);
 
       return json({ ok: true, id: msgRow?.id, created_at: msgRow?.created_at });
     }

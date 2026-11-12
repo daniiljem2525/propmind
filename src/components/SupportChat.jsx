@@ -112,10 +112,18 @@ export default function SupportChat() {
     fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "ask", message: question, session_id: sessionId }),
+      body: JSON.stringify({
+        action: "ask",
+        message: question,
+        session_id: sessionId,
+        name: name.trim(),
+        email: email.trim() || user?.email || "",
+      }),
     })
       .then((r) => r.json())
       .then((data) => {
+        // Вопрос логируется в тред на сервере — поллинг не должен его задублировать
+        if (data.id) shownMsgIds.current.add(data.id);
         setMessages((m) => [...m.slice(0, -1), { role: "bot", text: data.answer || t("support.fallback") }]);
       })
       .catch(() => {
