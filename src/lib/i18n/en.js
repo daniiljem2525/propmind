@@ -742,6 +742,7 @@ export const en = {
   "support.contactUs": "Contact support",
   "support.backToFaq": "← Back to FAQ",
   "support.replyLabel": "Support reply",
+  "support.chatPlaceholder": "Type a message…",
   "support.writeToUs": "Write to us",
   "support.contactPrompt": "Fill out the form - we'll reply by email within an hour.",
   "support.messagePlaceholder": "Type your question…",

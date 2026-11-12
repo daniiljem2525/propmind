@@ -19,6 +19,12 @@ create table if not exists public.support_messages (
 alter table public.support_messages add column if not exists session_id text;
 create index if not exists support_messages_session_idx on public.support_messages (session_id);
 
+-- Режим чата: sender='user' — сообщение пользователя, sender='support' —
+-- ответ поддержки (отдельная строка треда, можно писать несколько подряд).
+-- Старые строки (до колонки) считаются сообщениями пользователя (default 'user');
+-- их старые ответы в колонке response остаются читаемыми для совместимости.
+alter table public.support_messages add column if not exists sender text not null default 'user';
+
 alter table public.support_messages enable row level security;
 
 -- Пользователь видит свои сообщения

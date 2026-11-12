@@ -137,12 +137,12 @@ Deno.serve(async (req) => {
     }
 
     if (action === "contact") {
-      // Сообщение в поддержку — сохраняем в БД, CEO видит в админке
+      // Сообщение в поддержку — сохраняем в БД, CEO отвечает в чате из админки
       const name = (body.name || "").trim().slice(0, 100);
       const email = (body.email || "").trim().slice(0, 200);
       const { data: msgRow, error } = await admin
         .from("support_messages")
-        .insert({ user_id: userId, name, email, message: text, status: "new", session_id: sessionId })
+        .insert({ user_id: userId, name, email, message: text, status: "new", session_id: sessionId, sender: "user" })
         .select("id, created_at")
         .single();
       if (error) return json({ error: error.message }, 500);
@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
       if (!userId || !isAdmin) return json({ error: "FORBIDDEN" }, 403);
       const { data: msgs } = await admin
         .from("support_messages")
-        .select("id, user_id, name, email, message, response, status, session_id, created_at, responded_at")
+        .select("id, user_id, name, email, message, response, sender, status, session_id, created_at, responded_at")
         .order("created_at", { ascending: false })
         .limit(200);
       return json({ messages: msgs || [] });
@@ -189,21 +189,53 @@ Deno.serve(async (req) => {
     if (!sessionId) return json({ error: "NO_SESSION" }, 400);
     const { data: msgs } = await admin
       .from("support_messages")
-      .select("id, message, response, status, created_at, responded_at")
+      .select("id, message, response, sender, status, created_at, responded_at")
       .eq("session_id", sessionId)
       .order("created_at", { ascending: true });
     return json({ messages: msgs || [] });
   }
 
-  // ——— PUT: ответ поддержки (только админ) ———
+  // ——— PUT: ответ поддержки в тред (только админ) ———
+  // Режим чата: { session_id, response } — ответ добавляется отдельной строкой
+  // треда, непросмотренные сообщения пользователя помечаются answered.
+  // Legacy: { message_id, response } — ответ в колонку response старой строки.
   if (req.method === "PUT") {
     if (!userId || !isAdmin) return json({ error: "FORBIDDEN" }, 403);
-    let body: { message_id?: string; response?: string };
+    let body: { session_id?: string; message_id?: string; response?: string };
     try { body = await req.json(); } catch { return json({ error: "BAD_JSON" }, 400); }
     const response = (body.response || "").trim();
-    const msgId = body.message_id || "";
-    if (!response || !msgId) return json({ error: "MISSING_FIELDS" }, 400);
+    if (!response) return json({ error: "MISSING_FIELDS" }, 400);
 
+    if (body.session_id) {
+      const sessionId = body.session_id.trim();
+      if (!sessionId) return json({ error: "NO_SESSION" }, 400);
+      const { data: msgRow, error } = await admin
+        .from("support_messages")
+        .insert({
+          session_id: sessionId,
+          sender: "support",
+          message: response,
+          name: "",
+          email: "",
+          status: "answered",
+        })
+        .select("id, created_at")
+        .single();
+      if (error) return json({ error: error.message }, 500);
+
+      // Сообщения пользователя в треде считаем отвеченными
+      await admin
+        .from("support_messages")
+        .update({ status: "answered", responded_at: new Date().toISOString() })
+        .eq("session_id", sessionId)
+        .eq("sender", "user")
+        .eq("status", "new");
+
+      return json({ ok: true, id: msgRow?.id, created_at: msgRow?.created_at });
+    }
+
+    const msgId = body.message_id || "";
+    if (!msgId) return json({ error: "MISSING_FIELDS" }, 400);
     const { error } = await admin
       .from("support_messages")
       .update({ response, status: "answered", responded_at: new Date().toISOString() })

@@ -35,11 +35,14 @@ export default function SupportPanel() {
       }
       const list = [...groups.values()].map((arr) => {
         const sorted = [...arr].sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        const firstUser = sorted.find((x) => x.sender !== "support") || sorted[0];
         return {
           sessionId: sorted[0].session_id || `id:${sorted[0].id}`,
+          isLegacy: !sorted[0].session_id,
           messages: sorted,
           last: sorted[sorted.length - 1],
-          hasUnanswered: sorted.some((x) => x.status === "new" && !x.response),
+          contact: { name: firstUser.name, email: firstUser.email, at: firstUser.created_at },
+          hasUnanswered: sorted.some((x) => x.sender !== "support" && x.status === "new" && !x.response),
         };
       });
       list.sort((a, b) => new Date(b.last.created_at) - new Date(a.last.created_at));
@@ -61,18 +64,21 @@ export default function SupportPanel() {
   const reply = async (thread) => {
     const text = (drafts[thread.sessionId] || "").trim();
     if (!text || replying) return;
-    // Ответ вешаем на последнее сообщение без ответа (иначе — на последнее вообще)
-    const target = [...thread.messages].reverse().find((x) => !x.response) || thread.last;
     setReplying(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
+      // Режим чата: ответ = отдельная строка треда. Legacy-треды (без session_id) —
+      // как раньше: response в колонку последнего сообщения без ответа.
+      const payload = thread.isLegacy
+        ? { message_id: ([...thread.messages].reverse().find((x) => !x.response) || thread.last).id, response: text }
+        : { session_id: thread.sessionId, response: text };
       const r = await fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
           ...(session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {}),
         },
-        body: JSON.stringify({ message_id: target.id, response: text }),
+        body: JSON.stringify(payload),
       });
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       setDrafts((d) => ({ ...d, [thread.sessionId]: "" }));
@@ -119,12 +125,12 @@ export default function SupportPanel() {
         <div className="space-y-4">
           {threads.map((thread) => (
             <div key={thread.sessionId} className="rounded-xl border bg-muted/30 p-3">
-              {/* Шапка треда: кто, когда, статус */}
+              {/* Шапка треда: кто написал, статус */}
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <div className="text-sm">
-                  <span className="font-medium">{thread.last.name?.trim() || thread.last.email?.trim() || t("admin.supportAnonymous")}</span>
-                  {thread.last.email?.trim() && thread.last.name?.trim() && (
-                    <span className="ml-2 text-muted-foreground">{thread.last.email}</span>
+                  <span className="font-medium">{thread.contact.name?.trim() || thread.contact.email?.trim() || t("admin.supportAnonymous")}</span>
+                  {thread.contact.email?.trim() && thread.contact.name?.trim() && (
+                    <span className="ml-2 text-muted-foreground">{thread.contact.email}</span>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -140,18 +146,27 @@ export default function SupportPanel() {
                 </div>
               </div>
 
-              {/* Сообщения треда */}
+              {/* Сообщения треда — чат: пользователь слева, поддержка справа */}
               <div className="space-y-2">
                 {thread.messages.map((m) => (
                   <div key={m.id} className="space-y-1">
-                    <div className="max-w-[90%] rounded-lg rounded-bl-sm border bg-card px-3 py-1.5 text-sm">
-                      <span className="whitespace-pre-wrap">{m.message}</span>
-                    </div>
-                    {m.response && (
+                    {m.sender === "support" ? (
                       <div className="ml-auto max-w-[90%] rounded-lg rounded-br-sm bg-primary/10 px-3 py-1.5 text-sm">
                         <span className="mb-0.5 block text-xs font-semibold text-primary">{t("admin.supportReplyLabel")}</span>
-                        <span className="whitespace-pre-wrap">{m.response}</span>
+                        <span className="whitespace-pre-wrap">{m.message}</span>
                       </div>
+                    ) : (
+                      <>
+                        <div className="max-w-[90%] rounded-lg rounded-bl-sm border bg-card px-3 py-1.5 text-sm">
+                          <span className="whitespace-pre-wrap">{m.message}</span>
+                        </div>
+                        {m.response && (
+                          <div className="ml-auto max-w-[90%] rounded-lg rounded-br-sm bg-primary/10 px-3 py-1.5 text-sm">
+                            <span className="mb-0.5 block text-xs font-semibold text-primary">{t("admin.supportReplyLabel")}</span>
+                            <span className="whitespace-pre-wrap">{m.response}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 ))}

@@ -743,6 +743,7 @@ export const ru = {
   "support.contactUs": "Написать в поддержку",
   "support.backToFaq": "← К вопросам",
   "support.replyLabel": "Ответ поддержки",
+  "support.chatPlaceholder": "Напишите сообщение…",
   "support.writeToUs": "Написать в поддержку",
   "support.contactPrompt": "Заполните форму — ответим на email в течение часа.",
   "support.messagePlaceholder": "Напишите ваш вопрос…",

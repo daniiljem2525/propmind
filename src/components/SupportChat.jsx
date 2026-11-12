@@ -61,13 +61,22 @@ export default function SupportChat() {
     setMessages((m) => {
       const add = [];
       for (const row of rows) {
-        if (!shownMsgIds.current.has(row.id)) {
-          shownMsgIds.current.add(row.id);
-          add.push({ role: "user", text: row.message, contact: true });
-        }
-        if (row.response && !shownRespIds.current.has(row.id)) {
-          shownRespIds.current.add(row.id);
-          add.push({ role: "support", text: row.response });
+        if (row.sender === "support") {
+          // Ответ поддержки — отдельное сообщение треда (режим чата)
+          if (!shownMsgIds.current.has(row.id)) {
+            shownMsgIds.current.add(row.id);
+            add.push({ role: "support", text: row.message });
+          }
+        } else {
+          if (!shownMsgIds.current.has(row.id)) {
+            shownMsgIds.current.add(row.id);
+            add.push({ role: "user", text: row.message, contact: true });
+          }
+          // Legacy: ответ в колонке response старой строки
+          if (row.response && !shownRespIds.current.has(row.id)) {
+            shownRespIds.current.add(row.id);
+            add.push({ role: "support", text: row.response });
+          }
         }
       }
       return add.length ? [...m, ...add] : m;
@@ -115,7 +124,8 @@ export default function SupportChat() {
   };
 
   // ——— Отправить в поддержку ———
-  const sendContact = (msg) => {
+  // silent: в режиме диалога подтверждение не нужно — просто добавляем сообщение
+  const sendContact = (msg, { silent = false } = {}) => {
     setSending(true);
     const sessionId = ensureSession();
     // Своё сообщение показываем сразу; id строки придёт в ответе
@@ -128,17 +138,21 @@ export default function SupportChat() {
       .then((r) => r.json())
       .then((data) => {
         if (data.id) shownMsgIds.current.add(data.id); // поллинг не задублирует
-        setMessages((m) => [...m, { role: "bot", text: t("support.contactSent") }]);
+        if (!silent) setMessages((m) => [...m, { role: "bot", text: t("support.contactSent") }]);
         setShowContact(false);
       })
       .catch(() => setMessages((m) => [...m, { role: "bot", text: t("support.error") }]))
       .finally(() => setSending(false));
   };
 
+  // Активная переписка с поддержкой → поле ввода пишет в тред, а не боту
+  const hasThread = messages.some((m) => m.contact || m.role === "support");
+
   const handleSend = () => {
     const msg = input.trim();
     if (!msg) return;
-    ask(msg);
+    if (hasThread) sendContact(msg, { silent: true });
+    else ask(msg);
   };
 
   const handleContact = () => {
@@ -238,26 +252,28 @@ export default function SupportChat() {
               )}
             </div>
 
-            {/* Quick replies */}
-            <div className="flex flex-wrap gap-1.5 border-t px-3 pt-2">
-              {quickReplies.map((q) => (
-                <button
-                  key={q}
-                  onClick={() => ask(q)}
-                  className="rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {q}
-                </button>
-              ))}
-              {!showContact && (
-                <button
-                  onClick={() => { setShowContact(true); setMessages((m) => [...m, { role: "bot", text: t("support.contactPrompt") }]); }}
-                  className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10"
-                >
-                  {t("support.contactUs")}
-                </button>
-              )}
-            </div>
+            {/* Quick replies — только до начала диалога с поддержкой */}
+            {!hasThread && (
+              <div className="flex flex-wrap gap-1.5 border-t px-3 pt-2">
+                {quickReplies.map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => ask(q)}
+                    className="rounded-full border bg-card px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {q}
+                  </button>
+                ))}
+                {!showContact && (
+                  <button
+                    onClick={() => { setShowContact(true); setMessages((m) => [...m, { role: "bot", text: t("support.contactPrompt") }]); }}
+                    className="rounded-full border border-primary/30 bg-primary/5 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10"
+                  >
+                    {t("support.contactUs")}
+                  </button>
+                )}
+              </div>
+            )}
 
             {/* Input */}
             <div className="border-t p-3">
@@ -271,7 +287,7 @@ export default function SupportChat() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-                    placeholder={t("support.inputPlaceholder")}
+                    placeholder={hasThread ? t("support.chatPlaceholder") : t("support.inputPlaceholder")}
                     className="flex-1 rounded-full border bg-background px-4 py-2.5 text-sm"
                     maxLength={500}
                   />
