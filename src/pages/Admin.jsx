@@ -124,13 +124,15 @@ export default function Admin() {
         <StatCard icon={Wrench} tile="bg-rose-500" label={t("admin.metricRequests")} value={shown.openRequests} />
       </div>
 
+      {/* Сообщения поддержки: инбокс диалогов + ответы — падают пользователю в чат */}
+      <div className="mt-6">
+        <SupportPanel />
+      </div>
+
       {/* Пользователи */}
       <div className="mt-6">
         <UsersPanel />
       </div>
-
-      {/* Сообщения поддержки: треды чата + ответы */}
-      <SupportPanel />
 
       {/* Данные */}
       <Card className="mt-6">

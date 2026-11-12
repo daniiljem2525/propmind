@@ -73,7 +73,7 @@ const KB: { keywords: string[]; answer: string }[] = [
   },
   {
     keywords: ["поддержк", "связаться", "контакт", "помощь", "позвонить"],
-    answer: "Связаться с поддержкой:\n\n• Telegram: @arendora_support\n• Email: support@arendora.ru\n• Ответ в течение часа",
+    answer: "Связаться с поддержкой:\n\n• Telegram: @arendora_support\n• Email: support@arendora.ru\n• Ответ в течение 5 минут\n\nИли нажмите «Написать в поддержку» — ответим прямо в этом чате.",
   },
 ];
 
@@ -95,7 +95,7 @@ function smartAnswer(message: string): string {
 
   if (bestScore > 0) return bestAnswer;
 
-  return "Я ответил на основные вопросы в базе знаний выше. Если ваш вопрос сложнее — напишите в поддержку:\n\n• Telegram: @arendora_support\n• Email: support@arendora.ru\n\nОтвечаем в течение часа.";
+  return "Я ответил на основные вопросы в базе знаний выше. Если ваш вопрос сложнее — нажмите «Написать в поддержку», ответим в течение 5 минут прямо в этом чате.\n\nТакже на связи:\n• Telegram: @arendora_support\n• Email: support@arendora.ru";
 }
 
 Deno.serve(async (req) => {
