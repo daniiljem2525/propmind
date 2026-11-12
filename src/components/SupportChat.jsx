@@ -33,6 +33,11 @@ export default function SupportChat() {
   // id строк support_messages, уже показанных в чате (чтобы поллинг не дублировал)
   const shownMsgIds = useRef(new Set());
   const shownRespIds = useRef(new Set());
+  // Анти-дубль: пока POST в полёте, поллинг пропускаем (иначе он успевает
+  // забрать из БД строку, id которой клиент ещё не записал — баббл задваивается);
+  // тексты неотправленных сообщений — на случай потерянного ответа на POST
+  const inFlight = useRef(0);
+  const pendingTexts = useRef(new Set());
 
   const ensureSession = () => {
     if (!sessionRef.current) {
@@ -70,7 +75,10 @@ export default function SupportChat() {
         } else {
           if (!shownMsgIds.current.has(row.id)) {
             shownMsgIds.current.add(row.id);
-            add.push({ role: "user", text: row.message, contact: true });
+            // Своё сообщение уже показано локально при отправке — не дублируем
+            if (!pendingTexts.current.has(row.message)) {
+              add.push({ role: "user", text: row.message, contact: true });
+            }
           }
           // Legacy: ответ в колонке response старой строки
           if (row.response && !shownRespIds.current.has(row.id)) {
@@ -88,6 +96,7 @@ export default function SupportChat() {
     if (!open || !sessionRef.current) return undefined;
     let alive = true;
     const load = async () => {
+      if (inFlight.current > 0) return; // POST в полёте — заберём следующим тиком
       try {
         const r = await fetch(
           `${SUPABASE_URL}/functions/v1/support-chat?session=${encodeURIComponent(sessionRef.current)}`
@@ -109,6 +118,8 @@ export default function SupportChat() {
     setInput("");
     // «печатает…»
     setMessages((m) => [...m, { role: "bot", text: t("support.thinking"), typing: true }]);
+    inFlight.current += 1;
+    pendingTexts.current.add(String(question).trim());
     fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -124,11 +135,13 @@ export default function SupportChat() {
       .then((data) => {
         // Вопрос логируется в тред на сервере — поллинг не должен его задублировать
         if (data.id) shownMsgIds.current.add(data.id);
+        pendingTexts.current.delete(String(question).trim());
         setMessages((m) => [...m.slice(0, -1), { role: "bot", text: data.answer || t("support.fallback") }]);
       })
       .catch(() => {
         setMessages((m) => [...m.slice(0, -1), { role: "bot", text: t("support.fallback") }]);
-      });
+      })
+      .finally(() => { inFlight.current = Math.max(0, inFlight.current - 1); });
   };
 
   // ——— Отправить в поддержку ———
@@ -138,6 +151,8 @@ export default function SupportChat() {
     const sessionId = ensureSession();
     // Своё сообщение показываем сразу; id строки придёт в ответе
     setMessages((m) => [...m, { role: "user", text: msg, contact: true }]);
+    inFlight.current += 1;
+    pendingTexts.current.add(msg.trim());
     fetch(`${SUPABASE_URL}/functions/v1/support-chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -146,11 +161,15 @@ export default function SupportChat() {
       .then((r) => r.json())
       .then((data) => {
         if (data.id) shownMsgIds.current.add(data.id); // поллинг не задублирует
+        pendingTexts.current.delete(msg.trim());
         if (!silent) setMessages((m) => [...m, { role: "bot", text: t("support.contactSent") }]);
         setShowContact(false);
       })
       .catch(() => setMessages((m) => [...m, { role: "bot", text: t("support.error") }]))
-      .finally(() => setSending(false));
+      .finally(() => {
+        inFlight.current = Math.max(0, inFlight.current - 1);
+        setSending(false);
+      });
   };
 
   // Активная переписка с поддержкой → поле ввода пишет в тред, а не боту
