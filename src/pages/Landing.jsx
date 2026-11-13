@@ -259,6 +259,36 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Так это выглядит — реальные экраны продукта (демо-данные) */}
+      <section id="screens" className="py-20">
+        <div className="mx-auto max-w-6xl px-4 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold tracking-tight">{t("land.shotsTitle")}</h2>
+            <p className="mt-3 text-muted-foreground">{t("land.shotsSub")}</p>
+          </div>
+          <div className="mt-12 grid gap-5 lg:grid-cols-3">
+            <figure className="overflow-hidden rounded-lg border bg-card shadow-card">
+              <img src="/img/product/properties.jpg" loading="lazy" width="1400" height="875" alt={t("land.shotsC1Alt")} className="w-full" />
+              <figcaption className="p-4 text-sm font-medium">{t("land.shotsC1")}</figcaption>
+            </figure>
+            <figure className="overflow-hidden rounded-lg border bg-card shadow-card">
+              <img src="/img/product/payments.jpg" loading="lazy" width="1400" height="875" alt={t("land.shotsC2Alt")} className="w-full" />
+              <figcaption className="p-4 text-sm font-medium">{t("land.shotsC2")}</figcaption>
+            </figure>
+            <figure className="overflow-hidden rounded-lg border bg-card shadow-card">
+              <img src="/img/product/analytics.jpg" loading="lazy" width="1400" height="875" alt={t("land.shotsC3Alt")} className="w-full" />
+              <figcaption className="p-4 text-sm font-medium">{t("land.shotsC3")}</figcaption>
+            </figure>
+          </div>
+          <p className="mt-8 text-center text-sm text-muted-foreground">
+            {t("land.shotsCta")}{" "}
+            <Link to="/register" className="font-semibold text-primary hover:underline">
+              {t("land.shotsCtaLink")}
+            </Link>
+          </p>
+        </div>
+      </section>
+
       {/* Как это работает */}
       <section id="how" className="py-20">
         <div className="mx-auto max-w-6xl px-4 lg:px-8">
