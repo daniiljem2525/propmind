@@ -1,6 +1,7 @@
 // Генератор public/sitemap.xml — запускается при каждой сборке
-// (npm run build → prebuild; см. package.json). Токен __SITE_URL__
-// заменяется на этапе сборки плагином site-url (vite.config.js).
+// (npm run build → prebuild; см. package.json). Домен пишется сразу
+// (https://arendora.ru/) — регрессия 12.11 с сырыми токенами __SITE_URL__
+// на проде не должна повторяться (аудит 13.11).
 //
 // Состав URL (актуально на 2026-11-01, спринт «Программисты на прод»):
 //   1. Статические страницы (главная — ПЕРВОЙ, решение CEO G/в: выдача
@@ -103,10 +104,9 @@ const urls = [...STATIC_PAGES, ...blogPosts, ...LIVE_ONLY_BLOG, ...EXTRA_PAGES].
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <!-- Генерируется скриптом scripts/generate-sitemap.mjs при каждой сборке:
      править руками не нужно. Новая статья попадает сюда сама — по
-     front-matter date из content/blog/. Токен __SITE_URL__ заменяется
-     на этапе сборки (vite.config.js). -->
+     front-matter date из content/blog/. Домен пишется сразу. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url><loc>__SITE_URL__${u.loc}</loc><lastmod>${u.lastmod}</lastmod></url>`).join("\n")}
+${urls.map((u) => `  <url><loc>https://arendora.ru/${u.loc}</loc><lastmod>${u.lastmod}</lastmod></url>`).join("\n")}
 </urlset>
 `;
 
