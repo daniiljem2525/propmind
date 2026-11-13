@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/authContext";
 import { useLang } from "@/lib/i18n/LangContext";
+import { FEATURES } from "@/lib/config/misc";
 import { useTheme } from "@/lib/theme";
 import { useCollection } from "@/hooks/useCollection";
 import { NotificationEntity, Payment, Property, Tenant } from "@/lib/api/entities";
@@ -96,7 +97,7 @@ export default function Header({ onOpenMobile }) {
         { to: "/app/tenants?new=1", icon: UserRound, label: t("tenants.addTenant") },
         { to: "/app/payments?new=1", icon: CreditCard, label: t("payments.addPayment") },
         { to: "/app/maintenance?new=1", icon: Wrench, label: t("maintenance.addRequest") },
-        { to: "/app/inspections?new=1", icon: ClipboardList, label: t("inspections.addInspection") },
+        ...(FEATURES.inspections ? [{ to: "/app/inspections?new=1", icon: ClipboardList, label: t("inspections.addInspection") }] : []),
         { to: "/app/documents?new=1", icon: FileText, label: t("documents.upload") },
       ]
     : [];

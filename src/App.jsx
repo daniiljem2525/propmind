@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastProvider } from "@/components/ui/toast";
 import ConnectionBanner from "@/components/ConnectionBanner";
 import CookieBanner from "@/components/CookieBanner";
@@ -51,6 +51,7 @@ import Tenants from "@/pages/Tenants";
 import Payments from "@/pages/Payments";
 import Maintenance from "@/pages/Maintenance";
 import Inspections from "@/pages/Inspections";
+import { FEATURES } from "@/lib/config/misc";
 import Documents from "@/pages/Documents";
 import Analytics from "@/pages/Analytics";
 import Settings from "@/pages/Settings";
@@ -111,7 +112,7 @@ export default function App() {
                     <Route path="tenants" element={<RoleRoute page="tenants"><Tenants /></RoleRoute>} />
                     <Route path="payments" element={<RoleRoute page="payments"><Payments /></RoleRoute>} />
                     <Route path="maintenance" element={<RoleRoute page="maintenance"><Maintenance /></RoleRoute>} />
-                    <Route path="inspections" element={<RoleRoute page="inspections"><Inspections /></RoleRoute>} />
+                    <Route path="inspections" element={FEATURES.inspections ? <RoleRoute page="inspections"><Inspections /></RoleRoute> : <Navigate to="/app" replace />} />
                     <Route path="documents" element={<RoleRoute page="documents"><Documents /></RoleRoute>} />
                     <Route path="analytics" element={<RoleRoute page="analytics"><Analytics /></RoleRoute>} />
                     <Route path="plan" element={<RoleRoute page="plan"><Plan /></RoleRoute>} />

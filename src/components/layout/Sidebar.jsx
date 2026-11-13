@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { hasAccess } from "@/lib/config/statuses";
+import { FEATURES } from "@/lib/config/misc";
 
 // Роли → страницы: матрица ROLE_ACCESS в config/statuses.js (единственный
 // источник прав: сайдбар, RoleRoute, Header). legacy-роли ("user", undefined)
@@ -31,7 +32,7 @@ const NAV_ITEMS = [
   { to: "/app", page: "portal", icon: House, key: "portal.myHome", end: true },
   { to: "/app/payments", page: "payments", icon: CreditCard, key: "nav.payments" },
   { to: "/app/maintenance", page: "maintenance", icon: Wrench, key: "nav.maintenance" },
-  { to: "/app/inspections", page: "inspections", icon: ClipboardList, key: "nav.inspections" },
+  ...(FEATURES.inspections ? [{ to: "/app/inspections", page: "inspections", icon: ClipboardList, key: "nav.inspections" }] : []),
   { to: "/app/documents", page: "documents", icon: FileText, key: "nav.documents" },
   { to: "/app/analytics", page: "analytics", icon: BarChart3, key: "nav.analytics" },
   { to: "/app/plan", page: "plan", icon: Wallet, key: "nav.plan" },

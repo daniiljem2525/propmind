@@ -7,6 +7,10 @@ export const CURRENCIES = [
   { code: "KZT", label: "₸ KZT" },
 ];
 
+// Флаги функций: скрываем фичу целиком (навбар, быстрые действия, маршрут),
+// не удаляя код. inspections: скрыто по решению CEO 13.11 («пока») — вернуть = true.
+export const FEATURES = { inspections: false };
+
 export const PAYMENT_METHOD_CONFIG = {
   cash: { label_ru: "Наличные", label_en: "Cash" },
   bank: { label_ru: "Банковский перевод", label_en: "Bank transfer" },
