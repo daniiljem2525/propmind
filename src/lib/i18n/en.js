@@ -461,7 +461,7 @@ export const en = {
   "land.t2.role": "commercial leasing",
   "land.t2.text": "Requests with photos and statuses — contractors finally work without chat reminders.",
   "land.t3.name": "Greenwood LLC",
-  "land.t3.role": "managing 40 properties",
+  "land.t3.role": "40 properties on the Individual plan",
   "land.t3.text": "Loaded the whole portfolio via CSV in a week. Revenue analytics replaced the accounting calls.",
   "land.stickyCta": "Start free",
 

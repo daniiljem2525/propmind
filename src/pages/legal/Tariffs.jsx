@@ -8,6 +8,7 @@ const ROWS = [
     monthly: "0 ₽",
     yearly: "0 ₽",
     limits: "1 объект, 1 арендатор, базовые платежи",
+    cta: { to: "/register", label: "Начать бесплатно" },
   },
   {
     plan: "Start",
@@ -15,6 +16,7 @@ const ROWS = [
     monthly: "990 ₽/мес",
     yearly: "9 900 ₽/год",
     limits: "До 4 объектов (1 + 3 дополнительных), платежи и график на год, заявки на обслуживание",
+    cta: { to: "/register", label: "Подключить Start" },
   },
   {
     plan: "Pro",
@@ -22,6 +24,7 @@ const ROWS = [
     monthly: "2 990 ₽/мес",
     yearly: "29 900 ₽/год",
     limits: "До 8 объектов, аналитика и отчёты, документы и уведомления",
+    cta: { to: "/register", label: "Подключить Pro" },
   },
   {
     plan: "Business",
@@ -30,13 +33,15 @@ const ROWS = [
     yearly: "79 900 ₽/год",
     limits:
       "До 14 объектов, роли команды: собственник, управляющий, бухгалтер, подрядчик (разделение прав доступа), портал арендатора, приоритетная поддержка",
+    cta: { to: "/register", label: "Подключить Business" },
   },
   {
     plan: "Индивидуальный",
     desc: "Крупные портфели и интеграции",
     monthly: "По запросу",
     yearly: "По запросу",
-    limits: "Условия согласовываются индивидуально",
+    limits: "15–30 и более объектов, перенос данных, интеграции — условия согласовываются индивидуально",
+    cta: { href: "mailto:support@arendora.ru?subject=Индивидуальный тариф Arendora", label: "Обсудить условия" },
   },
 ];
 
@@ -77,7 +82,7 @@ export default function Tariffs() {
         <table className="w-full min-w-[640px] border-collapse">
           <thead>
             <tr>
-              {["Тариф", "Оплата за месяц", "Оплата за год", "Состав тарифа"].map((h) => (
+              {["Тариф", "Оплата за месяц", "Оплата за год", "Состав тарифа", "Действие"].map((h) => (
                 <th
                   key={h}
                   className="px-3 pb-2 text-left text-xs font-bold uppercase tracking-wide text-muted-foreground"
@@ -99,11 +104,43 @@ export default function Tariffs() {
                 <TD>{r.monthly}</TD>
                 <TD>{r.yearly}</TD>
                 <TD>{r.limits}</TD>
+                <TD>
+                  {r.cta.to ? (
+                    <Link
+                      to={r.cta.to}
+                      className="text-sm font-semibold text-primary hover:underline"
+                    >
+                      {r.cta.label}
+                    </Link>
+                  ) : (
+                    <a
+                      href={r.cta.href}
+                      className="text-sm font-semibold text-primary hover:underline"
+                    >
+                      {r.cta.label}
+                    </a>
+                  )}
+                </TD>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      <P>
+        Портфель больше 14 объектов (15–30 и более), перенос данных из таблиц
+        или интеграции — это тариф Индивидуальный:{" "}
+        <a
+          href="mailto:support@arendora.ru?subject=Индивидуальный тариф Arendora"
+          className="text-primary hover:underline"
+        >
+          напишите нам
+        </a>
+        , соберём состав под ваш портфель. Начать можно бесплатно:{" "}
+        <Link to="/register" className="text-primary hover:underline">
+          регистрация без карты
+        </Link>
+        .
+      </P>
 
       <H>2. Условия предоставления</H>
       <UL>
