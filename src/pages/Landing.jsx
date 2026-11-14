@@ -57,16 +57,20 @@ const ROLE_CARDS = [
 // «Полезные материалы» на главной — после FAQ, перед финальным CTA.
 // Анкоры — сокращения реальных H1; без UTM; лимит Free числом и
 // EN-тематики в анкорах нет. Прямые <Link>/<a> — обычные ссылки.
+// Состав 13.11 (CEO-канцелярия): BOFU-ядро + 5 свежих статей очереди
+// (штраф/залог/посуточно/опись/уведомление) — свежие получают внутренние
+// ссылки с главной для ускорения обнаружения.
 const USEFUL_LINKS = [
   { to: "/blog/arendora-vs-google-tablicy", key: "land.useful1" },
   { to: "/blog/uchet-arendy-v-excel", key: "land.useful2" },
   { to: "/blog/programma-dlya-upravleniya-arendoy", key: "land.useful3" },
   { to: "/blog/sdat-kvartiru-v-arendu-cheklist", key: "land.useful4" },
   { to: "/blog/nalogi-so-sdachi-kvartiry", key: "land.useful5" },
-  { to: "/blog/samozanyatost-podvodnye-kamni", key: "land.useful6" },
-  { to: "/blog/indeksaciya-arendnoy-platy", key: "land.useful7" },
-  { to: "/blog/kvartirant-ne-sezzhaet", key: "land.useful8" },
-  { to: "/blog/remont-bez-vladeltsa", key: "land.useful9" },
+  { to: "/blog/shtraf-za-sdachu-bez-nalogov", key: "land.useful10" },
+  { to: "/blog/skolko-brat-zalog-kvartiry", key: "land.useful11" },
+  { to: "/blog/vygodno-li-sdat-posutochno", key: "land.useful12" },
+  { to: "/blog/opis-imushchestva-pri-sdache", key: "land.useful13" },
+  { to: "/blog/uvedomlenie-o-vyezde-zhiltsa", key: "land.useful14" },
 ];
 
 export default function Landing() {
