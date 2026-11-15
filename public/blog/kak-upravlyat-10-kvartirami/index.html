@@ -1,0 +1,258 @@
+<!DOCTYPE html><html lang="ru"><head><script crossorigin="anonymous" src="https://mc.yandex.ru/metrika/tag_phono.js" type="text/javascript" charset="utf-8" async=""></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Система управления 10 квартирами: сколько времени уходит, что ломается на росте с 3 до 10 объектов, какие инструменты нужны и как посчитать экономику. Таблица нагрузки и чек-лист запуска.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js) -->
+    <link rel="canonical" href="https://arendora.ru/blog/kak-upravlyat-10-kvartirami">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/blog/kak-upravlyat-10-kvartirami">
+    <meta property="og:image" content="https://arendora.ru/img/og/kak-upravlyat-10-kvartirami.jpg">
+    <meta property="og:image:width" content="1406">
+    <meta property="og:image:height" content="1120">
+    <meta property="og:image:alt" content="Дашборд Arendora: объекты, платежи и заявки в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og/kak-upravlyat-10-kvartirami.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Как управлять 10 квартирами одновременно: система, инструменты, ошибки — Arendora">
+    <meta property="og:description" content="Система управления 10 квартирами: сколько времени уходит, что ломается на росте с 3 до 10 объектов, какие инструменты нужны и как посчитать экономику. Таблица нагрузки и чек-лист запуска.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Arendora — управление недвижимостью без головной боли">
+    <meta name="twitter:description" content="Запуск за 15 минут. Автосвязывание объектов, арендаторов и платежей. Бесплатно: 1 объект, 1 арендатор.">
+    <title>Как управлять 10 квартирами одновременно: система, инструменты, ошибки — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. FAQPage и HowTo убраны: Google
+         полностью отключил их rich-результаты (FAQ — в мае 2026), пользы ноль,
+         а тексты дублировали лендинг и требовали синхронизации.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "logo": "https://arendora.ru/icon-512.png",
+          "email": "support@arendora.ru",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@arendora.ru",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатно 1 объект, 1 арендатор"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; инспекции объектов с чек-листами (работают офлайн); роли и права доступа — собственник, управляющий, бухгалтер, подрядчик (тариф Бизнес); документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+         читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <script type="module" crossorigin="" src="/assets/index-DPRkO89V.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-CO4VS9M-.css">
+  <script async="" src="https://mc.yandex.ru/metrika/tag.js?id=113900461"></script><script type="application/ld+json" data-page-json-ld="1">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Как управлять 10 квартирами одновременно: система, инструменты, ошибки","description":"Система управления 10 квартирами: сколько времени уходит, что ломается на росте с 3 до 10 объектов, какие инструменты нужны и как посчитать экономику. Таблица нагрузки и чек-лист запуска.","image":"https://arendora.ru/img/og/kak-upravlyat-10-kvartirami.jpg","datePublished":"2026-11-15","dateModified":"2026-11-15","inLanguage":"ru","author":{"@type":"Organization","name":"Arendora","url":"https://arendora.ru/"},"publisher":{"@type":"Organization","name":"Arendora","logo":"https://arendora.ru/icon-192.png"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Arendora","item":"https://arendora.ru/"},{"@type":"ListItem","position":2,"name":"Блог Arendora","item":"https://arendora.ru/blog"},{"@type":"ListItem","position":3,"name":"Как управлять 10 квартирами одновременно: система, инструменты, ошибки"}]}]}</script></head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/blog" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Ко всем материалам</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Как управлять 10 квартирами одновременно: система, инструменты, ошибки</h1><p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground"><span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days h-4 w-4"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Обновлено 15 ноября 2026 г.</span><span>9 мин чтения · <a class="transition-colors hover:text-foreground" href="/" data-discover="true">Arendora</a></span></p><div class="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&amp;_a]:text-primary [&amp;_h2]:mt-8 [&amp;_h2]:text-2xl [&amp;_h2]:font-bold [&amp;_h3]:mt-6 [&amp;_h3]:text-xl [&amp;_h3]:font-bold [&amp;_li]:ml-5 [&amp;_li]:list-disc [&amp;_strong]:font-bold"><p>Опубликовано 15 ноября 2026 г. · Обновлено 15 ноября 2026 г.</p>
+<p>Управлять 10 квартирами одновременно можно в одиночку — но только если у каждой квартиры есть карточка, график платежей на год вперёд и напоминания, которые уходят жильцам без вашего участия. Без системы портфель превращается в вечную сверку переводов: три квартиры ещё можно удержать в голове, десять — уже нет. В статье — сколько времени реально уходит на портфель, что ломается на росте с 3 до 10 объектов и из каких четырёх контуров состоит система управления.</p>
+<p>Автор: Максим Ветров, директор по SEO Arendora. Ведёт контент и органический рост сервиса управления арендой с 2026 года.</p>
+<h2>Сколько времени занимает управление 10 квартирами?</h2>
+<p>Прямой ответ: при ручном режиме — порядка 15–25 часов в месяц, при настроенной системе — 2–4 часа в месяц на рутину и час в неделю на контрольный взгляд. Цифры — оценка по типовым операциям, расчёт в таблице ниже.</p>
+<p>Смысл таблицы — в пропорции: больше половины времени уходит на задачи, которые не требуют ваших решений: напомнить, сверить, записать. Именно этот пласт и забирает система.</p>
+<p>| Задача | Ручной режим, 10 объектов | Что съедает время |
+|---|---|---|
+| Сверка оплат в месяц | 60–90 мин | Сопоставить 10 переводов с 10 графиками, найти «кто именно не доплатил» |
+| Напоминания об оплате | 50–60 мин | 10 сообщений в мессенджер, каждому вовремя |
+| Показания счётчиков и коммуналка | 40–60 мин | Собрать фото счётчиков, пересчитать, передать |
+| Заявки на ремонт | 60–90 мин/нед | Согласовать мастера, передать ключи, проконтролировать |
+| Продления договоров и проверки квартир | 60–90 мин/мес | Даты разъездов, новые договоры, акты |
+| <strong>Итого рутина</strong> | <strong>~15–25 ч/мес</strong> | Оценка по минутам типовых операций |</p>
+<p>Для сравнения: <a href="/blog/uchet-arendy-v-excel" data-discover="true">учёт аренды в Excel</a> на портфеле добавляет к каждой строке ручной ввод — и каждая ошибка ввода стоит денег: перепутанный платёж не подсветится сам.</p>
+<h2>Что ломается при переходе от 3 к 10 квартирам?</h2>
+<p>Ломается память. Три квартиры — это 3 даты оплаты, 3 договора и 3 комплекта счётчиков, которые помещаются в заметках телефона. Десять квартир — это 10 × 12 = 120 платежей в год, 20 ключей, 40 дат счётчиков и десяток продлений договоров, разбросанных по календарю. Ниже — три ошибки, через которые проходит почти каждый собственник на этом рубеже.</p>
+<p>Первая ошибка — единый «поток переписки». Все жильцы пишут в один мессенджер, и «здесь кран течёт» от «когда платить?» отличить можно только по дате и имени. Через месяц невозможно восстановить, кому обещали заменить смеситель и когда. Заявки и оплаты должны жить в разных потоках — иначе обещания теряются.</p>
+<p>Вторая ошибка — оплата «по переводу без графика». Когда платёж пришёл — значит, заплатил, но жильцы платят в разные даты и частями. Без графика на год вперёд собственник физически не может ответить на вопрос «кто следующий с просрочкой?» до момента, пока просрочка не случилась. А после — поздно: разговор о долге всегда конфликтнее напоминания до даты.</p>
+<p>Третья ошибка — документы «где-то в почте». Договор третьей квартиры ищут 20 минут, акты приёма-передачи не подписаны у двух, и при разъезде выясняется, что описи имущества нет. На одной квартире это неудобство, на десяти — системный риск: спор с жильцом без акта и описи выигрывается упорством, а не правотой.</p>
+<h2>Система из четырёх контуров: как держать 10 квартир под контролем</h2>
+<p>Оптимальная система управления 10 квартирами — это четыре контура с одинаковым принципом: у каждой квартиры единая карточка, из которой видны платежи, заявки, документы и даты. Не десять папок и не таблица с горизонтальной прокруткой, а одна запись «квартира — жилец — платежи — документы», где связи не нужно поддерживать руками — как устроено <a href="/features/upravlenie-nedvizhimostyu" data-discover="true">управление несколькими объектами</a> в Arendora. Вот из чего состоит каждый контур.</p>
+<p>Контур 1 — деньги. График платежей строится на 12 месяцев одной кнопкой, каждый платёж привязан к квартире и жильцу, просрочка подсвечивается автоматически, а напоминание уходит жильцу до даты оплаты, а не после. Вручную остаётся только раз в неделю просмотреть ленту поступлений — 10–15 минут на весь портфель.</p>
+<p>Контур 2 — заявки. Каждое «течёт кран» фиксируется как заявка с датой, статусом и исполнителем. Не в переписке, а в карточке квартиры. Через полгода у вас статистика: какая квартира генерирует заявки чаще, сколько стоил ремонт каждой — данные для разговора о ставке и для решения, кто должен делать ремонт по договору.</p>
+<p>Контур 3 — документы. Договор, акт, опись, расписка — все в карточке квартиры, новый договор по шаблону с защитными пунктами занимает вечер, а не выходные. При разъезде документы поднимаются за минуту — это то, что отличает управляемый портфель от «всё в почте».</p>
+<p>Контур 4 — календарь дат. Продления договоров, окончания страховых полисов, плановые проверки квартир — все даты в одном календаре с напоминаниями заранее. Рост портфеля разрушает именно этот контур: даты не горят красным в голове сами.</p>
+<h2>Какие инструменты нужны для управления несколькими квартирами?</h2>
+<p>Минимальный набор — четыре инструмента: система учёта платежей (обязана строить график и напоминать сама), канал заявок с историей, хранилище документов по квартирам и календарь дат. Сравнение классов решений — в таблице.</p>
+<p>| Класс решения | Сильная сторона | Ограничение | Кому подходит |
+|---|---|---|---|
+| Excel / Google Таблицы | Бесплатно, любой формат | Нет напоминаний, связей и статусов; всё руками | 1–3 квартиры, дисциплина ежедневного ввода |
+| Заметки + мессенджер | Ноль затрат, старт мгновенный | История теряется, даты не контролируются | Стартовая точка, не система |
+| Облачный SaaS для аренды | График платежей, напоминания, заявки и документы в одном окне | Подписка от 990 ₽/мес | 4+ квартиры — точка, где рутина дороже подписки |
+| Системы для УК | Роли, порталы, интеграции | Избыточны и дороги для частного портфеля | 100+ объектов, штат |</p>
+<p>Порог «когда таблица перестаёт справляться» у всех наступает в разный момент, но по одной причине: времени на ручную сверку становится больше, чем стоит подписка. В таблице тарифов Arendora ступени идут по числу объектов: Start на 4 объекта — 990 ₽/мес, Pro на 8 — 2 990 ₽/мес, Business на 14 — 7 990 ₽/мес, для более крупных портфелей — индивидуальные условия (цены — <a href="https://arendora.ru/tariffs?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kak-upravlyat-10-kvartirami" target="_blank" rel="noopener noreferrer">по странице тарифов</a>). Десять квартир попадают в Business — и это осознанный рубеж: на этом объёме система уже не «удобство», а условие управляемости.</p>
+<h2>Экономика: что вы контролируете и сколько это стоит</h2>
+<p>Прямой ответ: десять средних квартир — это 3–4 млн ₽ арендных платежей в год под вашим контролем, и цена ошибки измеряется не подпиской, а одной просрочкой или пустым месяцем.</p>
+<p>Средняя ставка аренды однокомнатной квартиры по России во II квартале 2026 года — около 37 тыс. ₽/мес (Интерфакс). Возьмём консервативно 30 тыс.: десять квартир приносят 300 тыс. ₽/мес, или 3,6 млн ₽ в год. Одна непрослеженная просрочка длительностью в месяц при той же ставке — минус 30 тыс. ₽, эквивалент нескольких лет подписки Business. А одна квартира, простоявшая месяц между жильцами без готового объявления и проверки нового нанимателя, — ещё минус 30 тыс.; система проверки жильца за 20 минут описана в <a href="/blog/kak-proverit-kvartiranta-pered-sdachey" data-discover="true">статье о проверке перед сдачей</a>.</p>
+<p>Отдельно — налоговый контур, о котором на портфеле забывают чаще всего: лимит дохода самозанятого — 2,4 млн ₽ в год (ФНС, режим НПД по 422-ФЗ). Десять квартир с консервативной ставкой 30 тыс. дают 3,6 млн ₽ в год: при этой ставке лимит пробивает седьмой объект, при средней по рынку 37 тыс. — уже шестой. То есть на десяти квартирах вы почти наверняка переходите на ИП, и учёт платежей нужен не только для контроля жильцов, но и для отчётности. Разбор режимов — в <a href="/blog/nalogi-so-sdachi-kvartiry" data-discover="true">статье о налогах со сдачи квартиры</a>.</p>
+<p>Второй экономический аргумент за систему — индексация: повышение ставки на 5% при аренде 30 тыс. ₽ даёт 18 тыс. ₽ в год с одной квартиры. Если продления договоров разбросаны по календарю без напоминаний, часть квартир просто пропускает окно пересмотра. Механика — в <a href="/blog/indeksaciya-arendnoy-platy" data-discover="true">статье об индексации арендной платы</a>.</p>
+<h2>Как запустить систему за один вечер: чек-лист</h2>
+<p>Запуск системы на 10 квартирах — один вечер. Ниже — минимальная последовательность, которую можно пройти без помощников.</p>
+<ol>
+<li>Заведите карточку каждой квартиры: адрес, жилец, ставка, даты договора. В Arendora — регистрация и <a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kak-upravlyat-10-kvartirami" target="_blank" rel="noopener noreferrer">демо-данные в один клик</a>, свои объекты загружаются из CSV.</li>
+<li>Постройте график платежей на 12 месяцев для каждой квартиры — одной кнопкой, а не десятью строками руками.</li>
+<li>Включите напоминания жильцам до даты оплаты и статус «просрочено» — дальше этот контур работает сам.</li>
+<li>Сложите в карточки договоры, акты и опись имущества — хотя бы фотографиями.</li>
+<li>Назначьте еженедельный ритуал: 15 минут на ленту платежей и заявок. Всё остальное система делает сама.</li>
+</ol>
+<h2>Частые вопросы</h2>
+<h3>Можно ли одному справляться с 10 квартирами без управляющего?</h3>
+<p>Да, если рутина автоматизирована: график платежей, напоминания и статусы просрочек делает сервис, а человек контролирует. Ручной режим — 15–25 часов в месяц (оценка), система сжимает его до 2–4 часов.</p>
+<h3>Нужна ли CRM, если квартир всего 5?</h3>
+<p>На 5 квартирах система уже окупает время: сверка и напоминания вручную — 8–12 часов в месяц против подписки от 990 ₽/мес. Точка перелома у большинства — 4–6 объектов: дальше каждый новый объект добавляет не «ещё одну квартиру», а ещё 12 платежей и 2 комплекта документов в год.</p>
+<h3>Как не забывать про продления договоров?</h3>
+<p>Перенести даты в календарь с напоминаниями за 30–60 дней — в карточке квартиры. Тогда окно пересмотра ставки не пропускается: механика — в статье об <a href="/blog/indeksaciya-arendnoy-platy" data-discover="true">индексации арендной платы</a>.</p>
+<h3>Что делать, если из 10 квартир одна перестала платить?</h3>
+<p>Действовать по протоколу, а не по настроению: напоминание в день просрочки, разговор с фиксацией договорённости, при системном нарушении — по <a href="/blog/chto-delat-esli-kvartirant-ne-platit" data-discover="true">плану действий, если квартирант не платит</a> — от претензии до судебного приказа. Статус просрочки в системе фиксирует даты — они пригодятся и в суде.</p>
+<h3>Сколько объектов вмещают тарифы Arendora?</h3>
+<p>Ступени идут по числу объектов: Start — 4, Pro — 8, Business — 14, свыше — индивидуальные условия. Актуальные цены — на <a href="https://arendora.ru/tariffs?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kak-upravlyat-10-kvartirami" target="_blank" rel="noopener noreferrer">странице тарифов</a>. Десять квартир — это Business; для портфеля 5–8 — Pro.</p>
+<h3>С чего начать, если всё сейчас ведётся в мессенджере?</h3>
+<p>С платежей: это контур с самым дорогим ценником ошибки. Заведите квартиры и графики, включите напоминания — мессенджер останется для живого общения, а даты и суммы перестанут зависеть от вашей памяти. Список задач автоматизации по этапам — в <a href="/blog/kak-avtomatizirovat-sdachu-kvartiry" data-discover="true">статье об автоматизации сдачи</a>.</p>
+<h2>Итог</h2>
+<p>10 квартир под контролем — это не «сильный характер», а четыре контура: платежи с графиком на год и напоминаниями, заявки с историей, документы в карточке квартиры, календарь дат с напоминаниями заранее. Ручной режим на этом объёме — 15–25 часов в месяц (оценка), система — пара часов. Экономика простая: портфель из 10 квартир — 3–4 млн ₽ платежей в год, и одна непрослеженная просрочка стоит дороже года подписки. Проверьте на своём портфеле: <a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kak-upravlyat-10-kvartirami" target="_blank" rel="noopener noreferrer">регистрация в Arendora</a> занимает 15 минут, демо-данные показывают систему на примере 8 объектов ещё до загрузки ваших.</p>
+&lt;div class="mt-12 rounded-lg border bg-card p-6"&gt;&lt;p class="font-bold"&gt;Попробуйте Arendora бесплатно&lt;/p&gt;&lt;p class="mt-1 text-sm text-muted-foreground"&gt;Бесплатный старт без банковской карты. Демо-данные в один клик — посмотрите систему на 8 объектах до загрузки своих.&lt;/p&gt;&lt;p class="mt-4"&gt;&lt;a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kak-upravlyat-10-kvartirami"&gt;Попробовать бесплатно →&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;</div><div class="mt-12 rounded-lg border bg-card p-6"><p class="font-bold">Попробуйте Arendora бесплатно</p><p class="mt-1 text-sm text-muted-foreground">1 объект и 1 арендатор — бесплатно и навсегда. Демо-данные в один клик.</p><button class="inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 brand-gradient text-white shadow-sm hover:opacity-90 h-10 px-4 py-2 mt-4"><a href="/register" data-discover="true">Попробовать бесплатно<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></button><p class="mt-3 text-sm text-muted-foreground"><a href="/tariffs" class="text-primary hover:underline">Сравнить тарифы</a></p></div><div class="mt-10"><h2 class="text-lg font-bold">Другие материалы</h2><div class="mt-4 grid gap-4 sm:grid-cols-2"><a href="/blog/uvedomlenie-o-vyezde-zhiltsa" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Уведомление о выезде жильца: образец и порядок вручения</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Уведомление о выезде жильца: каркас документа, сроки предупреждения по ст. 687 ГК РФ и вручение по ст. 165.1 ГК РФ.</p></div></a><a href="/blog/opis-imushchestva-pri-sdache" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Опись имущества при сдаче квартиры: образец и как составить</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Опись имущества при сдаче квартиры: образец таблицы — позиции, состояние, дефекты, серийные номера, фото. Связь с залогом и актом возврата.</p></div></a></div></div></article></div><button class="fixed bottom-6 right-4 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110 sm:flex" title="Чат поддержки" aria-label="Чат поддержки"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle h-7 w-7 text-white"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg><span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-60"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span></span></button><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Только строго необходимые cookie и локальные хранилища: вход в аккаунт и ваши настройки — без рекламы и трекинга. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      // Ограниченные контексты Safari (приватный режим, запрет cookie): пока
+      // приложение не смонтировалось — SecurityError фатальны, показываем
+      // плашку (диагностика краша iOS). После монтирования интерфейса те же
+      // ошибки — асинхронные хвосты деградировавшего realtime/хранилищ:
+      // приложение живо и работает без live-обновлений, плашка не нужна.
+      function pmAppAlive() {
+        var root = document.getElementById("root");
+        return !!(root && root.childElementCount);
+      }
+      function pmBenign(text) {
+        return /^SecurityError/.test(text) && pmAppAlive();
+      }
+      window.addEventListener("error", (e) => {
+        if (pmBenign(e.message || "")) {
+          console.warn("pm: нефатальная SecurityError (приложение работает):", e.message);
+          return;
+        }
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        var reason = e.reason?.message || String(e.reason);
+        if (pmBenign(reason)) {
+          console.warn("pm: нефатальная SecurityError (rejection, приложение работает):", reason);
+          return;
+        }
+        pmShowFatal("REJ", reason);
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм
+      // счётчика (решение NT-001 Р4 от 2026-11-01, вариант B: статических
+      // тегов tag.js в шаблоне нет и быть не должно). ID подставляется на
+      // этапе сборки из переменной окружения VITE_YANDEX_METRICA_ID (см.
+      // vite.config.js); пока он не задан, счётчик не подключается вовсе:
+      // ни очереди ym, ни запросов к mc.yandex.ru (важно для dev и e2e).
+      // При отказе от cookie в баннере счётчик не подключается со
+      // следующего посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+
+  
+
+</body></html>

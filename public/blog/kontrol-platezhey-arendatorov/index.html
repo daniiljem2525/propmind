@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="ru"><head><script crossorigin="anonymous" src="https://mc.yandex.ru/metrika/tag_phono.js" type="text/javascript" charset="utf-8" async=""></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Система контроля арендных платежей: график на год, напоминания до даты оплаты, фиксация поступлений, протокол действий при просрочке. Шаблон таблицы платежей и ошибки, которые стоят денег.">
+    <meta name="theme-color" content="#0F766E">
+    <!-- Большие превью картинок в выдаче, Ленсе и AI-ответах Google -->
+    <meta name="robots" content="max-image-preview:large">
+    <!-- https://arendora.ru/ и / заменяются на этапе сборки (vite.config.js) -->
+    <link rel="canonical" href="https://arendora.ru/blog/kontrol-platezhey-arendatorov">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://arendora.ru/blog/kontrol-platezhey-arendatorov">
+    <meta property="og:image" content="https://arendora.ru/img/og/kontrol-platezhey-arendatorov.jpg">
+    <meta property="og:image:width" content="1406">
+    <meta property="og:image:height" content="1120">
+    <meta property="og:image:alt" content="Дашборд Arendora: объекты, платежи и заявки в одном окне">
+    <meta name="twitter:image" content="https://arendora.ru/img/og/kontrol-platezhey-arendatorov.jpg">
+    <meta property="og:site_name" content="Arendora">
+    <meta property="og:title" content="Как контролировать платежи арендаторов и не терять деньги — Arendora">
+    <meta property="og:description" content="Система контроля арендных платежей: график на год, напоминания до даты оплаты, фиксация поступлений, протокол действий при просрочке. Шаблон таблицы платежей и ошибки, которые стоят денег.">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Arendora — управление недвижимостью без головной боли">
+    <meta name="twitter:description" content="Запуск за 15 минут. Автосвязывание объектов, арендаторов и платежей. Бесплатно: 1 объект, 1 арендатор.">
+    <title>Как контролировать платежи арендаторов и не терять деньги — Arendora</title>
+    <!-- Разметка сущностей для Google/Яндекс. FAQPage и HowTo убраны: Google
+         полностью отключил их rich-результаты (FAQ — в мае 2026), пользы ноль,
+         а тексты дублировали лендинг и требовали синхронизации.
+         Важно: aggregateRating в SoftwareApplication добавлять только при
+         появлении настоящих оценок пользователей — вымышленные караются. -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "logo": "https://arendora.ru/icon-512.png",
+          "email": "support@arendora.ru",
+          "contactPoint": {
+            "@type": "ContactPoint",
+            "contactType": "customer support",
+            "email": "support@arendora.ru",
+            "availableLanguage": ["ru", "en"]
+          }
+        },
+        {
+          "@type": "WebSite",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "inLanguage": ["ru", "en"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "name": "Arendora",
+          "url": "https://arendora.ru/",
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "inLanguage": ["ru", "en"],
+          "description": "Облачная платформа управления недвижимостью: объекты, арендаторы, платежи, заявки, документы и аналитика. Связи создаются автоматически.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "description": "Тариф Free: бесплатно 1 объект, 1 арендатор"
+          },
+          "featureList": "Автосвязывание объектов, арендаторов и платежей; график платежей на год; напоминания об оплатах; заявки жильцов с фото и статусами; инспекции объектов с чек-листами (работают офлайн); роли и права доступа — собственник, управляющий, бухгалтер, подрядчик (тариф Бизнес); документы; аналитика доходов"
+        }
+      ]
+    }
+    </script>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Arendora">
+    <link rel="icon" type="image/svg+xml" href="/icon.svg">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%230F766E'/%3E%3Cstop offset='1' stop-color='%2314B8A6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Cpath d='M9 23V13l7-5 7 5v10h-4.5v-6h-5v6z' fill='white'/%3E%3C/svg%3E">
+    <!-- favicon.ico нужен Яндексу: он показывает фавикон в выдаче,
+         читая только /favicon.ico, а не SVG -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48">
+    <script type="module" crossorigin="" src="/assets/index-DPRkO89V.js"></script>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-CO4VS9M-.css">
+  <script async="" src="https://mc.yandex.ru/metrika/tag.js?id=113900461"></script><script type="application/ld+json" data-page-json-ld="1">{"@context":"https://schema.org","@graph":[{"@type":"Article","headline":"Как контролировать платежи арендаторов и не терять деньги","description":"Система контроля арендных платежей: график на год, напоминания до даты оплаты, фиксация поступлений, протокол действий при просрочке. Шаблон таблицы платежей и ошибки, которые стоят денег.","image":"https://arendora.ru/img/og/kontrol-platezhey-arendatorov.jpg","datePublished":"2026-11-14","dateModified":"2026-11-14","inLanguage":"ru","author":{"@type":"Organization","name":"Arendora","url":"https://arendora.ru/"},"publisher":{"@type":"Organization","name":"Arendora","logo":"https://arendora.ru/icon-192.png"}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Arendora","item":"https://arendora.ru/"},{"@type":"ListItem","position":2,"name":"Блог Arendora","item":"https://arendora.ru/blog"},{"@type":"ListItem","position":3,"name":"Как контролировать платежи арендаторов и не терять деньги"}]}]}</script></head>
+  <body>
+    <div id="root"><div class="min-h-screen bg-background"><article class="mx-auto max-w-3xl px-4 py-14 lg:px-8"><div class="flex items-center justify-between gap-2"><a class="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground" href="/blog" data-discover="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-left h-4 w-4"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg>Ко всем материалам</a><button title="Тема" aria-label="Тема" class="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon h-4 w-4"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path></svg></button></div><h1 class="mt-6 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">Как контролировать платежи арендаторов и не терять деньги</h1><p class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground"><span class="inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-calendar-days h-4 w-4"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg>Обновлено 14 ноября 2026 г.</span><span>7 мин чтения · <a class="transition-colors hover:text-foreground" href="/" data-discover="true">Arendora</a></span></p><div class="prose-p:leading-relaxed mt-8 space-y-4 text-[15px] leading-relaxed [&amp;_a]:text-primary [&amp;_h2]:mt-8 [&amp;_h2]:text-2xl [&amp;_h2]:font-bold [&amp;_h3]:mt-6 [&amp;_h3]:text-xl [&amp;_h3]:font-bold [&amp;_li]:ml-5 [&amp;_li]:list-disc [&amp;_strong]:font-bold"><p>Опубликовано 14 ноября 2026 г. · Обновлено 14 ноября 2026 г.</p>
+<p>Контроль платежей арендаторов — это четыре вещи: график платежей на год вперёд, напоминание жильцу до даты оплаты, фиксация каждого поступления против графика и заранее известный протокол действий при просрочке. Деньги теряются не на «злых» жильцах, а на разрывах в этой цепочке: платёж не напомнили, поступление не сверили, просрочку заметили через неделю. Разбираем каждый разрыв и даём шаблон таблицы.</p>
+<p>Автор: Максим Ветров, директор по SEO Arendora. Ведёт контент и органический рост сервиса управления арендой с 2026 года.</p>
+<h2>Что входит в контроль арендных платежей</h2>
+<p>Контроль арендных платежей — это замкнутый цикл из четырёх шагов: построить график на 12 месяцев, напомнить жильцу до даты, сверить поступление с графиком в день оплаты и отреагировать на отклонение в тот же день. Каждый шаг закрывает конкретный разрыв, через который утекают деньги: без графика непонятно, кто и когда должен; без напоминаний просрочка случается «сама»; без сверки недоплата в 3 000 ₽ растворяется среди переводов; без протокола первая просрочка превращается в хроническую.</p>
+<p>Почему тема актуальна именно сейчас: наниматели в мегаполисах тратят в среднем 34% дохода на аренду (Циан, март 2026). При такой нагрузке любая задержка зарплаты у жильца почти гарантированно сдвигает и арендный платёж — и вопрос лишь в том, узнаете вы об этом в день оплаты или через три недели, когда сумма станет привычной.</p>
+<h2>Почему напоминание до даты работает лучше разбора после?</h2>
+<p>Напоминание до даты — единственный элемент контроля, который предотвращает просрочку, а не фиксирует её. Жильцы забывают платить не со зла: у нанимателя десяток регулярных платежей, и аренда без напоминания проигрывает тому, что напомнило. Сообщение «напоминаю: 5-го аренда 32 000 ₽, как в договоре» за день до срока — это две минуты вашего времени и минус один разговор о долге в следующем месяце.</p>
+<p>Разбор после — это уже конфликт, даже если начинать мягко. День 1 просрочки — это недоразумение, день 10 — проблема, день 30 — спор с юридическим оттенком, где без зафиксированных дат разговор сводится к «я же собирался заплатить». Если вы ведёте <a href="/features/uchet-platezhey" data-discover="true">учёт платежей с автоматическими напоминаниями</a>, сообщение уходит до даты без вашего участия, а статус «просрочено» проставляется сам — вы видите проблему в первый день, а не в первый спор.</p>
+<p>Практическая частота: одно напоминание за 1–2 дня до даты плюс подтверждение при получении платежа. Больше — уже навязчивость, меньше — контроль превращается в лотерею.</p>
+<h2>Как выстроить контроль платежей: 5 шагов</h2>
+<p>Система контроля платёжеспособна, когда она не зависит от вашей памяти. Пять шагов ниже переводят оплату квартиры из «повезёт-не-повезёт» в управляемый процесс — настройка занимает один вечер, дальше работает сама.</p>
+<p><strong>Шаг 1. Постройте график платежей на год.</strong> Дата, сумма, коммунальные отдельно или вместе. График на 12 месяцев сразу показывает пересечения: отпуск квартиры, даты индексации, окончания договоров. Вручную это строка в таблице; в <a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kontrol-platezhey-arendatorov" target="_blank" rel="noopener noreferrer">Arendora график строится одной кнопкой</a> и привязывается к квартире и жильцу.</p>
+<p><strong>Шаг 2. Зафиксируйте в договоре дату, способ и последствия.</strong> Точная дата (не «до конца первой недели»), способ оплаты и неустойка за просрочку. Если договора с таким пунктом нет — возьмите <a href="/magnit-dogovor" data-discover="true">шаблон договора найма с защитными пунктами</a> и закройте этот пробел до следующего продления.</p>
+<p><strong>Шаг 3. Включите напоминания жильцам до даты.</strong> Автоматические, до даты оплаты. Настроить один раз — дальше контур работает сам; детали механики — в <a href="/features/napominaniya" data-discover="true">разделе про напоминания</a>.</p>
+<p><strong>Шаг 4. Сверяйте поступления с графиком, а не с памятью.</strong> Каждое поступление — против строки графика. Ручной режим: таблица-шаблон ниже. Системный: платёж подсвечивается и связывается с квартирой сам, недоплата видна в первый день.</p>
+<p><strong>Шаг 5. Действуйте по протоколу просрочки.</strong> Напоминание в день просрочки → разговор с фиксацией договорённости → при повторении — <a href="/blog/chto-delat-esli-kvartirant-ne-platit" data-discover="true">план от претензии до судебного приказа</a>. Протокол известен вам заранее, поэтому реакция быстрая и без эмоций.</p>
+<h3>Шаблон таблицы платежей (для ручного учёта)</h3>
+<p>| Дата по графику | Сумма | Статус | Способ | Подтверждение | Комментарий |
+|---|---|---|---|---|---|
+| 05.12.2026 | 32 000 ₽ | оплачено | карта | скрин перевода | — |
+| 05.01.2027 | 32 000 ₽ | просрочено (2 дня) | — | — | напоминание от 03.01 |
+| 05.02.2027 | 32 000 ₽ | ожидается | — | — | — |</p>
+<p>Такую таблицу можно скопировать в Excel — она лучше пустого списка переводов тем, что держит дату напоминания и подтверждение рядом с суммой. Ограничение то же, что у любого ручного учёта: строки не напомнят сами, и статус «просрочено» появится, только когда вы вспомните его поставить.</p>
+<h2>Наличные, переводы и расписки: как не потерять доказательства</h2>
+<p>Способ оплаты определяет, чем вы докажете факт оплаты при споре. Карточный перевод с назначением платежа — самодоказательство: в выписке есть дата, сумма и отправитель. Наличные доказывает только расписка: бумага с датой, суммой, подписью жильца; готовый образец — в <a href="/blog/raspiska-za-arendu-obrazec" data-discover="true">статье о расписке за аренду</a>. Если жилец настаивает на наличных «чтобы не возиться», это повод пересмотреть договорённость: для вас наличный платёж без расписки юридически не существует.</p>
+<p>Практика для гибрида «перевод + наличные за коммуналку»: в таблице платежей каждое поступление сопровождается подтверждением — скриншот, номер чека, номер расписки. Через год у вас на каждую из 12 строк есть артефакт — это и есть разница между «мы всегда так платили» и документом.</p>
+<p>Отдельно про залог: он страхует не только ущерб, но и последний месяц при разъезде с долгами. Сколько брать и как сформулировать — в <a href="/blog/skolko-brat-zalog-kvartiry" data-discover="true">статье о размере залога</a>; коротко — залог размером в месяц аренды покрывает и недоплату, и типовой ущерб без отдельного взыскания.</p>
+<h2>Что делать при просрочке: протокол первых трёх дней</h2>
+<p>Протокол просрочки нужен потому, что в день просрочки эмоции заменяют процесс. Правильная последовательность короткая: день 1 — напоминание без обвинений («платёж 5-го не пришёл, всё ли в порядке?»); день 3 — если тишина, письменная фиксация договорённости о дате погашения; день 10 — претензия по договору. Систематические невыплаты — основание для расторжения договора, но только при зафиксированных датах: как проходит эта процедура по закону, разобрано в <a href="/blog/kak-vyselit-kvartiranta-zakonno" data-discover="true">статье о законном выселении квартиранта</a>.</p>
+<p>Почему фиксировать с первого дня: судебный приказ по долгу признаёт доказательства — договор, график, переписку, выписку. Переписка «ну ты же обещал на прошлой неделе» не является доказательством даты; сообщение с конкретной суммой и датой погашения — становится. Система учёта делает фиксацию автоматически: статус «просрочено» с датой появляется сам, и вам не нужно вести параллельный журнал конфликтов.</p>
+<p>И последнее: если просрочки стали регулярными, проверьте не только жильца, но и ставку. Возможно, она не соответствует рынку, и <a href="/blog/indeksaciya-arendnoy-platy" data-discover="true">индексация по правилам договора</a> вернёт платёжеспособность быстрее, чем поиск нового нанимателя с пустым месяцем посередине.</p>
+<h2>Частые вопросы</h2>
+<h3>Как контролировать оплату аренды, если жильцов несколько и платят в разные даты?</h3>
+<p>Единый график на все квартиры с датами, суммами и статусами — один экран вместо десяти чатов. Автоматические напоминания уходят каждому жильцу по его дате, а просрочки подсвечиваются в день наступления, независимо от того, помните вы о ней или нет.</p>
+<h3>Напоминать об оплате — не слишком ли навязчиво?</h3>
+<p>Одно напоминание за 1–2 дня до даты — это сервис, а не давление: нанимателю удобно получить конкретную сумму и дату. Навязчивость начинается со второго-третьего сообщения до срока; подтверждение получения платежа — уместно всегда.</p>
+<h3>Что делать, если жилец платит частями?</h3>
+<p>Фиксировать частичные платежи против строки графика с остатком долга — иначе через месяц никто не вспомнит, сколько ещё должен жилец. В договоре стоит оговорить, что частичная оплата не считается полной: формулировка есть в <a href="/magnit-dogovor" data-discover="true">шаблоне договора</a>.</p>
+<h3>Можно ли принимать наличные?</h3>
+<p>Можно, но только под расписку с датой, суммой и подписью — иначе доказательства оплаты нет. Для регулярных платежей удобнее перевод: он создаёт доказательство сам, а у вас остаётся время для квартир, а не для кассовых документов.</p>
+<h3>Как считается просрочка, если дата выпала на выходной?</h3>
+<p>Дату оплаты фиксируйте в договоре явно: «5-е число месяца» или «не позднее следующего рабочего дня после 5-го». Вторая формулировка снимает спор «я платил 6-го, потому что 5-е — суббота». Дальше статус просрочки система проставит по той же логике, что прописана в договоре.</p>
+<h3>Когда просрочка становится поводом для расторжения?</h3>
+<p>Систематические невыплаты — правовое основание для расторжения, но процедура требует зафиксированных дат нарушений и соблюдения порядка уведомления. Пошагово — в статье о том, <a href="/blog/kak-vyselit-kvartiranta-zakonno" data-discover="true">как выселить квартиранта законно</a>; без зафиксированной истории просрочек этот путь не работает.</p>
+<h2>Итог</h2>
+<p>Контроль платежей — это не «следить за жильцами», а замкнутый цикл: график на год → напоминание до даты → сверка поступлений → протокол при отклонении. Каждый разрыв цикла стоит денег: неподпомненная дата — просрочка, несверенное поступление — потерянная недоплата, несфиксированная договорённость — проигранный спор. Настроить цикл можно за вечер: <a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kontrol-platezhey-arendatorov" target="_blank" rel="noopener noreferrer">регистрация в Arendora</a>, график платежей на 12 месяцев, автоматические напоминания — и рутину контроля забирает сервис, а у вас остаётся один взгляд в неделю на статусы.</p>
+&lt;div class="mt-12 rounded-lg border bg-card p-6"&gt;&lt;p class="font-bold"&gt;Попробуйте Arendora бесплатно&lt;/p&gt;&lt;p class="mt-1 text-sm text-muted-foreground"&gt;График платежей на год, напоминания жильцам и статус «просрочено» — автоматически. Бесплатный старт без банковской карты.&lt;/p&gt;&lt;p class="mt-4"&gt;&lt;a href="https://arendora.ru/register?utm_source=seo&amp;utm_medium=article&amp;utm_campaign=kontrol-platezhey-arendatorov"&gt;Попробовать бесплатно →&lt;/a&gt;&lt;/p&gt;&lt;/div&gt;</div><div class="mt-12 rounded-lg border bg-card p-6"><p class="font-bold">Попробуйте Arendora бесплатно</p><p class="mt-1 text-sm text-muted-foreground">1 объект и 1 арендатор — бесплатно и навсегда. Демо-данные в один клик.</p><button class="inline-flex select-none items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 brand-gradient text-white shadow-sm hover:opacity-90 h-10 px-4 py-2 mt-4"><a href="/register" data-discover="true">Попробовать бесплатно<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-arrow-right h-4 w-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a></button><p class="mt-3 text-sm text-muted-foreground"><a href="/tariffs" class="text-primary hover:underline">Сравнить тарифы</a></p></div><div class="mt-10"><h2 class="text-lg font-bold">Другие материалы</h2><div class="mt-4 grid gap-4 sm:grid-cols-2"><a href="/blog/uvedomlenie-o-vyezde-zhiltsa" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Уведомление о выезде жильца: образец и порядок вручения</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Уведомление о выезде жильца: каркас документа, сроки предупреждения по ст. 687 ГК РФ и вручение по ст. 165.1 ГК РФ.</p></div></a><a href="/blog/kak-upravlyat-10-kvartirami" data-discover="true"><div class="rounded-lg border bg-card text-card-foreground shadow-card h-full p-4 transition-shadow hover:shadow-card-hover"><p class="text-sm font-bold leading-snug">Как управлять 10 квартирами одновременно: система, инструменты, ошибки</p><p class="mt-2 line-clamp-2 text-xs leading-relaxed text-muted-foreground">Система управления 10 квартирами: сколько времени уходит, что ломается на росте с 3 до 10 объектов, какие инструменты нужны и как посчитать экономику. Таблица нагрузки и чек-лист запуска.</p></div></a></div></div></article></div><button class="fixed bottom-6 right-4 z-50 hidden h-14 w-14 items-center justify-center rounded-full bg-primary shadow-lg transition-all hover:scale-110 sm:flex" title="Чат поддержки" aria-label="Чат поддержки"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-circle h-7 w-7 text-white"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"></path></svg><span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute h-full w-full rounded-full bg-emerald-400 opacity-60"></span><span class="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span></span></button><div role="dialog" aria-live="polite" aria-label="Мы используем cookie." class="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"><div class="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-cookie h-5 w-5 shrink-0 text-primary" aria-hidden="true"><path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5"></path><path d="M8.5 8.5v.01"></path><path d="M16 15.5v.01"></path><path d="M12 12v.01"></path><path d="M11 17v.01"></path><path d="M7 14v.01"></path></svg><p class="flex-1 text-sm text-muted-foreground"><span class="font-medium text-foreground">Мы используем cookie. </span>Только строго необходимые cookie и локальные хранилища: вход в аккаунт и ваши настройки — без рекламы и трекинга. Подробнее в <a class="text-primary hover:underline" href="/cookies" data-discover="true">Политике cookie</a>.</p><div class="flex shrink-0 gap-2"><button class="rounded-lg border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted">Отклонить</button><button class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90">Принять</button></div></div></div><div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex w-full max-w-sm flex-col gap-2"></div></div>
+    <script>
+      // Мини-мониторинг: фатальная ошибка видна в заголовке вкладки
+      // и прямо на экране загрузки (если приложение не смонтировалось)
+      function pmShowFatal(kind, text) {
+        document.title = kind + ": " + text;
+        var old = document.getElementById("pm-fatal");
+        if (old) old.remove();
+        var el = document.createElement("div");
+        el.id = "pm-fatal";
+        el.style.cssText =
+          "position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;" +
+          "background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;" +
+          "font:12px/1.5 monospace;padding:12px;border-radius:8px;word-break:break-all;max-height:45vh;overflow:auto";
+        el.innerHTML = "<b>" + kind + "</b><br>" + text;
+        document.body.appendChild(el);
+      }
+      // Ограниченные контексты Safari (приватный режим, запрет cookie): пока
+      // приложение не смонтировалось — SecurityError фатальны, показываем
+      // плашку (диагностика краша iOS). После монтирования интерфейса те же
+      // ошибки — асинхронные хвосты деградировавшего realtime/хранилищ:
+      // приложение живо и работает без live-обновлений, плашка не нужна.
+      function pmAppAlive() {
+        var root = document.getElementById("root");
+        return !!(root && root.childElementCount);
+      }
+      function pmBenign(text) {
+        return /^SecurityError/.test(text) && pmAppAlive();
+      }
+      window.addEventListener("error", (e) => {
+        if (pmBenign(e.message || "")) {
+          console.warn("pm: нефатальная SecurityError (приложение работает):", e.message);
+          return;
+        }
+        pmShowFatal("ERR", e.message + " @ " + (e.filename || "").split("/").pop() + ":" + e.lineno);
+      });
+      window.addEventListener("unhandledrejection", (e) => {
+        var reason = e.reason?.message || String(e.reason);
+        if (pmBenign(reason)) {
+          console.warn("pm: нефатальная SecurityError (rejection, приложение работает):", reason);
+          return;
+        }
+        pmShowFatal("REJ", reason);
+      });
+    </script>
+    <script>
+      // Тема до монтирования React: иначе у выбравших тёмную тему
+      // при каждой загрузке светлая оболочка мигает на мгновение.
+      // Ключ повторяет KEY в src/lib/theme.jsx.
+      try {
+        if (localStorage.getItem("arendora:theme") === "dark") {
+          document.documentElement.classList.add("dark");
+          var splash = document.getElementById("boot-splash");
+          if (splash) {
+            splash.style.background = "#1E293B";
+            var t = splash.querySelector("div:nth-child(2)");
+            if (t) t.style.color = "#F1F5F9";
+            var spin = splash.querySelector("div:nth-child(3)");
+            if (spin) {
+              spin.style.borderColor = "#334155";
+              spin.style.borderTopColor = "#2DD4BF";
+            }
+          }
+        }
+      } catch (e) {}
+    </script>
+    <script>
+      // Яндекс.Метрика. Consent-aware загрузчик — единственный механизм
+      // счётчика (решение NT-001 Р4 от 2026-11-01, вариант B: статических
+      // тегов tag.js в шаблоне нет и быть не должно). ID подставляется на
+      // этапе сборки из переменной окружения VITE_YANDEX_METRICA_ID (см.
+      // vite.config.js); пока он не задан, счётчик не подключается вовсе:
+      // ни очереди ym, ни запросов к mc.yandex.ru (важно для dev и e2e).
+      // При отказе от cookie в баннере счётчик не подключается со
+      // следующего посещения (ключ согласия повторяет KEY в CookieBanner.jsx).
+      (function () {
+        var id = "113900461".replace(/[^0-9]/g, "");
+        if (!id) return;
+        // Ключ повторяет KEY в CookieBanner.jsx.
+        try {
+          if (localStorage.getItem("arendora:cookie-consent") === "rejected")
+            return;
+        } catch (e) {}
+        // Очередь ym создаём сами ДО загрузки tag.js — по официальной схеме:
+        // tag.js сам window.ym не определяет и без очереди не инициализируется.
+        window.ym =
+          window.ym ||
+          function () {
+            (window.ym.a = window.ym.a || []).push(arguments);
+          };
+        window.ym.l = 1 * new Date();
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://mc.yandex.ru/metrika/tag.js?id=" + id;
+        document.head.appendChild(s);
+        // init попадает в очередь и исполняется, как только догрузится tag.js
+        window.ym(id, "init", {
+          clickmap: true,
+          trackLinks: true,
+          accurateTrackBounce: true,
+          webvisor: true,
+        });
+      })();
+    </script>
+
+  
+
+</body></html>

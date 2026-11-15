@@ -30,7 +30,20 @@ const blogDir = "content/blog";
 const blogSlugs = readdirSync(blogDir)
   .filter((f) => f.endsWith(".md"))
   .map((f) => "blog/" + f.replace(/\.md$/, ""));
-const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", ...blogSlugs];
+// CSS-only ретаргет: страницы без <script src> (чистая статика + inline-скрипты).
+// У них нет SPA-роутов/данных в бандле, поэтому JS-рендер им ничего не заменит —
+// но старый CSS-хэш мог быть вычищен из assets (инцидент 07.11, P0 2026-11-15:
+// 4 features-страницы и blog/programma-dlya-ucheta-arendy-kvartir с 404-CSS).
+// Ретаргет CSS безопасен: контент целиком в статическом HTML, JS не грузится.
+const CSS_ONLY_PAGES = [
+  "features/uchet-platezhey",
+  "features/napominaniya",
+  "features/zayavki-zhilcov",
+  "features/upravlenie-nedvizhimostyu",
+  "features/dlya-arendodatelya",
+  "blog/programma-dlya-ucheta-arendy-kvartir",
+];
+const PAGES = ["details", "privacy", "terms", "agreement", "payments", "consent", "cookies", "usepolicy", "login", "register", "blog", ...blogSlugs, ...CSS_ONLY_PAGES];
 
 let fixed = 0;
 for (const p of PAGES) {

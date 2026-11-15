@@ -7,7 +7,7 @@
     <atom:link href="https://arendora.ru/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Как сдавать квартиру спокойно: жильцы, платежи, договоры, налоги и сервисы для арендодателей. Обновляется 2026-11-03.</description>
     <language>ru</language>
-    <lastBuildDate>Tue, 03 Nov 2026 20:44:26 GMT</lastBuildDate>
+    <lastBuildDate>Sun, 15 Nov 2026 19:35:50 +0000</lastBuildDate>
     
     <item>
       <title>Уведомление о выезде жильца: образец и порядок вручения</title>
@@ -232,6 +232,76 @@
       <guid>https://arendora.ru/blog/kak-avtomatizirovat-sdachu-kvartiry</guid>
       <pubDate>Sun, 01 Nov 2026 12:00:00 GMT</pubDate>
       <description>Что автоматизируется при сдаче квартиры: напоминания и просрочки, документы, заявки, аналитика — по подтверждённым функциям вендоров. С чего начать: три шага.</description>
+    </item>
+    <item>
+      <title>Найм и аренда: в чём разница</title>
+      <link>https://arendora.ru/blog/naym-ili-arenda-raznica</link>
+      <guid>https://arendora.ru/blog/naym-ili-arenda-raznica</guid>
+      <pubDate>Sun, 01 Nov 2026 12:00:00 +0000</pubDate>
+      <description>гл. 34 и 35 ГК РФ, сроки и регистрация, какой договор заключать и чем отличаются права сторон.</description>
+    </item>
+    <item>
+      <title>Кто платит коммуналку при сдаче квартиры</title>
+      <link>https://arendora.ru/blog/kto-platit-kommunalku-pri-sdache-kvartiry</link>
+      <guid>https://arendora.ru/blog/kto-platit-kommunalku-pri-sdache-kvartiry</guid>
+      <pubDate>Tue, 03 Nov 2026 12:00:00 +0000</pubDate>
+      <description>ст. 676 и 678 ГК РФ: что нельзя переложить на жильца, счётчики, капремонт, формулировка для договора.</description>
+    </item>
+    <item>
+      <title>Можно ли сдавать ипотечную квартиру</title>
+      <link>https://arendora.ru/blog/mozhno-li-sdat-ipotechnuyu-kvartiru</link>
+      <guid>https://arendora.ru/blog/mozhno-li-sdat-ipotechnuyu-kvartiru</guid>
+      <pubDate>Thu, 05 Nov 2026 12:00:00 +0000</pubDate>
+      <description>ст. 40 102-ФЗ: согласие банка, что проверить в кредитном договоре и последствия несогласованной сдачи.</description>
+    </item>
+    <item>
+      <title>Временная регистрация арендатора</title>
+      <link>https://arendora.ru/blog/vremennaya-registraciya-arendatora</link>
+      <guid>https://arendora.ru/blog/vremennaya-registraciya-arendatora</guid>
+      <pubDate>Sat, 07 Nov 2026 12:00:00 +0000</pubDate>
+      <description>обязан ли собственник оформлять регистрацию, штрафы по ст. 19.15.1 КоАП и порядок оформления.</description>
+    </item>
+    <item>
+      <title>Задаток, аванс и залог: в чём разница</title>
+      <link>https://arendora.ru/blog/zadatok-i-avans-pri-sdache-kvartiry</link>
+      <guid>https://arendora.ru/blog/zadatok-i-avans-pri-sdache-kvartiry</guid>
+      <pubDate>Sun, 08 Nov 2026 12:00:00 +0000</pubDate>
+      <description>ст. 380–381 ГК РФ: как работает задаток, что возвращается, когда положен двойной возврат.</description>
+    </item>
+    <item>
+      <title>Как сдать квартиру на Авито</title>
+      <link>https://arendora.ru/blog/kak-sdat-kvartiru-na-avito</link>
+      <guid>https://arendora.ru/blog/kak-sdat-kvartiru-na-avito</guid>
+      <pubDate>Wed, 11 Nov 2026 12:00:00 +0000</pubDate>
+      <description>объявление и фото, отбор откликов, показы и схемы мошенников — для собственника.</description>
+    </item>
+    <item>
+      <title>Учёт нескольких объектов недвижимости</title>
+      <link>https://arendora.ru/blog/uchet-neskolkih-obektov-nedvizhimosti</link>
+      <guid>https://arendora.ru/blog/uchet-neskolkih-obektov-nedvizhimosti</guid>
+      <pubDate>Thu, 12 Nov 2026 12:00:00 +0000</pubDate>
+      <description>что входит в карточку объекта, как меняется учёт с ростом портфеля и что отдать сервису.</description>
+    </item>
+    <item>
+      <title>Как организовать посуточную аренду</title>
+      <link>https://arendora.ru/blog/kak-organizovat-posutochnuyu-arendu</link>
+      <guid>https://arendora.ru/blog/kak-organizovat-posutochnuyu-arendu</guid>
+      <pubDate>Fri, 13 Nov 2026 12:00:00 +0000</pubDate>
+      <description>рынок и доходность 2026, подготовка квартиры и операционка посуточного формата.</description>
+    </item>
+    <item>
+      <title>Контроль платежей арендаторов</title>
+      <link>https://arendora.ru/blog/kontrol-platezhey-arendatorov</link>
+      <guid>https://arendora.ru/blog/kontrol-platezhey-arendatorov</guid>
+      <pubDate>Sat, 14 Nov 2026 12:00:00 +0000</pubDate>
+      <description>график на год, напоминания до даты оплаты, фиксация просрочек и план действий при долге.</description>
+    </item>
+    <item>
+      <title>Как управлять 10 квартирами одновременно</title>
+      <link>https://arendora.ru/blog/kak-upravlyat-10-kvartirami</link>
+      <guid>https://arendora.ru/blog/kak-upravlyat-10-kvartirami</guid>
+      <pubDate>Sun, 15 Nov 2026 12:00:00 +0000</pubDate>
+      <description>сколько времени уходит на портфель, что ломается на росте с 3 до 10 объектов и из каких контуров состоит система.</description>
     </item>
   </channel>
 </rss>
