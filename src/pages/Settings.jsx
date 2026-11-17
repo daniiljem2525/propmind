@@ -10,7 +10,6 @@ import {
   Palette,
   ShieldCheck,
   Sparkles,
-  AlertTriangle,
   User,
   UserPlus,
   Users,
@@ -113,7 +112,11 @@ function Segmented({ options, value, onChange }) {
 
 // ——— Тарифные планы ———
 
-// ——— Опасная зона: удаление учётной записи (/privacy п. 8.3, /terms п. 13) ———
+// ——— Кнопка удаления учётной записи (/privacy п. 8.3, /terms п. 13) ———
+// Голый фрагмент (кнопка + диалог через портал): рендерится третьей кнопкой
+// в ряду блока «Демо-данные» (владельцам) и отдельной строкой внизу страницы
+// (остальным пользователям облака). Карточка «Опасная зона» убрана — одна
+// разрушительная кнопка вместо карточки с заголовком.
 function DeleteAccountZone() {
   const { t } = useLang();
   const { deleteAccount } = useAuth();
@@ -140,19 +143,10 @@ function DeleteAccountZone() {
   };
 
   return (
-    <Card className="mt-6 border-destructive/40">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
-          <AlertTriangle className="h-4 w-4" />
-          {t("settings.dangerZone")}
-        </CardTitle>
-        <CardDescription>{t("settings.deleteAccountDesc")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button variant="destructive" onClick={() => setOpen(true)}>
-          {t("settings.deleteAccountBtn")}
-        </Button>
-      </CardContent>
+    <>
+      <Button variant="destructive" onClick={() => setOpen(true)}>
+        {t("settings.deleteAccountBtn")}
+      </Button>
 
       <Dialog
         open={open}
@@ -179,7 +173,7 @@ function DeleteAccountZone() {
           </Button>
         </div>
       </Dialog>
-    </Card>
+    </>
   );
 }
 
@@ -351,9 +345,10 @@ export default function Settings() {
               >
                 {t("settings.demoDelete")}
               </Button>
-              {/* «Удалить все данные» убрано: полное уничтожение данных
-                  доступно через «Удалить учётную запись» (Опасная зона ниже) —
-                  одна красная кнопка вместо двух путаных разрушительных. */}
+              {/* Третья кнопка — удаление учётной записи: полное уничтожение
+                  данных доступно только с аккаунтом, поэтому удаляем аккаунт,
+                  а не «все данные». Подтверждение словом «УДАЛИТЬ». */}
+              <DeleteAccountZone />
             </div>
           </CardContent>
         </Card>
@@ -477,8 +472,17 @@ export default function Settings() {
       {searchParams.get("debug") && <SwDiag />}
 
       {/* Право на удаление аккаунта — любому пользователю облака (/privacy п. 8.3).
-          В демо-режиме и без облака не показываем: удалять нечего/опасно. */}
-      {isSupabaseConfigured && user && !isDemoMode() && <DeleteAccountZone />}
+          Владельцы видят кнопку третьей в ряду блока «Демо-данные» (выше);
+          здесь — только для НЕ-владельцев (жильцы, исполнители), у которых
+          демо-блока нет. В демо-режиме и без облака не показываем. */}
+      {isSupabaseConfigured && user && !isDemoMode() && !isWorkspaceOwner && (
+        <div className="mt-8">
+          <p className="text-xs text-muted-foreground">{t("settings.deleteAccountDesc")}</p>
+          <div className="mt-3">
+            <DeleteAccountZone />
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={demoConfirm !== null}
