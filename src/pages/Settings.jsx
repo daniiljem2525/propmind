@@ -351,13 +351,9 @@ export default function Settings() {
               >
                 {t("settings.demoDelete")}
               </Button>
-              <Button
-                variant="destructive"
-                onClick={() => setDemoConfirm("clear")}
-                loading={demo.loading || demo.clearing}
-              >
-                {t("settings.demoClear")}
-              </Button>
+              {/* «Удалить все данные» убрано: полное уничтожение данных
+                  доступно через «Удалить учётную запись» (Опасная зона ниже) —
+                  одна красная кнопка вместо двух путаных разрушительных. */}
             </div>
           </CardContent>
         </Card>
@@ -492,28 +488,21 @@ export default function Settings() {
           setDemoConfirm(null);
           if (mode === "reset") demo.run({ reset: true });
           if (mode === "clearDemo") demo.clearDemo();
-          if (mode === "clear") demo.clear();
         }}
         title={
-          demoConfirm === "clear"
-            ? t("settings.demoClearConfirmTitle")
-            : demoConfirm === "clearDemo"
-              ? t("settings.demoDeleteConfirmTitle")
-              : t("settings.demoReloadConfirmTitle")
+          demoConfirm === "clearDemo"
+            ? t("settings.demoDeleteConfirmTitle")
+            : t("settings.demoReloadConfirmTitle")
         }
         description={
-          demoConfirm === "clear"
-            ? t("settings.demoClearConfirmDesc")
-            : demoConfirm === "clearDemo"
-              ? t("settings.demoDeleteConfirmDesc")
-              : t("settings.demoReloadConfirmDesc")
+          demoConfirm === "clearDemo"
+            ? t("settings.demoDeleteConfirmDesc")
+            : t("settings.demoReloadConfirmDesc")
         }
         confirmLabel={
-          demoConfirm === "clear"
-            ? t("common.delete")
-            : demoConfirm === "clearDemo"
-              ? t("settings.demoDelete")
-              : t("common.demoData")
+          demoConfirm === "clearDemo"
+            ? t("settings.demoDelete")
+            : t("common.demoData")
         }
       />
 
