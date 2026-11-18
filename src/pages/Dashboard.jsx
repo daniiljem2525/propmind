@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useCollection } from "@/hooks/useCollection";
 import { Property, Tenant, Payment, MaintenanceRequest } from "@/lib/api/entities";
 import { useLang } from "@/lib/i18n/LangContext";
+import { isDemoSeen } from "@/lib/demo";
 import { useDemoSeed } from "@/hooks/useDemoSeed";
 import { useToast } from "@/components/ui/toast";
 import { ConfirmDialog } from "@/components/ui/dialog";
@@ -81,11 +82,8 @@ export default function Dashboard() {
     .slice(0, 5);
 
   const isEmpty = properties.length === 0 && tenants.length === 0 && payments.length === 0 && requests.length === 0;
-  // Демо уже загружали или удаляли — больше не навязываем баннер
-  let demoSeen = false;
-  try {
-    demoSeen = localStorage.getItem("arendora:demoSeen") === "1";
-  } catch {}
+  // Демо уже загружали или удаляли (флаг — на аккаунт) — не навязываем баннер
+  const demoSeen = isDemoSeen();
 
   const handleRenew = async (p) => {
     setRenewingId(p.id);

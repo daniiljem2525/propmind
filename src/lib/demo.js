@@ -37,17 +37,31 @@ const photo = (seed) => {
 
 // «Демо уже показывали»: после первой загрузки/удаления демо баннер
 // на дашборде и кнопки демо в пустых состояниях больше не показываем.
+// Флаг хранится НА АККАУНТ, а не на браузер: новый аккаунт на том же
+// браузере должен снова увидеть предложение демо (в противном случае
+// один прогон демо в прошлом навсегда скрывал баннер всем новым
+// аккаунтам в этом браузере).
+function demoSeenKey() {
+  try {
+    const cached = JSON.parse(localStorage.getItem("arendora:user") || "null");
+    if (cached?.id) return `arendora:demoSeen:${cached.id}`;
+    const session = JSON.parse(localStorage.getItem("arendora:session") || "null");
+    if (session?.user_id) return `arendora:demoSeen:${session.user_id}`;
+  } catch {}
+  return "arendora:demoSeen";
+}
+
 export function isDemoSeen() {
   try {
-    return localStorage.getItem("arendora:demoSeen") === "1";
+    return localStorage.getItem(demoSeenKey()) === "1";
   } catch {
     return false;
   }
 }
 
-function markDemoSeen() {
+export function markDemoSeen() {
   try {
-    localStorage.setItem("arendora:demoSeen", "1");
+    localStorage.setItem(demoSeenKey(), "1");
   } catch {}
 }
 

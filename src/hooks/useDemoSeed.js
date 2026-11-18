@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { seedDemoData, clearAllData, clearDemoData } from "@/lib/demo";
+import { seedDemoData, clearAllData, clearDemoData, markDemoSeen } from "@/lib/demo";
 import { useLang } from "@/lib/i18n/LangContext";
 import { useToast } from "@/components/ui/toast";
 
@@ -8,14 +8,6 @@ export function useDemoSeed() {
   const toast = useToast();
   const [loading, setLoading] = useState(false);
   const [clearing, setClearing] = useState(false);
-
-  // «Демо уже показывали»: после первой загрузки/очистки баннер на дашборде
-  // больше не предлагаем — пользователь про демо знает.
-  const markDemoSeen = () => {
-    try {
-      localStorage.setItem("arendora:demoSeen", "1");
-    } catch {}
-  };
 
   const run = async ({ reset = false } = {}) => {
     setLoading(true);
