@@ -218,8 +218,17 @@ export default function OnboardingTour() {
       if (!step.center) {
         for (const target of step.targets) {
           const rect = document.querySelector(target.sel)?.getBoundingClientRect?.();
+          // Якорь должен быть виден целиком по обеим осям: на мобиле сайдбар
+          // спрятан translate-ом за левый край (rect.left < 0, но bottom/top
+          // в норме) — без горизонтальной проверки он ложно проходил.
           const visible =
-            rect && rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight;
+            rect &&
+            rect.width > 0 &&
+            rect.height > 0 &&
+            rect.bottom > 0 &&
+            rect.top < window.innerHeight &&
+            rect.right > 0 &&
+            rect.left < window.innerWidth;
           if (visible) {
             nextSpot = { rect, placement: target.placement };
             break;
@@ -314,14 +323,10 @@ export default function OnboardingTour() {
         initial={step.center ? { opacity: 0, scale: 0.96, y: "-50%" } : { opacity: 0, scale: 0.96, y: 8 }}
         animate={step.center ? { opacity: 1, scale: 1, y: "-50%" } : { opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.18 }}
-          className={cn(
-            tipClass,
-            "rounded-lg border bg-card shadow-xl",
-            !anchored && "absolute z-10"
-          )}
-          style={tipStyle || undefined}
-          role="dialog"
-          aria-label={step.title}
+        className={cn(tipClass, "rounded-lg border bg-card shadow-xl", !anchored && "absolute z-10")}
+        style={tipStyle || undefined}
+        role="dialog"
+        aria-label={step.title}
       >
         <div className="flex items-start gap-3 p-4">
           <span className="brand-gradient flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
