@@ -163,12 +163,14 @@ async function fetchYandex(accessToken: string): Promise<Profile> {
 }
 
 async function fetchVk(accessToken: string, clientId: string): Promise<Profile> {
-  const res = await fetch("https://id.vk.com/api/v2/userinfo", {
+  // VK ID сменил эндпоинт: id.vk.com/api/v2/userinfo мёртв (404),
+  // актуальный — POST id.vk.ru/oauth2/user_info (form-urlencoded)
+  const res = await fetch("https://id.vk.ru/oauth2/user_info", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ access_token: accessToken, client_id: clientId }),
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ client_id: clientId, access_token: accessToken }).toString(),
   });
-  if (!res.ok) throw new Error(`vk userinfo ${res.status}`);
+  if (!res.ok) throw new Error(`vk userinfo ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const d = await res.json();
   const u = d.user || {};
   const id = u.user_id || d.user_id;
