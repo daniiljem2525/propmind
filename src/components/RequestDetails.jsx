@@ -86,9 +86,11 @@ const OFFER_STATUS_LABEL = {
   hired: { ru: "Договорились", en: "Booked" },
 };
 
-function ProfiOfferRow({ offer, lang, onUpdate }) {
+function ProfiOfferRow({ offer, lang, onUpdate, onReply }) {
   const [time, setTime] = useState(offer.proposed_time || "");
   const [busy, setBusy] = useState(false);
+  const [reply, setReply] = useState("");
+  const [replying, setReplying] = useState(false);
   const cfg = OFFER_STATUS_LABEL[offer.status] || OFFER_STATUS_LABEL.new;
   const decided = offer.status !== "new";
 
@@ -98,6 +100,18 @@ function ProfiOfferRow({ offer, lang, onUpdate }) {
       await onUpdate(offer, status, time.trim());
     } finally {
       setBusy(false);
+    }
+  };
+
+  const sendReply = async () => {
+    const text = reply.trim();
+    if (!text) return;
+    setReplying(true);
+    try {
+      await onReply(offer, text);
+      setReply("");
+    } finally {
+      setReplying(false);
     }
   };
 
@@ -150,6 +164,37 @@ function ProfiOfferRow({ offer, lang, onUpdate }) {
           {lang === "ru" ? "Время: " : "Time: "}
           <span className="font-medium">{offer.scheduled_at}</span>
         </p>
+      )}
+
+      {/* Свободный ответ мастеру: встречные вопросы («какая марка?», «нужен
+          доступ к щитку?») бот не знает — передаём текст владельца в чат Профи */}
+      {offer.status !== "declined" && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendReply();
+          }}
+          className="mt-3 flex items-end gap-2"
+        >
+          <Field
+            label={lang === "ru" ? "Написать мастеру" : "Reply to master"}
+            className="flex-1"
+          >
+            <Textarea
+              value={reply}
+              onChange={(e) => setReply(e.target.value)}
+              rows={2}
+              placeholder={
+                lang === "ru"
+                  ? "Ответ на вопрос мастера — бот передаст в чат Профи"
+                  : "Bot will pass your reply to the Profi chat"
+              }
+            />
+          </Field>
+          <Button type="submit" size="icon" loading={replying} title={lang === "ru" ? "Отправить через бота" : "Send via bot"}>
+            <Send className="h-4 w-4" />
+          </Button>
+        </form>
       )}
     </div>
   );
@@ -208,6 +253,16 @@ export default function RequestDetails({ request, open, onClose }) {
       });
       setOffers((prev) => prev.map((o) => (o.id === offer.id ? updated || { ...o, status, scheduled_at: scheduledAt } : o)));
       toast.success(lang === "ru" ? "Отправим мастеру в чат Профи" : "The worker will reply in the Profi chat");
+    } catch {
+      toast.error(t("errors.generic"));
+    }
+  };
+
+  const replyOffer = async (offer, text) => {
+    try {
+      await ProfiOffer.update(offer.id, { custom_reply: text });
+      setOffers((prev) => prev.map((o) => (o.id === offer.id ? { ...o, custom_reply: text } : o)));
+      toast.success(lang === "ru" ? "Бот передаст ответ мастеру" : "The bot will pass your reply to the master");
     } catch {
       toast.error(t("errors.generic"));
     }
@@ -365,7 +420,10 @@ export default function RequestDetails({ request, open, onClose }) {
             <div className="space-y-2">
               {orders.map((o) => {
                 const cfg = ORDER_STATUS_LABEL[o.status] || ORDER_STATUS_LABEL.pending;
-                const cancellable = ["pending", "running", "sent"].includes(o.status);
+                // отменить заказ может владелец/управляющий; жилец только смотрит
+                const cancellable =
+                  ["pending", "running", "sent"].includes(o.status) &&
+                  ["owner", "manager", "admin"].includes(user?.role);
                 return (
                   <div key={o.id} className="flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-sm">
                     <span className="font-medium">{o.service_query}</span>
@@ -420,7 +478,7 @@ export default function RequestDetails({ request, open, onClose }) {
             </h4>
             <div className="space-y-3">
               {offers.map((o) => (
-                <ProfiOfferRow key={o.id} offer={o} lang={lang} onUpdate={updateOffer} />
+                <ProfiOfferRow key={o.id} offer={o} lang={lang} onUpdate={updateOffer} onReply={replyOffer} />
               ))}
             </div>
           </div>

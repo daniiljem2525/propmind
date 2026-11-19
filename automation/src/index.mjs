@@ -30,6 +30,9 @@ const OTHER_HINTS = [
   [/собрать|сборка мебель|разобрать шкаф/i, "сборка мебели"],
   [/повесить полк|картин|светильник|муж на час/i, "муж на час"],
   [/ремонт квартир|отделочн|поклейка обо/i, "ремонт квартир"],
+  // «ремонт домофонов» в каталоге Профи нет — wizard уводит не туда;
+  // ведём через проверенный «электрик»
+  [/домофон/i, "электрик"],
 ];
 
 function serviceFromRequest(req) {
@@ -61,6 +64,7 @@ function orderFromRequest(req) {
     address: null,
     budget: req.estimate_cost || null,
     deadline: URGENCY_TO_DEADLINE[req.urgency] || "week",
+    is_demo: !!req.is_demo,
   };
 }
 
@@ -73,6 +77,8 @@ async function autoEnqueue() {
     ]);
     const fresh = requests.filter((r) => !enqueued.has(r.id));
     for (const req of fresh) {
+      // демо-заявки в Профи не отправляем — это режим «посмотреть как работает»
+      if (req.is_demo) continue;
       await db.enqueueOrder(orderFromRequest(req));
       console.log(`[${stamp()}] в очередь добавлена заявка ${req.id} («${req.title}»)`);
     }
@@ -126,6 +132,19 @@ async function processQueue(slot, profileDir) {
 
   console.log(`[${stamp()}] слот ${slot}: обрабатываю заказ ${order.id} («${claimed.service_query}»)`);
   try {
+    // при авто-очереди заявка могла быть закрыта/отменена, пока заказ лежал
+    // в очереди — публиковать её не надо
+    if (claimed.request_id) {
+      const req = await db.getRequest(claimed.request_id);
+      if (req && ["cancelled", "done", "closed"].includes(req.status)) {
+        await db.updateOrder(order.id, {
+          status: "cancelled",
+          error: `Заявка закрыта (статус ${req.status}) — заказ не отправлялся`,
+        });
+        console.log(`[${stamp()}] заявка закрыта — заказ ${order.id} отменён без отправки`);
+        return false;
+      }
+    }
     claimed.address = await resolveAddress(claimed);
     const result = await createProfiOrder(claimed, { profileDir });
     if (!result.published) {
@@ -144,10 +163,21 @@ async function processQueue(slot, profileDir) {
       console.error(`[${stamp()}] публикация не подтвердилась, заказ ${order.id}`);
       return true;
     }
-    await db.updateOrder(order.id, { status: "sent", result_url: result.url });
+    // адрес, вычисленный по объекту заявки, сохраняем в БД: без него
+    // reactOffers не сможет сообщить мастеру адрес после согласования
+    await db.updateOrder(order.id, {
+      status: "sent",
+      result_url: result.url,
+      ...(claimed.address ? { address: claimed.address } : {}),
+    });
     console.log(`[${stamp()}] слот ${slot}: заказ отправлен: ${result.url}`);
   } catch (err) {
-    await db.updateOrder(order.id, { status: "failed", error: String(err.message || err) });
+    // журнал шагов — в БД: диагноз виден сразу из приложения
+    const steps = Array.isArray(err.log) && err.log.length ? `\n--- шаги ---\n${err.log.join("\n")}` : "";
+    await db.updateOrder(order.id, {
+      status: "failed",
+      error: `${String(err.message || err)}${steps}`.slice(0, 5000),
+    });
     console.error(`[${stamp()}] слот ${slot}: ошибка: ${err.message}`);
   }
   return true;
@@ -186,9 +216,24 @@ function ensureSlotProfiles() {
   }
 }
 
+// После падения воркера посреди заказа заказ остаётся в running и его никто
+// не подхватит: claimOrder берёт только pending. Возвращаем зависшие в очередь.
+async function requeueStaleRunning() {
+  try {
+    const stale = await db.staleRunningOrders();
+    for (const o of stale) {
+      await db.updateOrder(o.id, { status: "pending", error: null });
+      console.log(`[${stamp()}] заказ ${o.id} завис в running — возвращён в очередь`);
+    }
+  } catch (err) {
+    console.error(`[${stamp()}] requeue-stale: ${err.message}`);
+  }
+}
+
 async function main() {
   assertConfig();
   ensureSlotProfiles();
+  await requeueStaleRunning();
   console.log(`[${stamp()}] воркер запущен. Опрос каждые ${config.pollIntervalSec} сек.`);
   console.log(
     `Слотов: ${config.parallelSlots}; headless=${config.headless}; dry_run=${config.dryRun}; мониторинг чатов: раз в ${config.monitorIntervalSec} сек.`,
@@ -282,16 +327,23 @@ async function monitorOffers(profileDir = config.profileDir) {
     return;
   }
   const now = Date.now();
-  // статусы заявок одним запросом: чтобы не следить за закрытыми задачами
-  const reqStatuses = await db.requestStatuses(
+  // статусы и жильцы заявок одним запросом: чтобы не следить за закрытыми
+  // задачами и слать уведомления тому, к кому приедут
+  const reqMeta = await db.requestStatuses(
     sent.map((o) => o.request_id).filter(Boolean),
   );
+  // уведомления получают владелец и жилец заявки (если он есть)
+  const notifyTargets = (order) => {
+    const meta = order.request_id ? reqMeta.get(order.request_id) : null;
+    const ids = [order.owner_id, meta?.tenant_id].filter(Boolean);
+    return [...new Set(ids)];
+  };
   for (const order of sent) {
     if (now - (lastMonitored.get(order.id) || 0) < config.monitorIntervalSec * 1000) continue;
     lastMonitored.set(order.id, now);
     if (
       order.request_id &&
-      ["done", "closed", "cancelled"].includes(reqStatuses.get(order.request_id))
+      ["done", "closed", "cancelled"].includes(reqMeta.get(order.request_id)?.status)
     ) {
       if (!closedSkipped.has(order.id)) {
         closedSkipped.add(order.id);
@@ -369,13 +421,15 @@ async function monitorOffers(profileDir = config.profileDir) {
           status: "new",
           ...(isRepeat ? { intro_sent_at: new Date().toISOString() } : {}),
         });
-        await db.notify(order.owner_id, {
-          title: `Профи: отклик — ${chat.name}`,
-          message: proposed
-            ? `«${incomingRaw.slice(0, 160)}» · предложил время: ${proposed}`
-            : `«${incomingRaw.slice(0, 160)}»`,
-          relatedId: order.request_id,
-        });
+        for (const uid of notifyTargets(order)) {
+          await db.notify(uid, {
+            title: `Профи: отклик — ${chat.name}`,
+            message: proposed
+              ? `«${incomingRaw.slice(0, 160)}» · предложил время: ${proposed}`
+              : `«${incomingRaw.slice(0, 160)}»`,
+            relatedId: order.request_id,
+          });
+        }
         console.log(`[${stamp()}] новый отклик: ${chat.name} по заказу ${profiOrderId}`);
         const created = Array.isArray(createdOffer) ? createdOffer[0] : createdOffer;
         if (!isRepeat) await sendIntro(order, created, profileDir);
@@ -384,11 +438,13 @@ async function monitorOffers(profileDir = config.profileDir) {
           last_message: incomingText,
           proposed_time: proposed ?? prev.proposed_time,
         });
-        await db.notify(order.owner_id, {
-          title: `Профи: новое сообщение — ${chat.name}`,
-          message: incomingRaw.slice(0, 200),
-          relatedId: order.request_id,
-        });
+        for (const uid of notifyTargets(order)) {
+          await db.notify(uid, {
+            title: `Профи: новое сообщение — ${chat.name}`,
+            message: incomingRaw.slice(0, 200),
+            relatedId: order.request_id,
+          });
+        }
         console.log(`[${stamp()}] обновление чата: ${chat.name} по заказу ${profiOrderId}`);
         if (prev.status === "new" && !prev.intro_sent_at) {
           await sendIntro(order, prev, profileDir);
@@ -436,9 +492,26 @@ async function tryRepeatHire(order, profiOrderId, profileDir) {
   }
 }
 
-// Владелец решил (approved/countered/declined) → пишем мастеру в чат Профи.
+// Владелец решил (approved/countered/declined) или написал свой ответ
+// (custom_reply) → пишем мастеру в чат Профи.
 async function reactOffers(profileDir = config.profileDir) {
-  const offers = (await db.offersToReact()) || [];
+  let actions = [];
+  let replies = [];
+  try {
+    actions = (await db.offersToReact()) || [];
+  } catch (err) {
+    console.error(`[${stamp()}] offersToReact: ${err.message}`);
+  }
+  try {
+    replies = (await db.offersToReply()) || [];
+  } catch (err) {
+    console.error(`[${stamp()}] offersToReply: ${err.message}`);
+  }
+  // явный текст владельца приоритетнее шаблона на той же строке отклика
+  const seen = new Set();
+  const offers = [...replies, ...actions].filter((o) =>
+    seen.has(o.id) ? false : (seen.add(o.id), true),
+  );
   // один и тот же чат может числиться за несколькими строками откликов
   // (когда заказ отправляли дважды) — отвечаем только один раз
   const processedChats = new Set();
@@ -457,8 +530,10 @@ async function reactOffers(profileDir = config.profileDir) {
     }
     processedChats.add(offer.chat_id);
     const address = offer.automation_orders?.address || "";
-    const text =
-      offer.status === "approved"
+    const isCustomReply = !!offer.custom_reply;
+    const text = isCustomReply
+      ? offer.custom_reply
+      : offer.status === "approved"
         ? `Отлично, договарились! Ждём вас ${offer.scheduled_at || "в согласованное время"}.${address ? ` Адрес: ${address}.` : ""}`
         : offer.status === "countered"
           ? `К сожалению, такое время не подходит. Удобнее: ${offer.scheduled_at || "другое время"}. Подойдёт?`
@@ -477,9 +552,12 @@ async function reactOffers(profileDir = config.profileDir) {
       await db.updateOffer(offer.id, {
         replied_at: new Date().toISOString(),
         reply_text: text,
+        ...(isCustomReply ? { custom_reply: null } : {}),
         ...(offer.status === "approved" ? { status: "hired" } : {}),
       });
-      console.log(`[${stamp()}] ответ отправлен мастеру ${offer.master_name}: ${offer.status}`);
+      console.log(
+        `[${stamp()}] ответ отправлен мастеру ${offer.master_name}: ${isCustomReply ? "текст владельца" : offer.status}`,
+      );
     } catch (err) {
       console.error(`[${stamp()}] ответ мастеру ${offer.master_name}: ${err.message}`);
     }

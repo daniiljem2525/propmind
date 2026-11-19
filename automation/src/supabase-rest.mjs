@@ -86,9 +86,23 @@ export const db = {
     return (
       (await request("GET", "/maintenance_requests", {
         query: {
-          select: "id,owner_id,title,description,category,urgency,estimate_cost,property_name",
+          select: "id,owner_id,title,description,category,urgency,estimate_cost,property_name,is_demo",
           status: "eq.new",
           order: "created_date.asc",
+        },
+      })) || []
+    );
+  },
+
+  // Заказы, зависшие в running (процесс воркера умер посреди браузерного
+  // шага — systemd перезапустил, а захват не освободился)
+  async staleRunningOrders(olderThanMs = 10 * 60 * 1000) {
+    return (
+      (await request("GET", "/automation_orders", {
+        query: {
+          select: "id",
+          status: "eq.running",
+          updated_at: `lt.${new Date(Date.now() - olderThanMs).toISOString()}`,
         },
       })) || []
     );
@@ -114,14 +128,14 @@ export const db = {
     return rows[0] || null;
   },
 
-  // Статусы заявок одним запросом: Map id → status
+  // Метаданные заявок одним запросом: Map id → { status, tenant_id }
   async requestStatuses(ids) {
     if (!ids.length) return new Map();
     const rows =
       (await request("GET", "/maintenance_requests", {
-        query: { select: "id,status", id: `in.(${ids.join(",")})` },
+        query: { select: "id,status,tenant_id", id: `in.(${ids.join(",")})` },
       })) || [];
-    return new Map(rows.map((r) => [r.id, r.status]));
+    return new Map(rows.map((r) => [r.id, r]));
   },
 
   async getProperty(id) {
@@ -156,6 +170,18 @@ export const db = {
       query: {
         select: "*, automation_orders(address)",
         status: "in.(approved,countered,declined)",
+        replied_at: "is.null",
+      },
+    });
+  },
+
+  // Свободные ответы владельца мастеру (поле «Написать мастеру»): любой
+  // статус, ещё не отправленные ботом
+  offersToReply() {
+    return request("GET", "/profi_offers", {
+      query: {
+        select: "*, automation_orders(address)",
+        custom_reply: "not.is.null",
         replied_at: "is.null",
       },
     });

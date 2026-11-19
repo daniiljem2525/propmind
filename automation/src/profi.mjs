@@ -35,20 +35,45 @@ async function clickButton(page, text) {
 
 // Клик по текстовому элементу-варианту (радио/чекбокс). Текст может быть
 // обёрнут иначе, чем в снимке состояния, поэтому сначала точное совпадение,
-// потом вхождение подстроки.
+// потом вхождение подстроки. Радио/чекбоксы Профи — span[role=…] с вложенным
+// <input>: такой контейнер не «листовой», поэтому пробуем и сам элемент роли
+// (текст снимка обрезан до 80 символов — сравнение двустороннее).
 async function clickOption(page, text) {
   return page.evaluate((t) => {
     const norm = (s) => (s || "").replace(/\s+/g, " ").trim().toLowerCase();
     const target = norm(t);
+    // 1. элементы роли: кликаем сам контейнер — обработчик Профи на нём
+    const roleEls = [...document.querySelectorAll('[role="radio"],[role="checkbox"]')].filter(
+      (e) => e.offsetParent !== null,
+    );
+    let hit = roleEls.find((e) => norm(e.textContent) === target);
+    if (!hit) {
+      hit = roleEls.find(
+        (e) =>
+          target.length >= 8 &&
+          (norm(e.textContent).includes(target) || target.includes(norm(e.textContent))),
+      );
+    }
+    if (hit) {
+      hit.click();
+      const input = hit.querySelector("input");
+      if (input && !input.checked) input.click();
+      return true;
+    }
+    // 2. листовые текстовые элементы (старое поведение)
     const els = [...document.querySelectorAll("span,div,label,p")].filter(
       (e) => e.childElementCount === 0 && e.offsetParent !== null,
     );
-    let hit = els.find((e) => norm(e.textContent) === target);
-    if (!hit && target.length >= 8) {
-      hit = els.find((e) => norm(e.textContent).includes(target));
+    let leaf = els.find((e) => norm(e.textContent) === target);
+    if (!leaf && target.length >= 8) {
+      leaf = els.find(
+        (e) =>
+          norm(e.textContent).includes(target) ||
+          (norm(e.textContent).length >= 8 && target.includes(norm(e.textContent))),
+      );
     }
-    if (!hit) return false;
-    hit.click();
+    if (!leaf) return false;
+    leaf.click();
     return true;
   }, text);
 }
@@ -131,8 +156,14 @@ async function handleStep(page, order, log) {
     );
   }
 
-  // 1. Первый шаг: услуга
-  const serviceInput = await textboxByRole(page, /Услуга или специалист/);
+  // 1. Первый шаг: услуга (accessible name бывает не у всех вариантов мастера —
+  //    дублируем поиск по placeholder)
+  const serviceByPlaceholder = page
+    .getByPlaceholder(/Услуга или специалист/)
+    .locator("visible=true");
+  const serviceInput =
+    (await textboxByRole(page, /Услуга или специалист/)) ||
+    ((await serviceByPlaceholder.count()) > 0 ? serviceByPlaceholder.first() : null);
   if (serviceInput) {
     await serviceInput.fill(order.service_query || "мастер на час");
     await page.waitForTimeout(1500);
@@ -375,6 +406,31 @@ async function handleStep(page, order, log) {
     return "continue";
   }
 
+  // 6в. Одиночное числовое поле без вариантов (например «Высота потолков, м»,
+  //     placeholder «0 м») — без заполнения «Продолжить» не пропустит дальше.
+  //     Нечисловые поля не трогаем: их разбирают остальные правила.
+  if (st.textboxes.length > 0) {
+    const filled = await page.evaluate(() => {
+      const target = [...document.querySelectorAll("input")].find(
+        (i) =>
+          i.offsetParent !== null &&
+          !i.value.trim() &&
+          !["hidden", "checkbox", "radio", "tel", "email", "password", "search", "button", "submit"].includes(i.type) &&
+          (i.inputMode === "numeric" || /^\d+\s*\S{0,3}$/.test(i.placeholder || "")),
+      );
+      if (!target) return false;
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+      setter.call(target, "3");
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      return true;
+    });
+    if (filled) {
+      await page.waitForTimeout(400);
+      await clickButton(page, "Продолжить");
+      return "continue";
+    }
+  }
+
   // 6б. Кнопка финальной отправки в любом другом месте мастера
   if (st.buttons.includes("Подобрать специалистов")) {
     if (config.dryRun) {
@@ -588,7 +644,7 @@ export async function listChats(profiOrderId, profileDir) {
   return withPage(async (page) => {
     await page.goto(orderPageUrl(profiOrderId), { waitUntil: "domcontentloaded", timeout: 60000 });
     await page.waitForTimeout(5000);
-    return page.evaluate(() =>
+    const chats = await page.evaluate(() =>
       [...document.querySelectorAll('a[class*="ReplyContent_replyItem"]')]
         .map((a) => {
           const chatId = new URLSearchParams(a.getAttribute("href") || "").get("chatId");
@@ -598,6 +654,17 @@ export async function listChats(profiOrderId, profileDir) {
         })
         .filter((c) => c.chatId && c.name),
     );
+    // Контракт воркера: { cancelled, chats }. Задачу отменили/удалили на
+    // Профи — на странице нет чата и есть явный текст об отсутствии задачи.
+    // Маркер консервативный: живой заказ без откликов чат-виджет имеет,
+    // поэтому слежка не гасится по ошибке. Текст маркера сверить на живой
+    // отменённой задаче — если Профи формулирует иначе, дополнить regex.
+    const cancelled = await page.evaluate(() => {
+      if (document.querySelector('[data-testid="order_chat_widget"]')) return false;
+      const text = document.body.innerText || "";
+      return /задача (не найдена|удалена|отменена)|объявление (не найдено|удалено)/i.test(text);
+    });
+    return { cancelled, chats };
   }, profileDir);
 }
 

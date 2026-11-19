@@ -9,7 +9,8 @@ WorkingDirectory=/opt/arendora/automation
 EnvironmentFile=/opt/arendora/worker.env
 # npm может отсутствовать в PATH у systemd
 Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/usr/bin/npm start
+# Node 20 ставится тарболлом в /usr/local (deb.nodesource.com с сервера недоступен)
+ExecStart=/usr/local/bin/npm start
 Restart=always
 RestartSec=30
 # Chromium прожорлив: не даём воркеру залить весь сервер
