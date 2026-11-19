@@ -3,8 +3,8 @@
      править руками не нужно. Новая статья попадает сюда сама — по
      front-matter date из content/blog/. Домен пишется сразу. -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://arendora.ru/</loc><lastmod>2026-11-18</lastmod></url>
-  <url><loc>https://arendora.ru/blog</loc><lastmod>2026-11-18</lastmod></url>
+  <url><loc>https://arendora.ru/</loc><lastmod>2026-11-19</lastmod></url>
+  <url><loc>https://arendora.ru/blog</loc><lastmod>2026-11-19</lastmod></url>
   <url><loc>https://arendora.ru/register</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://arendora.ru/tariffs</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://arendora.ru/terms</loc><lastmod>2026-11-07</lastmod></url>
@@ -15,6 +15,7 @@
   <url><loc>https://arendora.ru/usepolicy</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://arendora.ru/cookies</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://arendora.ru/blog/akt-priema-peredachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/arenda-ili-ipoteka-chto-vygodnee</loc><lastmod>2026-11-18</lastmod></url>
   <url><loc>https://arendora.ru/blog/arendora-vs-google-tablicy</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>https://arendora.ru/blog/avtomatizaciya-sdachi-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>https://arendora.ru/blog/chto-delat-esli-kvartirant-ne-platit</loc><lastmod>2026-10-25</lastmod></url>
@@ -31,23 +32,28 @@
   <url><loc>https://arendora.ru/blog/kto-platit-kommunalku-pri-sdache-kvartiry</loc><lastmod>2026-11-03</lastmod></url>
   <url><loc>https://arendora.ru/blog/kvartirant-ne-sezzhaet</loc><lastmod>2026-11-11</lastmod></url>
   <url><loc>https://arendora.ru/blog/luchshie-servisy-dlya-arendodateley-2026</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/mozhno-li-sdat-dolyu-kvartiry</loc><lastmod>2026-11-17</lastmod></url>
   <url><loc>https://arendora.ru/blog/mozhno-li-sdat-ipotechnuyu-kvartiru</loc><lastmod>2026-11-05</lastmod></url>
   <url><loc>https://arendora.ru/blog/nalogi-so-sdachi-kvartiry</loc><lastmod>2026-10-25</lastmod></url>
   <url><loc>https://arendora.ru/blog/naym-ili-arenda-raznica</loc><lastmod>2026-11-01</lastmod></url>
   <url><loc>https://arendora.ru/blog/obrazec-dogovora-naima-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>https://arendora.ru/blog/opis-imushchestva-pri-sdache</loc><lastmod>2026-11-15</lastmod></url>
   <url><loc>https://arendora.ru/blog/posutochno-ili-dolgosrok</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/poverka-schetchikov-pri-sdache</loc><lastmod>2026-11-19</lastmod></url>
   <url><loc>https://arendora.ru/blog/prilozhenie-dlya-arendodatelya</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>https://arendora.ru/blog/programma-dlya-upravleniya-arendoy</loc><lastmod>2026-10-17</lastmod></url>
   <url><loc>https://arendora.ru/blog/raspiska-za-arendu-obrazec</loc><lastmod>2026-11-06</lastmod></url>
   <url><loc>https://arendora.ru/blog/remont-bez-vladeltsa</loc><lastmod>2026-11-09</lastmod></url>
   <url><loc>https://arendora.ru/blog/samozanyatost-podvodnye-kamni</loc><lastmod>2026-11-08</lastmod></url>
   <url><loc>https://arendora.ru/blog/samozanyatost-sdacha-kvartiry</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/sdat-kvartiru-inostrancu</loc><lastmod>2026-11-16</lastmod></url>
+  <url><loc>https://arendora.ru/blog/sdat-kvartiru-iz-drugogo-goroda</loc><lastmod>2026-11-17</lastmod></url>
   <url><loc>https://arendora.ru/blog/sdat-kvartiru-v-arendu-cheklist</loc><lastmod>2026-10-24</lastmod></url>
   <url><loc>https://arendora.ru/blog/servisy-upravleniya-arendoy-nedvizhimostyu</loc><lastmod>2026-10-29</lastmod></url>
   <url><loc>https://arendora.ru/blog/shtraf-za-sdachu-bez-nalogov</loc><lastmod>2026-11-12</lastmod></url>
   <url><loc>https://arendora.ru/blog/skolko-brat-zalog-kvartiry</loc><lastmod>2026-11-13</lastmod></url>
   <url><loc>https://arendora.ru/blog/sosed-zhaluetsya-na-kvartiranta</loc><lastmod>2026-10-29</lastmod></url>
+  <url><loc>https://arendora.ru/blog/strahovanie-kvartiry-pri-sdache</loc><lastmod>2026-11-16</lastmod></url>
   <url><loc>https://arendora.ru/blog/uchet-arendy-v-excel</loc><lastmod>2026-11-07</lastmod></url>
   <url><loc>https://arendora.ru/blog/uchet-neskolkih-obektov-nedvizhimosti</loc><lastmod>2026-11-12</lastmod></url>
   <url><loc>https://arendora.ru/blog/uvedomlenie-o-vyezde-zhiltsa</loc><lastmod>2026-11-16</lastmod></url>

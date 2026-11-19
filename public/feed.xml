@@ -7,7 +7,7 @@
     <atom:link href="https://arendora.ru/feed.xml" rel="self" type="application/rss+xml"/>
     <description>Как сдавать квартиру спокойно: жильцы, платежи, договоры, налоги и сервисы для арендодателей. Обновляется 2026-11-03.</description>
     <language>ru</language>
-    <lastBuildDate>Sun, 15 Nov 2026 19:35:50 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 19 Nov 2026 18:49:11 +0000</lastBuildDate>
     
     <item>
       <title>Уведомление о выезде жильца: образец и порядок вручения</title>
@@ -316,6 +316,48 @@
       <guid>https://arendora.ru/blog/raspiska-za-arendu-obrazec</guid>
       <pubDate>Thu, 05 Nov 2026 12:00:00 +0000</pubDate>
       <description>Расписка за аренду квартиры: 7 обязательных реквизитов, готовый образец для наличных платежей, ошибки, из-за которых расписка не работает.</description>
+    </item>
+    <item>
+      <title>Сдача квартиры иностранному гражданину</title>
+      <link>https://arendora.ru/blog/sdat-kvartiru-inostrancu</link>
+      <guid>https://arendora.ru/blog/sdat-kvartiru-inostrancu</guid>
+      <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+      <description>ст. 18.9 КоАП, 322.2/322.3 УК, реестр контролируемых лиц (260-ФЗ), документы, налоги и риски.</description>
+    </item>
+    <item>
+      <title>Страхование квартиры при сдаче в аренду</title>
+      <link>https://arendora.ru/blog/strahovanie-kvartiry-pri-sdache</link>
+      <guid>https://arendora.ru/blog/strahovanie-kvartiry-pri-sdache</guid>
+      <pubDate>Mon, 16 Nov 2026 12:00:00 +0000</pubDate>
+      <description>что покрывает полис, сколько стоит, когда страховка обязательна и как её оформить.</description>
+    </item>
+    <item>
+      <title>Как сдавать квартиру из другого города</title>
+      <link>https://arendora.ru/blog/sdat-kvartiru-iz-drugogo-goroda</link>
+      <guid>https://arendora.ru/blog/sdat-kvartiru-iz-drugogo-goroda</guid>
+      <pubDate>Tue, 17 Nov 2026 12:00:00 +0000</pubDate>
+      <description>доверенность, дистанционные показы и приёмка, инструменты контроля и снижение рисков.</description>
+    </item>
+    <item>
+      <title>Можно ли сдавать долю квартиры</title>
+      <link>https://arendora.ru/blog/mozhno-li-sdat-dolyu-kvartiry</link>
+      <guid>https://arendora.ru/blog/mozhno-li-sdat-dolyu-kvartiry</guid>
+      <pubDate>Tue, 17 Nov 2026 12:00:00 +0000</pubDate>
+      <description>согласие сособственников, позиция Верховного суда (04.2025), варианты оформления.</description>
+    </item>
+    <item>
+      <title>Аренда или ипотека: что выгоднее</title>
+      <link>https://arendora.ru/blog/arenda-ili-ipoteka-chto-vygodnee</link>
+      <guid>https://arendora.ru/blog/arenda-ili-ipoteka-chto-vygodnee</guid>
+      <pubDate>Wed, 18 Nov 2026 12:00:00 +0000</pubDate>
+      <description>расчёт на цифрах 2026 года: ставка, платёж против аренды, когда что выбирать.</description>
+    </item>
+    <item>
+      <title>Поверка счётчиков при сдаче квартиры</title>
+      <link>https://arendora.ru/blog/poverka-schetchikov-pri-sdache</link>
+      <guid>https://arendora.ru/blog/poverka-schetchikov-pri-sdache</guid>
+      <pubDate>Thu, 19 Nov 2026 12:00:00 +0000</pubDate>
+      <description>сроки поверки, коэффициент ХВС 3,0 с 01.01.2026, кто платит и что проверить в договоре.</description>
     </item>
   </channel>
 </rss>
