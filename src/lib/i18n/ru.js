@@ -25,6 +25,7 @@ export const ru = {
   "nav.blog": "Блог",
   "nav.plan": "Тариф",
   "nav.settings": "Настройки",
+  "nav.repeatTour": "Повторное обучение",
   "header.demoMode": "Демо-режим",
   "header.demoModeHint": "Вы в демо-режиме: видны только демо-данные, реальные скрыты. Выключить — в настройках.",
   "nav.notifications": "Уведомления",

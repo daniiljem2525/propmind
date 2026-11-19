@@ -5,6 +5,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ClipboardList,
+  Compass,
   CreditCard,
   FileText,
   Globe,
@@ -21,6 +22,7 @@ import { useLang } from "@/lib/i18n/LangContext";
 import { useAuth } from "@/lib/authContext";
 import { hasAccess } from "@/lib/config/statuses";
 import { FEATURES } from "@/lib/config/misc";
+import { START_EVENT } from "@/components/OnboardingTour";
 
 // Роли → страницы: матрица ROLE_ACCESS в config/statuses.js (единственный
 // источник прав: сайдбар, RoleRoute, Header). legacy-роли ("user", undefined)
@@ -105,8 +107,22 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
           ))}
         </nav>
 
-        {/* Подвал: язык + сворачивание */}
+        {/* Подвал: повторное обучение + язык + сворачивание */}
         <div className="space-y-1 border-t p-2.5">
+          {/* Повторное обучение: мини-обзор доступен из любого раздела —
+              событие ловит OnboardingTour (смонтирован в AppLayout) */}
+          <button
+            onClick={() => window.dispatchEvent(new Event(START_EVENT))}
+            title={t("nav.repeatTour")}
+            className={cn(
+              "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              collapsed && "lg:justify-center lg:px-0"
+            )}
+          >
+            <Compass className="h-[18px] w-[18px] shrink-0" />
+            {!collapsed && <span>{t("nav.repeatTour")}</span>}
+          </button>
+
           <button
             onClick={() => setLang(lang === "ru" ? "en" : "ru")}
             title={t("common.language")}

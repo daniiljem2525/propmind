@@ -27,6 +27,7 @@ export const en = {
   "nav.blog": "Blog",
   "nav.plan": "Plan",
   "nav.settings": "Settings",
+  "nav.repeatTour": "Replay tour",
   "header.demoMode": "Demo mode",
   "header.demoModeHint": "You are in demo mode: only demo data is visible, real data is hidden. Turn it off in settings.",
   "nav.notifications": "Notifications",
