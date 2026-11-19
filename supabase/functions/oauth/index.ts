@@ -290,7 +290,9 @@ async function handleStart(req: Request, url: URL) {
       client_id: conf.clientId,
       redirect_uri: callbackUrl(provider),
       state,
-      device_id: payload.d as string,
+      // device_id НЕ передаём: VK ID генерирует свой и возвращает его
+      // в redirect payload вместе с code — его и используем при обмене
+      // (клиентский UUID даёт "invalid device id provided")
       scope,
       code_challenge: vkChallenge,
       code_challenge_method: "S256",
@@ -362,7 +364,7 @@ async function handleCallback(req: Request, url: URL) {
           client_id: conf.clientId,
           client_secret: conf.clientSecret,
           redirect_uri: callbackUrl(provider),
-          device_id: payload.d,
+          device_id: url.searchParams.get("device_id") || (payload.d as string) || "",
           state,
           code_verifier: payload.v || "",
         }),
