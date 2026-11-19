@@ -367,9 +367,12 @@ async function handleCallback(req: Request, url: URL) {
           code_verifier: payload.v || "",
         }),
       });
-      if (!res.ok) throw new Error(`vk token ${res.status}: ${(await res.text()).slice(0, 200)}`);
-      accessToken = (await res.json()).access_token;
-      if (!accessToken) throw new Error("vk: нет access_token");
+      const vkBody = await res.text();
+      if (!res.ok) throw new Error(`vk token ${res.status}: ${vkBody.slice(0, 200)}`);
+      let vkJson: Record<string, unknown> = {};
+      try { vkJson = JSON.parse(vkBody); } catch { vkJson = { raw: vkBody.slice(0, 200) }; }
+      accessToken = (vkJson.access_token as string) || "";
+      if (!accessToken) throw new Error(`vk: нет access_token — VK ответил: ${vkBody.slice(0, 200)}`);
     } else {
       // Mail.ru (VK ID): OAuth 2.1 — базовая аутентификация приложения и
       // обязательный code_verifier из state (PKCE)
