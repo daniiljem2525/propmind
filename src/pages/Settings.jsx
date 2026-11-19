@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Bell,
   Check,
+  Compass,
   Eye,
   EyeOff,
   CreditCard,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import PushCard from "@/components/PushCard";
+import { START_EVENT as ONBOARDING_START_EVENT } from "@/components/OnboardingTour";
 import UsersPanel from "@/components/UsersPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -387,6 +389,21 @@ export default function Settings() {
                   { value: "dark", label: t("common.dark") },
                 ]}
               />
+            </div>
+            {/* Повтор мини-обзора: подсказки первого входа можно посмотреть
+                в любой момент — флаг «показан» сбрасывается на выходе тура */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium">{t("settings.tourTitle")}</p>
+                <p className="text-xs text-muted-foreground">{t("settings.tourText")}</p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => window.dispatchEvent(new Event(ONBOARDING_START_EVENT))}
+              >
+                <Compass className="h-4 w-4" />
+                {t("settings.tourReplay")}
+              </Button>
             </div>
           </CardContent>
         </Card>

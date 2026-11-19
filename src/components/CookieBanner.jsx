@@ -36,6 +36,7 @@ export default function CookieBanner() {
       role="dialog"
       aria-live="polite"
       aria-label={t("cookie.title")}
+      data-cookie-banner
       className="fixed inset-x-0 bottom-0 z-50 border-t bg-card/95 p-4 shadow-lg backdrop-blur"
     >
       <div className="mx-auto flex max-w-4xl flex-col items-start gap-3 sm:flex-row sm:items-center">

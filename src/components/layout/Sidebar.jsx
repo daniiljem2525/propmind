@@ -82,7 +82,7 @@ export default function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onClo
         </div>
 
         {/* Навигация */}
-        <nav className="scrollbar-thin flex-1 space-y-1 overflow-y-auto px-2.5 py-3">
+        <nav data-tour="sidebar-nav" className="scrollbar-thin flex-1 space-y-1 overflow-y-auto px-2.5 py-3">
           {items.map((item) => (
             <NavLink
               key={item.to}

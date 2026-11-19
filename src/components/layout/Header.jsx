@@ -121,6 +121,7 @@ export default function Header({ onOpenMobile }) {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur lg:pr-8">
       <button
         onClick={onOpenMobile}
+        data-tour="mobile-menu-btn"
         className="rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
       >
         <Menu className="h-5 w-5" />
@@ -200,7 +201,7 @@ export default function Header({ onOpenMobile }) {
 
         {/* Быстрое создание */}
         {QUICK_CREATE.length > 0 && (
-        <div ref={quickRef} className="relative">
+        <div ref={quickRef} data-tour="quick-create" className="relative">
           <button
             onClick={() => setQuickOpen((v) => !v)}
             title={t("common.add")}
@@ -262,7 +263,7 @@ export default function Header({ onOpenMobile }) {
         </button>
 
         {/* Профиль */}
-        <div ref={menuRef} className="relative">
+        <div ref={menuRef} data-tour="profile" className="relative">
           <button
             onClick={() => setMenuOpen((v) => !v)}
             className="flex items-center gap-2 rounded-full p-0.5 transition-colors hover:ring-2 hover:ring-ring"
